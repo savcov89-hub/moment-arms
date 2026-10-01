@@ -555,18 +555,27 @@ function buildDeadlift(t,p,load){
   const bx1=mf+.02, eEnd=-.01-bx1, kneeTopY=A.ah+A.shank;
   const SyTop=kneeTopY+Math.sqrt((.998*(A.thigh+A.trunk))**2-(bx1+eEnd)**2);
   const yTop=SyTop-Math.sqrt(armS*armS-eEnd*eEnd);
-  const bx=mf+.02*smooth(.6,1,s), by=lerp(y0,yTop,s), eps=lerp(.03,eEnd,smooth(.3,1,s));
-  const S=v2(bx+eps,by+Math.sqrt(armS*armS-eps*eps));
-  const contact=clamp(Math.atan2(bx-rbar-rshin,by-A.ah),0,35*D);
-  const thsh=contact*(1-smooth(kneeTopY-.12,kneeTopY+.02,by));
-  const knee=add(ankle,mul(dirA(thsh),A.shank));
-  const hip=ik2(knee,S,A.thigh,A.trunk,perpL(sub(S,knee)));
-  const pose=basePose({ankle,knee,hip,S,footDir:v2(1,0),sole:v2(0,-1)});
-  const B=V(bx,by,0);
-  setArms(pose,V(bx,by,g),V(bx,by,-g),V(-.2,0,1));
-  pose.forces.push({seg:'load',p:B,F:V(0,-load*G,0),mass:load});
-  pose.line={p:B,d:V(0,-1,0)}; pose.F=load*G; pose.eq={bar:B};
-  addBody(pose); topDownJoints(pose,['ankle','knee','hip','L5']); pose.sideKg=load/2; pose.fric={kind:'static'};
+  const by=lerp(y0,yTop,s), eps=lerp(.03,eEnd,smooth(.3,1,s));
+  // dx — сдвиг грифа (а с ним и всей позы) вперёд-назад от середины стопы.
+  // Подбирается так, чтобы общий центр масс тела и штанги стоял над серединой стопы:
+  // с лёгкой штангой гриф уходит чуть вперёд, с тяжёлой — почти точно над серединой стопы.
+  const mk=dx=>{
+    const bx=mf+.02*smooth(.6,1,s)+dx;
+    const S=v2(bx+eps,by+Math.sqrt(armS*armS-eps*eps));
+    const contact=clamp(Math.atan2(bx-rbar-rshin,by-A.ah),0,35*D);
+    const thsh=contact*(1-smooth(kneeTopY-.12,kneeTopY+.02,by));
+    const knee=add(ankle,mul(dirA(thsh),A.shank));
+    const hip=ik2(knee,S,A.thigh,A.trunk,perpL(sub(S,knee)));
+    const pose=basePose({ankle,knee,hip,S,footDir:v2(1,0),sole:v2(0,-1)});
+    const B=V(bx,by,0);
+    setArms(pose,V(bx,by,g),V(bx,by,-g),V(-.2,0,1));
+    pose.forces.push({seg:'load',p:B,F:V(0,-load*G,0),mass:load});
+    pose.line={p:B,d:V(0,-1,0)}; pose.F=load*G; pose.eq={bar:B};
+    addBody(pose); return pose;
+  };
+  const pose=solveBalance(mk,-.08,.2,mf);
+  if(pose.flag)pose.flag='dl';
+  topDownJoints(pose,['ankle','knee','hip','L5']); pose.sideKg=load/2; pose.fric={kind:'static'};
   return pose;
 }
 /* ---------- Румынская ---------- */
@@ -823,7 +832,7 @@ const EX={
             ...FRIC('floor')],
     desc:'Корпус наклоняется ровно настолько, чтобы общий центр масс остался над серединой стопы.'},
   deadlift:{name:'Становая тяга',eq:'штанга',group:0,loadLabel:'Вес штанги',def:140,min:20,max:350,step:2.5,equip:'barbell',build:buildDeadlift,params:[],
-    desc:'Гриф идёт вертикально над серединой стопы, руки прямые, голени касаются грифа в старте.'},
+    desc:'Общий центр масс тела и штанги держится над серединой стопы: с тяжёлым весом гриф идёт почти над ней, с лёгким — чуть впереди. Руки прямые, голени касаются грифа в старте.'},
   rdl:{name:'Румынская тяга',eq:'штанга',group:0,loadLabel:'Вес штанги',def:80,min:20,max:250,step:2.5,equip:'barbell',build:buildRDL,
     params:[{id:'tilt',label:'Наклон корпуса в нижней точке',type:'range',min:40,max:95,step:1,unit:'°',def:75},
             {id:'knee',label:'Сгибание коленей',type:'range',min:3,max:35,step:1,unit:'°',def:18},
@@ -1500,7 +1509,7 @@ function frame(){
   // контакты: конусы трения и стрелки реакции
   const cts=(state.show.force&&pose.contacts)||[];
   CARR.forEach((o,i)=>{const c=cts[i];if(!c){setArrow(o,null,null,false);return;}const d=c.push.clone().normalize();setArrow(o,c.p.clone().addScaledVector(d,.3),d,true,C.muted);});
-  const w=$('#warn'); if(!pose.flag&&pose.note){w.hidden=false;w.textContent=pose.note;} else if(pose.flag){w.hidden=false;w.textContent=pose.flag==='pad'?'При такой опоре стопы тело отрывается от подушки: равновесие возможно только если держаться руками.':pose.flag==='lift'?'Одна из опор отрывается: при такой постановке равновесие невозможно.':pose.flag==='slipBridge'?'Трения не хватает: стопы или спина проскользнут. Измените постановку стоп или режим трения.':pose.flag==='slip'?'Реакции платформы нужно трение больше μ — стопы соскользнут. Смените точку опоры или вынос стоп.':pose.flag==='front'?'Центр масс не удаётся удержать над серединой стопы: даже при максимальном наклоне он позади. Поза на пределе баланса.':'Центр масс впереди середины стопы даже при вертикальном корпусе. Поза на пределе баланса.';} else w.hidden=true;
+  const w=$('#warn'); if(!pose.flag&&pose.note){w.hidden=false;w.textContent=pose.note;} else if(pose.flag){w.hidden=false;w.textContent=pose.flag==='pad'?'При такой опоре стопы тело отрывается от подушки: равновесие возможно только если держаться руками.':pose.flag==='lift'?'Одна из опор отрывается: при такой постановке равновесие невозможно.':pose.flag==='slipBridge'?'Трения не хватает: стопы или спина проскользнут. Измените постановку стоп или режим трения.':pose.flag==='slip'?'Реакции платформы нужно трение больше μ — стопы соскользнут. Смените точку опоры или вынос стоп.':pose.flag==='dl'?'Центр масс не удаётся удержать над серединой стопы: гриф ушёл на предел вперёд или назад. Поза на пределе баланса.':pose.flag==='front'?'Центр масс не удаётся удержать над серединой стопы: даже при максимальном наклоне он позади. Поза на пределе баланса.':'Центр масс впереди середины стопы даже при вертикальном корпусе. Поза на пределе баланса.';} else w.hidden=true;
   drawMarker();
 }
 function updateTags(){
