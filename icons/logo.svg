@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="116" fill="#14181A"/>
+  <!-- сегмент тела (рычаг) от сустава к точке приложения силы -->
+  <line x1="148" y1="318" x2="346" y2="128" stroke="#9AA3A7" stroke-width="40" stroke-linecap="round"/>
+  <!-- линия действия силы -->
+  <line x1="362" y1="76" x2="362" y2="360" stroke="#FAFBF9" stroke-width="28" stroke-linecap="round"/>
+  <path d="M314 350 L410 350 L362 442 Z" fill="#FAFBF9" stroke="#FAFBF9" stroke-width="12" stroke-linejoin="round"/>
+  <!-- отметка прямого угла -->
+  <path d="M362 280 H324 V318" fill="none" stroke="#FAFBF9" stroke-width="10" stroke-linejoin="round" opacity=".6"/>
+  <!-- плечо силы -->
+  <line x1="148" y1="318" x2="362" y2="318" stroke="#eb6834" stroke-width="30" stroke-linecap="round"/>
+  <!-- сустав -->
+  <circle cx="148" cy="318" r="56" fill="#eb6834"/>
+  <circle cx="148" cy="318" r="22" fill="#14181A"/>
+</svg>
