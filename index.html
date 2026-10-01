@@ -1523,7 +1523,9 @@ function updateTags(){
 
 /* ---- размер ---- */
 let started=false;
-function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(1,h);camera.updateProjectionMatrix();chartDirty=true;if(started&&!userMoved)fitView(currentView,false);}
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(1,h);camera.updateProjectionMatrix();chartDirty=true;if(started&&!userMoved)fitView(currentView,false);
+  /* setSize очищает canvas — перерисовываем сразу, иначе при сжатии сцены на телефоне мелькает пустой кадр */
+  if(started){controls.update();renderer.render(scene,camera);updateTags();}}
 new ResizeObserver(resize).observe(stage);
 new ResizeObserver(()=>{chartDirty=true;}).observe(svg);
 
