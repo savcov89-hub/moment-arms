@@ -173,17 +173,12 @@ html{overflow-anchor:none}
 }
 @media (max-width:760px){
   .app{display:flex;flex-direction:column;height:auto}
-  /* телефон: 3D прилипает к верху экрана и при прокрутке уменьшается, освобождая место под бегунки */
-  .stage{order:1;grid-row:auto;align-self:stretch;position:sticky;top:env(safe-area-inset-top,0px);height:62vh;min-height:0;z-index:6;box-shadow:0 1px 0 var(--line),0 6px 16px rgba(0,0,0,.08)}
+  /* телефон: 3D прилипает к верху экрана с постоянной высотой, под ней листаются бегунки.
+     svh не меняется, когда браузер прячет адресную строку, — холст WebGL не пересоздаётся при прокрутке */
+  .stage{order:1;grid-row:auto;align-self:stretch;position:sticky;top:env(safe-area-inset-top,0px);height:55vh;height:55svh;min-height:300px;z-index:6;box-shadow:0 1px 0 var(--line),0 6px 16px rgba(0,0,0,.08)}
   .top{order:0}
   .left{order:2;border-right:0;border-top:1px solid var(--line)}
   .right{order:3;border-right:0;border-top:1px solid var(--line)}
-  .stage.compact .hud-title p,.stage.compact .views,.stage.compact .toggles,.stage.compact .scrub-labels{display:none}
-  .stage.compact .hud-top{top:8px}
-  .stage.compact .hud-title h2{font-size:14px}
-  .stage.compact .hud-bottom{bottom:8px;padding:5px 10px}
-  .stage.compact .play{width:30px;height:30px}
-  .stage.compact .warn{display:none}
   .views button{padding:5px 7px}
   .hud-title p{display:none}
   .warn{top:auto;bottom:118px}
@@ -1178,8 +1173,7 @@ function placeTag(el,p,off){
   const v=p.clone().project(camera);
   if(v.z>1||v.z<-1){el.style.visibility='hidden';return null;}
   const w=stage.clientWidth,h=stage.clientHeight;
-  const [sx,sy]=toStage((v.x*.5+.5)*VIEW.W,(-v.y*.5+.5)*VIEW.H);
-  let x=sx+off[0], y=sy+off[1];
+  let x=(v.x*.5+.5)*w+off[0], y=(-v.y*.5+.5)*h+off[1];
   const bw=el.offsetWidth||80, bh=el.offsetHeight||22;
   if(off[0]<0)x-=bw;
   x=clamp(x,6,w-bw-6); y=clamp(y-10,6,h-30);
@@ -1317,10 +1311,9 @@ function freeRect(){
 const VIEWDIR={side:V(0,.06,1),front:V(1,.1,0),q34:V(.48,.24,.85),top:V(.02,1,.04)};
 function fitView(name,animate=true){
   currentView=name; userMoved=false; document.querySelectorAll('.views button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===name));
-  const W=VIEW.W, H=VIEW.H; if(W<10||H<10)return;
+  const W=stage.clientWidth, H=stage.clientHeight; if(W<10||H<10)return;
   const pts=fitPoints(), c=new THREE.Box3().setFromPoints(pts).getCenter(V(0,0,0));
-  const dir=VIEWDIR[name].clone().normalize(), cam=camera.clone(), fr=freeRect();
-  const [rx0,ry0]=toCanvas(fr.x0,fr.y0), [rx1,ry1]=toCanvas(fr.x1,fr.y1), rect={x0:rx0,y0:ry0,x1:rx1,y1:ry1};
+  const dir=VIEWDIR[name].clone().normalize(), cam=camera.clone(), rect=freeRect();
   cam.aspect=W/H; cam.updateProjectionMatrix();
   let d=4;
   for(let it=0;it<8;it++){
@@ -1524,51 +1517,12 @@ function updateTags(){
 }
 
 /* ---- размер ---- */
-/* VIEW — логический размер холста WebGL и его CSS-масштаб внутри .stage.
-   На телефоне при прокрутке .stage сжимается, но буфер WebGL не пересоздаётся (на iOS это даёт пустые кадры):
-   холст держит постоянный размер и только масштабируется через transform. */
-const VIEW={W:1,H:1,k:1};
-const toStage=(x,y)=>[(x-VIEW.W/2)*VIEW.k+stage.clientWidth/2,y*VIEW.k];
-const toCanvas=(x,y)=>[(x-stage.clientWidth/2)/VIEW.k+VIEW.W/2,y/VIEW.k];
 let started=false;
-const mqMobile=matchMedia('(max-width:760px)'); let stageRAF=0;
-const fixedCanvas=()=>mqMobile.matches&&stage._max>0;
-function applyScale(){
-  VIEW.k=fixedCanvas()?stage.clientHeight/VIEW.H:1;
-  canvas.style.transform=fixedCanvas()?`translateX(-50%) scale(${VIEW.k})`:'';
-}
-function resize(){
-  const w=stage.clientWidth;
-  let W=w,H=stage.clientHeight;
-  if(fixedCanvas()){H=stage._max;W=Math.round(w*stage._max/stage._min);}
-  if(W===VIEW.W&&H===VIEW.H){applyScale();if(started)updateTags();return;}
-  VIEW.W=W;VIEW.H=H;
-  if(fixedCanvas())Object.assign(canvas.style,{inset:'auto',left:'50%',top:'0',width:W+'px',height:H+'px',transformOrigin:'50% 0'});
-  else Object.assign(canvas.style,{inset:'',left:'',top:'',width:'',height:'',transformOrigin:''});
-  applyScale();
-  renderer.setSize(W,H,false);camera.aspect=W/Math.max(1,H);camera.updateProjectionMatrix();chartDirty=true;
-  if(started&&!userMoved)fitView(currentView,false);
-  if(started){controls.update();renderer.render(scene,camera);updateTags();}
-}
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(1,h);camera.updateProjectionMatrix();chartDirty=true;if(started&&!userMoved)fitView(currentView,false);
+  /* setSize очищает canvas — перерисовываем сразу, иначе при сжатии сцены на телефоне мелькает пустой кадр */
+  if(started){controls.update();renderer.render(scene,camera);updateTags();}}
 new ResizeObserver(resize).observe(stage);
 new ResizeObserver(()=>{chartDirty=true;}).observe(svg);
-
-/* ---- телефон: 3D закреплена и сжимается при прокрутке ---- */
-function stageFit(){
-  stageRAF=0;
-  if(!mqMobile.matches){if(stage._h){stage.style.height='';stage._h=0;stage._max=0;resize();}stage.classList.remove('compact');return;}
-  const vh=innerHeight, max=Math.round(Math.max(360,vh*.62)), min=Math.round(Math.max(230,vh*.36));
-  const s=Math.max(0,scrollY-document.querySelector('.top').offsetHeight);
-  const h=Math.round(clamp(max-s,min,max));
-  const sizeChanged=stage._max!==max||stage._min!==min;
-  stage._max=max;stage._min=min;
-  if(stage._h!==h){stage.style.height=h+'px';stage._h=h;}
-  stage.classList.toggle('compact',h<max-30);
-  if(sizeChanged)resize(); else {applyScale();if(started)updateTags();}
-}
-const queueStageFit=()=>{if(!stageRAF)stageRAF=requestAnimationFrame(stageFit);};
-addEventListener('scroll',queueStageFit,{passive:true}); addEventListener('resize',queueStageFit);
-stageFit();
 
 /* ---- цикл ---- */
 let last=performance.now(), sampleTimer=0;
