@@ -987,6 +987,19 @@ MAT.shortsCut={L:MAT.shorts.clone(),R:MAT.shorts.clone()};
 const cutPlane={L:new THREE.Plane(),R:new THREE.Plane()};
 for(const s of ['L','R'])MAT.shortsCut[s].clippingPlanes=[cutPlane[s]];
 const BLOB=new THREE.SphereGeometry(1,30,20);
+// Грудная клетка с вылепленными грудными мышцами — одна гладкая поверхность, без стыков.
+// x — вперёд, y — вверх, z — вбок (единичная сфера, потом масштаб полуосями грудной клетки).
+// Грудная: от грудины до подмышки; сверху плавно сходит на нет к ключице,
+// снизу — чёткий край, который поднимается к подмышке.
+const CHEST_GEO=(()=>{const g=new THREE.SphereGeometry(1,160,128),p=g.attributes.position,ss=THREE.MathUtils.smoothstep;
+  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),az=Math.abs(z);
+    if(x<=0)continue;
+    const yl=.03+.75*az*az*az;                              // нижний край: почти горизонтальный, у подмышки уходит вверх
+    const h=.24*ss(az,.04,.22)*(1-ss(az,.8,1))              // грудина … подмышка
+             *ss(y-yl,0,.085)*Math.pow(1-ss(y,yl+.1,1),1.1)   // чёткий низ, мягкий верх
+             *ss(x,.15,.6);                                 // только спереди
+    p.setX(i,x+h);}
+  g.computeVertexNormals(); return g;})();
 function taper(rt,rb){return new THREE.CylinderGeometry(rt,rb,1,22,1);}
 function segM(geo,mat){const m=new THREE.Mesh(geo,mat||MAT.body);m.castShadow=true;m.receiveShadow=true;bodyG.add(m);return m;}
 function placeTaper(m,a,b){const d=b.clone().sub(a),L=d.length()||1e-4;m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(Y,d.clone().divideScalar(-L));m.scale.set(1,L,1);}
@@ -996,8 +1009,7 @@ const MUS={
     ['glute',-.04,-.072,.07,.078,.1,.08,0,'shorts',1],
     ['waist',.3,.02,0,.098,.17,.132],
     ['oblique',.33,.03,.085,.075,.13,.06,-8,0,1],
-    ['ribs',.66,.025,0,.112,.2,.155],
-    ['pec',.79,.078,.066,.042,.066,.1,-12,0,1],
+    ['ribs',.66,.025,0,.112,.2,.155,0,0,0,'chest'],
     ['abs',.26,.098,.031,.02,.038,.027,0,0,1],['abs',.36,.1,.032,.02,.038,.028,0,0,1],['abs',.46,.1,.033,.02,.038,.029,0,0,1],
     ['lat',.62,-.03,.125,.068,.18,.07,18,0,1],
     ['erector',.3,-.07,.035,.035,.2,.032,0,0,1],
@@ -1008,7 +1020,7 @@ const MUS={
   thigh:[['rectus',.45,.034,0,.06,.19,.058],['vlat',.52,.006,.036,.053,.18,.05],['vmed',.8,.024,-.028,.045,.075,.042],['hams',.5,-.032,0,.06,.18,.058],['add',.25,0,-.032,.058,.13,.048]],
   shin:[['gastM',.3,-.036,-.012,.045,.11,.036],['gastL',.28,-.033,.015,.04,.1,.032],['tib',.33,.015,.017,.025,.12,.025]]
 };
-function blob(mat,spec){const m=new THREE.Mesh(BLOB,mat);m.castShadow=true;m.receiveShadow=true;m.userData.spec=spec;bodyG.add(m);return m;}
+function blob(mat,spec){const m=new THREE.Mesh(spec&&spec[10]==='chest'?CHEST_GEO:BLOB,mat);m.castShadow=true;m.receiveShadow=true;m.userData.spec=spec;bodyG.add(m);return m;}
 const BODY={musc:{}}, _m4=new THREE.Matrix4();
 // мышцы сегмента; для бедра — копии чуть крупнее в материале шорт, обрезанные по краю шорт
 function buildMuscles(key,side){
