@@ -534,8 +534,11 @@ function squatFrontal(pose,p,load,t){
   const P=pose.P, zh=A.hw/2, zf=Math.max(zh,p.stance/200), toe=15*D;
   for(const [s,k] of [['L',1],['R',-1]]){
     const hp=P['hip'+s], an=P['ankle'+s], kn=P['knee'+s];
-    const fr=clamp((hp.y-kn.y)/Math.max(.05,hp.y-an.y),0,1);
-    let zk=lerp(zh,zf,fr); if(p.knees==='valgus') zk-=.075*smooth(0,1,t);
+    // прямая нога — колено на линии таз→голеностоп; согнутая — колено над стопой, по направлению носка
+    const fr=clamp((hp.y-kn.y)/Math.max(.05,hp.y-an.y),0,1), zs=lerp(zh,zf,fr);
+    const zo=zf+Math.max(0,kn.x-an.x)*Math.tan(toe);
+    const flex=Math.PI-inclAngle(hp,kn,an);
+    let zk=lerp(zs,zo,smooth(5*D,35*D,flex)); if(p.knees==='valgus') zk-=.075*smooth(0,1,t);
     kn.z=k*zk; an.z=k*zf;
     for(const q of [P['heel'+s],P['toe'+s]]){const dx=q.x-an.x; q.x=an.x+dx*Math.cos(toe); q.z=k*(zf+dx*Math.sin(toe));}
   }
