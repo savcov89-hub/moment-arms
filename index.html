@@ -1016,7 +1016,7 @@ const MUS={
     ['abs',.26,.098,.031,.02,.038,.027,0,0,1],['abs',.36,.1,.032,.02,.038,.028,0,0,1],['abs',.46,.1,.033,.02,.038,.029,0,0,1],
     ['lat',.62,-.03,.125,.068,.18,.07,18,0,1],
     ['erector',.3,-.07,.035,.035,.2,.032,0,0,1],
-    ['trap',1.05,-.032,0,.055,.09,.13]
+    ['trap',1.0,-.034,0,.055,.07,.13]
   ],
   ua:[['delt',.1,0,.012,.06,.09,.062],['biceps',.52,.022,0,.037,.105,.036],['triceps',.45,-.023,-.003,.04,.12,.04]],
   fa:[['flexors',.22,.006,.006,.038,.095,.039]],
@@ -1059,8 +1059,15 @@ BODY.head=blob(MAT.body); BODY.nose=blob(MAT.body);
 // Формат: nv, nt (uint32); min, max (float32×3); вершины int16×3 (квантованы в min…max); UV uint16×2;
 // нормали int8×3; цвет вершин uint8×3 (множитель к текстуре); треугольники uint16×3.
 // Локальные оси скана: x — вперёд, y — вверх, z — вбок; начало — центр головы.
-MAT.headScan=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.7});
-BODY.scan=null; BODY.neckScan=segM(taper(.062,.048)); BODY.neckScan.visible=false; // шея под головой-сканом: тоньше и сзади подбородка
+MAT.headScan=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.7,side:THREE.DoubleSide}); // снизу шея открыта — изнутри не просвечивает фон
+// низ шеи скана плавно переходит в цвет манекена (атрибут fade: 0 — скан, 1 — цвет тела)
+MAT.headScan.userData.body={value:new THREE.Color()};
+MAT.headScan.onBeforeCompile=sh=>{
+  sh.uniforms.uBody=MAT.headScan.userData.body;
+  sh.vertexShader='attribute float fade;\nvarying float vFade;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvFade=fade;');
+  sh.fragmentShader='uniform vec3 uBody;\nvarying float vFade;\n'+sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb=mix(diffuseColor.rgb,uBody,vFade);');
+};
+BODY.scan=null; BODY.neckScan=segM(taper(.064,.056)); BODY.neckScan.visible=false; // шея под головой-сканом: тоньше и сзади подбородка
 Promise.all([
   fetch('assets/head2.bin').then(r=>r.ok?r.arrayBuffer():Promise.reject(r.status)),
   new Promise((res,rej)=>new THREE.TextureLoader().load('assets/head2.jpg',res,undefined,rej))
@@ -1070,8 +1077,9 @@ Promise.all([
   const pos=new Float32Array(nv*3), uv=new Float32Array(nv*2), nr=new Float32Array(nv*3);
   for(let i=0;i<nv*3;i++){const k=i%3;pos[i]=mm[k]+(q[i]+32768)/65535*(mm[k+3]-mm[k]);nr[i]=nq[i]/127;}
   for(let i=0;i<nv*2;i++)uv[i]=uq[i]/65535;
+  const fade=new Float32Array(nv); for(let i=0;i<nv;i++){const t=clamp((-.137-pos[i*3+1])/.025,0,1);fade[i]=t*t*(3-2*t);}
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
-  g.setAttribute('normal',new THREE.BufferAttribute(nr,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3,true)); g.setIndex(new THREE.BufferAttribute(idx,1));
+  g.setAttribute('normal',new THREE.BufferAttribute(nr,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3,true)); g.setAttribute('fade',new THREE.BufferAttribute(fade,1)); g.setIndex(new THREE.BufferAttribute(idx,1));
   tex.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy()); MAT.headScan.map=tex; MAT.headScan.needsUpdate=true;
   const m=new THREE.Mesh(g,MAT.headScan); m.castShadow=true; m.receiveShadow=true; bodyG.add(m);
   BODY.scan=m; BODY.head.visible=BODY.nose.visible=BODY.neck.visible=false; BODY.neckScan.visible=true; dirty=true;
@@ -1318,7 +1326,7 @@ function readTheme(){
   const cs=getComputedStyle(document.documentElement);const g=k=>cs.getPropertyValue(k).trim();
   C={scene:g('--scene'),floor:g('--floor'),grid:g('--grid'),body:g('--body'),shorts:g('--shorts'),equip:g('--equip'),pad:g('--pad'),metal:g('--metal'),force:g('--force'),ink:g('--ink'),muted:g('--muted'),line:g('--line'),line2:g('--line-2'),panel:g('--panel')};
   for(const k in JVAR)C[k]=g(JVAR[k]);
-  scene.background=new THREE.Color(C.scene); MAT.floor.color.set(C.floor); MAT.body.color.set(C.body); for(const mt of [MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R])mt.color.set(C.shorts); MAT.frame.color.set(C.equip); MAT.pad.color.set(C.pad); MAT.metal.color.set(C.metal);
+  scene.background=new THREE.Color(C.scene); MAT.floor.color.set(C.floor); MAT.body.color.set(C.body); MAT.headScan.userData.body.value.set(C.body); for(const mt of [MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R])mt.color.set(C.shorts); MAT.frame.color.set(C.equip); MAT.pad.color.set(C.pad); MAT.metal.color.set(C.metal);
   grid.material.color.set(C.grid);
   for(const k in JS) JS[k].material.color.set(C.body); L5m.material.color.set(C.body);
   dirty=true; chartDirty=true;
