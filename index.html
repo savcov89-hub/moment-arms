@@ -1019,7 +1019,7 @@ const MUS={
     ['abs',.26,.098,.031,.02,.038,.027,0,'shirt',1],['abs',.36,.1,.032,.02,.038,.028,0,'shirt',1],['abs',.46,.1,.033,.02,.038,.029,0,'shirt',1],
     ['lat',.62,-.03,.125,.068,.18,.07,18,'shirt',1],
     ['erector',.3,-.07,.035,.035,.2,.032,0,'shirt',1],
-    ['trap',1.0,-.034,0,.055,.07,.13]
+    ['trap',1.0,-.034,0,.055,.085,.13]
   ],
   ua:[['delt',.1,0,.012,.06,.09,.062],['biceps',.52,.022,0,.037,.105,.036],['triceps',.45,-.023,-.003,.04,.12,.04]],
   fa:[['flexors',.22,.006,.006,.038,.095,.039]],
@@ -1071,7 +1071,7 @@ MAT.headScan.onBeforeCompile=sh=>{
   sh.vertexShader='attribute float fade;\nvarying float vFade;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvFade=fade;');
   sh.fragmentShader='uniform vec3 uBody;\nvarying float vFade;\n'+sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb=mix(diffuseColor.rgb,uBody,vFade);');
 };
-BODY.scan=null;
+BODY.scan=null; const SCAN_DROP=.032; // голову-скан ставим ниже точки P.head манекена — шея не длиннее настоящей
 
 Promise.all([
   fetch('assets/head2.bin').then(r=>r.ok?r.arrayBuffer():Promise.reject(r.status)),
@@ -1133,7 +1133,8 @@ function updateBody(pose){
   const z=f.clone().cross(u);
   BODY.head.position.copy(P.head); BODY.head.quaternion.setFromRotationMatrix(_m4.makeBasis(f,u,z)); BODY.head.scale.set(.1,.118,.088);
   BODY.nose.position.copy(P.head).addScaledVector(f,.096).addScaledVector(u,-.01); BODY.nose.quaternion.copy(BODY.head.quaternion); BODY.nose.scale.set(.02,.03,.016);
-  if(BODY.scan){BODY.scan.position.copy(P.head); BODY.scan.quaternion.copy(BODY.head.quaternion);}
+  // голова-скан чуть ниже P.head — только картинка, центр масс головы в расчётах остаётся в P.head
+  if(BODY.scan){BODY.scan.position.copy(P.head).addScaledVector(u,-SCAN_DROP); BODY.scan.quaternion.copy(BODY.head.quaternion);}
   L5m.position.copy(P.L5);
 }
 
