@@ -16,7 +16,7 @@
 :root{
   --bg:#E9ECEA; --panel:#FAFBF9; --panel-2:#F1F3F0; --ink:#14181A; --ink-2:#394146; --muted:#626C71;
   --line:#D6DBD8; --line-2:#C2C9C5; --scene:#E3E7E4; --floor:#D3D9D5; --grid:#B9C1BD;
-  --body:#AFB8B5; --shorts:#353D42; --equip:#4B555A; --pad:#2A3034; --metal:#9AA3A7;
+  --body:#C29478; --shorts:#353D42; --shirt:#6E7B83; --equip:#4B555A; --pad:#2A3034; --metal:#9AA3A7;
   --j-ankle:#1baf7a; --j-knee:#eda100; --j-hip:#2a78d6; --j-lumbar:#eb6834; --j-shoulder:#2a78d6; --j-elbow:#1baf7a;
   --force:#14181A; --hud:rgba(250,251,249,.86); --shadow:0 1px 2px rgba(20,24,26,.06),0 6px 20px rgba(20,24,26,.07);
   --ui:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -28,7 +28,7 @@
     color-scheme:dark;
     --bg:#0E1113; --panel:#161A1C; --panel-2:#1C2124; --ink:#ECEFEE; --ink-2:#C6CDCB; --muted:#939CA0;
     --line:#282E32; --line-2:#363E43; --scene:#121517; --floor:#1A1F22; --grid:#2C3438;
-    --body:#66737A; --shorts:#23292C; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
+    --body:#C29478; --shorts:#23292C; --shirt:#56626A; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
     --j-ankle:#199e70; --j-knee:#c98500; --j-hip:#3987e5; --j-lumbar:#d95926; --j-shoulder:#3987e5; --j-elbow:#199e70;
     --force:#F2F4F3; --hud:rgba(22,26,28,.84); --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
   }
@@ -37,7 +37,7 @@
   color-scheme:dark;
   --bg:#0E1113; --panel:#161A1C; --panel-2:#1C2124; --ink:#ECEFEE; --ink-2:#C6CDCB; --muted:#939CA0;
   --line:#282E32; --line-2:#363E43; --scene:#121517; --floor:#1A1F22; --grid:#2C3438;
-  --body:#66737A; --shorts:#23292C; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
+  --body:#C29478; --shorts:#23292C; --shirt:#56626A; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
   --j-ankle:#199e70; --j-knee:#c98500; --j-hip:#3987e5; --j-lumbar:#d95926; --j-shoulder:#3987e5; --j-elbow:#199e70;
   --force:#F2F4F3; --hud:rgba(22,26,28,.84); --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
 }
@@ -987,6 +987,9 @@ MAT.body.roughness=.62;
 MAT.shorts=std(0x30373b,.88);
 const SHORTS_T=.4; // шорты закрывают бедро на эту долю длины
 MAT.shortsCut={L:MAT.shorts.clone(),R:MAT.shorts.clone()};
+MAT.shirt=std(0x6e7b83,.9);                       // майка
+MAT.shirtCut=MAT.shirt.clone(); const neckPlane=new THREE.Plane(), neckSideA=new THREE.Plane(), neckSideB=new THREE.Plane();
+MAT.shirtCut.clippingPlanes=[neckPlane,neckSideA,neckSideB]; MAT.shirtCut.clipIntersection=true; // грудь майки с U-образным вырезом между лямками
 const cutPlane={L:new THREE.Plane(),R:new THREE.Plane()};
 for(const s of ['L','R'])MAT.shortsCut[s].clippingPlanes=[cutPlane[s]];
 const BLOB=new THREE.SphereGeometry(1,30,20);
@@ -1010,12 +1013,12 @@ const MUS={
   torso:[ // от середины таза к середине плеч
     ['pelvis',.02,-.005,0,.1,.115,.158,0,'shorts'],
     ['glute',-.04,-.072,.07,.078,.1,.08,0,'shorts',1],
-    ['waist',.3,.02,0,.098,.17,.132],
-    ['oblique',.33,.03,.085,.075,.13,.06,-8,0,1],
-    ['ribs',.66,.025,0,.112,.2,.155,0,0,0,'chest'],
-    ['abs',.26,.098,.031,.02,.038,.027,0,0,1],['abs',.36,.1,.032,.02,.038,.028,0,0,1],['abs',.46,.1,.033,.02,.038,.029,0,0,1],
-    ['lat',.62,-.03,.125,.068,.18,.07,18,0,1],
-    ['erector',.3,-.07,.035,.035,.2,.032,0,0,1],
+    ['waist',.3,.02,0,.098,.17,.132,0,'shirt'],
+    ['oblique',.33,.03,.085,.075,.13,.06,-8,'shirt',1],
+    ['ribs',.66,.025,0,.112,.2,.155,0,'shirtCut',0,'chest'],
+    ['abs',.26,.098,.031,.02,.038,.027,0,'shirt',1],['abs',.36,.1,.032,.02,.038,.028,0,'shirt',1],['abs',.46,.1,.033,.02,.038,.029,0,'shirt',1],
+    ['lat',.62,-.03,.125,.068,.18,.07,18,'shirt',1],
+    ['erector',.3,-.07,.035,.035,.2,.032,0,'shirt',1],
     ['trap',1.0,-.034,0,.055,.07,.13]
   ],
   ua:[['delt',.1,0,.012,.06,.09,.062],['biceps',.52,.022,0,.037,.105,.036],['triceps',.45,-.023,-.003,.04,.12,.04]],
@@ -1029,8 +1032,9 @@ const BODY={musc:{}}, _m4=new THREE.Matrix4();
 function buildMuscles(key,side){
   const list=[];
   for(const sp of MUS[key]){
-    const pair=sp[9], mat=sp[8]==='shorts'?MAT.shorts:MAT.body;
+    const pair=sp[9], mat=sp[8]?MAT[sp[8]]:MAT.body;
     for(const sg of pair?[1,-1]:[1])list.push({m:blob(mat,sp),sg,k:1});
+    if(sp[8]==='shirtCut')list.push({m:blob(MAT.body,sp),sg:1,k:.99}); // кожа в вырезе майки
     if(key==='thigh'&&sp[1]-sp[5]/.44<SHORTS_T)list.push({m:blob(MAT.shortsCut[side],sp),sg:1,k:1.045});
   }
   return list;
@@ -1067,7 +1071,8 @@ MAT.headScan.onBeforeCompile=sh=>{
   sh.vertexShader='attribute float fade;\nvarying float vFade;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvFade=fade;');
   sh.fragmentShader='uniform vec3 uBody;\nvarying float vFade;\n'+sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb=mix(diffuseColor.rgb,uBody,vFade);');
 };
-BODY.scan=null; BODY.neckScan=segM(taper(.064,.056)); BODY.neckScan.visible=false; // шея под головой-сканом: тоньше и сзади подбородка
+BODY.scan=null;
+
 Promise.all([
   fetch('assets/head2.bin').then(r=>r.ok?r.arrayBuffer():Promise.reject(r.status)),
   new Promise((res,rej)=>new THREE.TextureLoader().load('assets/head2.jpg',res,undefined,rej))
@@ -1077,12 +1082,12 @@ Promise.all([
   const pos=new Float32Array(nv*3), uv=new Float32Array(nv*2), nr=new Float32Array(nv*3);
   for(let i=0;i<nv*3;i++){const k=i%3;pos[i]=mm[k]+(q[i]+32768)/65535*(mm[k+3]-mm[k]);nr[i]=nq[i]/127;}
   for(let i=0;i<nv*2;i++)uv[i]=uq[i]/65535;
-  const fade=new Float32Array(nv); for(let i=0;i<nv;i++){const t=clamp((-.137-pos[i*3+1])/.025,0,1);fade[i]=t*t*(3-2*t);}
+  const fade=new Float32Array(nv); for(let i=0;i<nv;i++){const t=clamp((-.118-pos[i*3+1])/.032,0,1);fade[i]=t*t*(3-2*t);}
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
   g.setAttribute('normal',new THREE.BufferAttribute(nr,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3,true)); g.setAttribute('fade',new THREE.BufferAttribute(fade,1)); g.setIndex(new THREE.BufferAttribute(idx,1));
   tex.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy()); MAT.headScan.map=tex; MAT.headScan.needsUpdate=true;
   const m=new THREE.Mesh(g,MAT.headScan); m.castShadow=true; m.receiveShadow=true; bodyG.add(m);
-  BODY.scan=m; BODY.head.visible=BODY.nose.visible=BODY.neck.visible=false; BODY.neckScan.visible=true; dirty=true;
+  BODY.scan=m; BODY.head.visible=BODY.nose.visible=BODY.neck.visible=false; // шея — часть скана, продлена до плеч dirty=true;
 }).catch(()=>{});
 const JS={}; // шарниры
 const jointList=[['ankle',.042],['knee',.055],['hip',.05],['sh',.045],['el',.042],['ha',.036]];
@@ -1119,12 +1124,16 @@ function updateBody(pose){
   }
   const T=P.shMid.distanceTo(P.hipMid);
   placeMuscles(BODY.musc.torso,P.hipMid,f,u,T,null);
+  { // вырез майки: спереди-сверху (≈7 см ниже линии плеч, спину не задевает) и уже книзу; по бокам остаются лямки
+    const zd=f.clone().cross(u).normalize();
+    neckPlane.setFromNormalAndCoplanarPoint(f.clone().multiplyScalar(-.57).addScaledVector(u,-.82),P.shMid.clone().addScaledVector(f,.012));
+    neckSideA.setFromNormalAndCoplanarPoint(zd.clone().addScaledVector(u,-.55).normalize(),P.shMid.clone().addScaledVector(zd,.085));
+    neckSideB.setFromNormalAndCoplanarPoint(zd.clone().negate().addScaledVector(u,-.55).normalize(),P.shMid.clone().addScaledVector(zd,-.085));}
   placeTaper(BODY.neck,P.shMid.clone().addScaledVector(u,.02),P.head.clone().addScaledVector(u,-.07));
   const z=f.clone().cross(u);
   BODY.head.position.copy(P.head); BODY.head.quaternion.setFromRotationMatrix(_m4.makeBasis(f,u,z)); BODY.head.scale.set(.1,.118,.088);
   BODY.nose.position.copy(P.head).addScaledVector(f,.096).addScaledVector(u,-.01); BODY.nose.quaternion.copy(BODY.head.quaternion); BODY.nose.scale.set(.02,.03,.016);
-  if(BODY.scan){BODY.scan.position.copy(P.head); BODY.scan.quaternion.copy(BODY.head.quaternion);
-    placeTaper(BODY.neckScan,P.shMid.clone().addScaledVector(u,.02).addScaledVector(f,-.02),P.head.clone().addScaledVector(u,-.14).addScaledVector(f,-.035));}
+  if(BODY.scan){BODY.scan.position.copy(P.head); BODY.scan.quaternion.copy(BODY.head.quaternion);}
   L5m.position.copy(P.L5);
 }
 
@@ -1324,9 +1333,9 @@ function applyTags(list){
 let C={};
 function readTheme(){
   const cs=getComputedStyle(document.documentElement);const g=k=>cs.getPropertyValue(k).trim();
-  C={scene:g('--scene'),floor:g('--floor'),grid:g('--grid'),body:g('--body'),shorts:g('--shorts'),equip:g('--equip'),pad:g('--pad'),metal:g('--metal'),force:g('--force'),ink:g('--ink'),muted:g('--muted'),line:g('--line'),line2:g('--line-2'),panel:g('--panel')};
+  C={scene:g('--scene'),floor:g('--floor'),grid:g('--grid'),body:g('--body'),shorts:g('--shorts'),shirt:g('--shirt'),equip:g('--equip'),pad:g('--pad'),metal:g('--metal'),force:g('--force'),ink:g('--ink'),muted:g('--muted'),line:g('--line'),line2:g('--line-2'),panel:g('--panel')};
   for(const k in JVAR)C[k]=g(JVAR[k]);
-  scene.background=new THREE.Color(C.scene); MAT.floor.color.set(C.floor); MAT.body.color.set(C.body); MAT.headScan.userData.body.value.set(C.body); for(const mt of [MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R])mt.color.set(C.shorts); MAT.frame.color.set(C.equip); MAT.pad.color.set(C.pad); MAT.metal.color.set(C.metal);
+  scene.background=new THREE.Color(C.scene); MAT.floor.color.set(C.floor); MAT.body.color.set(C.body); MAT.headScan.userData.body.value.set(C.body); for(const mt of [MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R])mt.color.set(C.shorts); MAT.shirt.color.set(C.shirt); MAT.shirtCut.color.set(C.shirt); MAT.frame.color.set(C.equip); MAT.pad.color.set(C.pad); MAT.metal.color.set(C.metal);
   grid.material.color.set(C.grid);
   for(const k in JS) JS[k].material.color.set(C.body); L5m.material.color.set(C.body);
   dirty=true; chartDirty=true;
@@ -1572,7 +1581,7 @@ function frame(){
   pose=buildNow(state.t); res=analyze(pose,state.body);
   if(equipDirty){buildEquip();equipDirty=false;}
   updateBody(pose); equip.update(pose);
-  for(const mt of [MAT.body,MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R,MAT.headScan,MAT.frame,MAT.pad,MAT.metal,MAT.iron,...Object.values(plateMats)]){const sk=mt===MAT.body||mt===MAT.shorts||mt===MAT.shortsCut.L||mt===MAT.shortsCut.R;mt.transparent=state.show.xray;mt.opacity=state.show.xray?(sk?.15:mt===MAT.headScan?.28:.22):1;mt.depthWrite=!state.show.xray;}
+  for(const mt of [MAT.body,MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R,MAT.shirt,MAT.shirtCut,MAT.headScan,MAT.frame,MAT.pad,MAT.metal,MAT.iron,...Object.values(plateMats)]){const sk=mt===MAT.body||mt===MAT.shorts||mt===MAT.shortsCut.L||mt===MAT.shortsCut.R||mt===MAT.shirt||mt===MAT.shirtCut;mt.transparent=state.show.xray;mt.opacity=state.show.xray?(sk?.15:mt===MAT.headScan?.28:.22):1;mt.depthWrite=!state.show.xray;}
   if(state.ex==='bridge'&&!state.show.xray)for(const mt of Object.values(plateMats)){mt.transparent=true;mt.opacity=.3;mt.depthWrite=false;} // блины у таза не закрывают сустав
   const upper=!!pose.lineL;
   // линии силы
