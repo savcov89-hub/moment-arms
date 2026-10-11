@@ -1054,6 +1054,20 @@ for(const s of ['L','R']){
 BODY.musc.torso=buildMuscles('torso');
 BODY.neck=segM(taper(.056,.066));
 BODY.head=blob(MAT.body); BODY.nose=blob(MAT.body);
+// Голова из 3D-скана (assets/head.bin, ~200 КБ). Пока файл грузится или если он недоступен — голова манекена.
+// Формат: nv, nt (uint32); min, max (float32×3); вершины int16×3 (квантованы в min…max); цвет uint8×3; треугольники uint16×3.
+// Локальные оси скана: x — вперёд, y — вверх, z — вбок; начало — центр головы.
+MAT.headScan=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.7});
+BODY.scan=null; BODY.neckScan=segM(taper(.062,.048)); BODY.neckScan.visible=false; // шея под головой-сканом: тоньше и сзади подбородка
+fetch('assets/head.bin').then(r=>r.ok?r.arrayBuffer():Promise.reject(r.status)).then(b=>{
+  const dv=new DataView(b), nv=dv.getUint32(0,true), nt=dv.getUint32(4,true), mm=new Float32Array(b.slice(8,32));
+  const q=new Int16Array(b,32,nv*3), col=new Uint8Array(b,32+nv*6,nv*3), idx=new Uint16Array(b.slice(32+nv*9,32+nv*9+nt*6));
+  const pos=new Float32Array(nv*3); for(let i=0;i<nv*3;i++){const k=i%3;pos[i]=mm[k]+(q[i]+32768)/65535*(mm[k+3]-mm[k]);}
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3,true));
+  g.setIndex(new THREE.BufferAttribute(idx,1)); g.computeVertexNormals();
+  const m=new THREE.Mesh(g,MAT.headScan); m.castShadow=true; m.receiveShadow=true; bodyG.add(m);
+  BODY.scan=m; BODY.head.visible=BODY.nose.visible=BODY.neck.visible=false; BODY.neckScan.visible=true; dirty=true;
+}).catch(()=>{});
 const JS={}; // шарниры
 const jointList=[['ankle',.042],['knee',.055],['hip',.05],['sh',.045],['el',.042],['ha',.036]];
 for(const s of ['L','R'])for(const [k,r] of jointList){const m=new THREE.Mesh(UNIT_SPH,MAT.joint.clone());m.scale.setScalar(r);m.castShadow=true;bodyG.add(m);JS[k+s]=m;}
@@ -1093,6 +1107,8 @@ function updateBody(pose){
   const z=f.clone().cross(u);
   BODY.head.position.copy(P.head); BODY.head.quaternion.setFromRotationMatrix(_m4.makeBasis(f,u,z)); BODY.head.scale.set(.1,.118,.088);
   BODY.nose.position.copy(P.head).addScaledVector(f,.096).addScaledVector(u,-.01); BODY.nose.quaternion.copy(BODY.head.quaternion); BODY.nose.scale.set(.02,.03,.016);
+  if(BODY.scan){BODY.scan.position.copy(P.head); BODY.scan.quaternion.copy(BODY.head.quaternion);
+    placeTaper(BODY.neckScan,P.shMid.clone().addScaledVector(u,.02).addScaledVector(f,-.015),P.head.clone().addScaledVector(u,-.13).addScaledVector(f,-.029));}
   L5m.position.copy(P.L5);
 }
 
@@ -1540,7 +1556,7 @@ function frame(){
   pose=buildNow(state.t); res=analyze(pose,state.body);
   if(equipDirty){buildEquip();equipDirty=false;}
   updateBody(pose); equip.update(pose);
-  for(const mt of [MAT.body,MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R,MAT.frame,MAT.pad,MAT.metal,MAT.iron,...Object.values(plateMats)]){const sk=mt===MAT.body||mt===MAT.shorts||mt===MAT.shortsCut.L||mt===MAT.shortsCut.R;mt.transparent=state.show.xray;mt.opacity=state.show.xray?(sk?.15:.22):1;mt.depthWrite=!state.show.xray;}
+  for(const mt of [MAT.body,MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R,MAT.headScan,MAT.frame,MAT.pad,MAT.metal,MAT.iron,...Object.values(plateMats)]){const sk=mt===MAT.body||mt===MAT.shorts||mt===MAT.shortsCut.L||mt===MAT.shortsCut.R;mt.transparent=state.show.xray;mt.opacity=state.show.xray?(sk?.15:mt===MAT.headScan?.28:.22):1;mt.depthWrite=!state.show.xray;}
   if(state.ex==='bridge'&&!state.show.xray)for(const mt of Object.values(plateMats)){mt.transparent=true;mt.opacity=.3;mt.depthWrite=false;} // блины у таза не закрывают сустав
   const upper=!!pose.lineL;
   // линии силы
