@@ -1,0 +1,2216 @@
+{
+ "conventions": "Литературные значения в см, в конвенции углов источника (поле angle_convention). ours — наши данные: arm_cm — модель OpenSim, path_arm_cm — наш путь с обходами (то, что посчитает приложение);  (muscles.json, reference_curves.json) для эталона 1,80 м в той же позе; angle_app_deg — угол в системе приложения (голеностоп: + тыльное сгибание; колено: + сгибание; бедро: + сгибание). Плечо связки надколенника сравнивается с эффективным плечом четырёхглавой, которое меньше на отношение сил связки и мышцы (≈1 при 0–30°, ≈0,7 при 90°). Испытуемые источников обычно ниже 1,80 м и иногда пожилые.",
+ "gaps": "Not retrievable in this session (closed access / PMC & PubMed behind CAPTCHA / publisher blocked): full curves of Nemeth & Ohlsen 1985, Buford 1997, Herzog & Read 1993, Spoor & van Leeuwen 1992, Delp 1999, Rugg 1990, Krevolin 2004, Tsaopoulos 2007 (contraction modes), Visser 1990. Use the Chen & Franklin 2025 figshare dataset for them.",
+ "entries": [
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "ankle angle; 0 = sole perpendicular to tibia; negative = dorsiflexion, positive = plantarflexion",
+   "angle_deg": [
+    -15,
+    30
+   ],
+   "arm_cm": [
+    4.4,
+    5.5
+   ],
+   "method": "in vivo sagittal MRI, instant centre of rotation (Reuleaux), muscles at rest; supine, knee 90 deg",
+   "n": "6 healthy males (28 ± 4 y, 175 ± 8 cm, 75 ± 7 kg)",
+   "note": "Only endpoint values are stated in text; values at 0 and +15 deg are in Fig. 4 only. Monotonic increase with plantarflexion.",
+   "state": "rest",
+   "verified": true,
+   "ref": 53,
+   "ours": {
+    "ids": [
+     "calf_soleus"
+    ],
+    "angle_app_deg": [
+     15,
+     -30
+    ],
+    "arm_cm": [
+     3.9,
+     4.7
+    ],
+    "gastrocnemius_med_cm": [
+     4.26,
+     4.37
+    ],
+    "path_arm_cm": [
+     3.93,
+     4.79
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "ankle angle; 0 = sole perpendicular to tibia; negative = dorsiflexion, positive = plantarflexion",
+   "angle_deg": [
+    -15,
+    30
+   ],
+   "arm_cm": [
+    5.4,
+    7.0
+   ],
+   "method": "in vivo sagittal MRI, instant centre of rotation (Reuleaux), during plantarflexor MVC; knee 90 deg",
+   "n": "6 healthy males",
+   "note": "MVC moment arm 22-27% larger than at rest at any given angle.",
+   "state": "MVC",
+   "verified": true,
+   "ref": 53,
+   "ours": {
+    "ids": [
+     "calf_soleus"
+    ],
+    "angle_app_deg": [
+     15,
+     -30
+    ],
+    "arm_cm": [
+     3.9,
+     4.7
+    ],
+    "gastrocnemius_med_cm": [
+     4.26,
+     4.37
+    ],
+    "path_arm_cm": [
+     3.93,
+     4.79
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "ankle angle; 0 = sole perpendicular to tibia; negative = dorsiflexion, positive = plantarflexion; COR tested -15..+30 (15 deg steps), TE tested -30..+45 (15 deg rotations)",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "in vivo sagittal MRI: centre-of-rotation (COR) and tendon-excursion (TE, calcaneal displacement) methods",
+   "n": "not stated in abstract",
+   "note": "At rest both methods gave values in the range 4.3-5.6 cm. COR at MVC 1-1.5 cm (22-27%) larger than rest; authors recommend multiplying resting COR values by 1.22-1.27 for MVC.",
+   "arm_cm_range": [
+    4.3,
+    5.6
+   ],
+   "state": "rest",
+   "verified": true,
+   "ref": 55,
+   "ours": {
+    "ids": [
+     "calf_soleus",
+     "calf_gastrocnemius_med"
+    ],
+    "arm_cm_range": [
+     3.67,
+     4.79
+    ],
+    "what": "диапазон камбаловидной, тыльное 20° … подошвенное 30°",
+    "path_arm_cm_range": [
+     3.7,
+     4.83
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "ankle angle between foot and tibia; 90 = foot perpendicular to tibia; 75 = dorsiflexion, 120 = plantarflexion (equivalent to -15, 0, +15, +30 deg in the neutral-zero convention)",
+   "angle_deg": [
+    75,
+    90,
+    105,
+    120
+   ],
+   "arm_cm": [
+    3.08,
+    3.43,
+    3.79,
+    4.11
+   ],
+   "method": "in vivo tendon excursion: ultrasound tracking + isokinetic dynamometer, passive (rest), knee 0 deg",
+   "n": "6 (4 M, 2 F; 30 ± 6 y; 1.76 ± 0.11 m; 74 ± 14 kg)",
+   "note": "Table 1 mean values; TE systematically lower than COR.",
+   "arm_cm_sd": [
+    0.67,
+    0.45,
+    0.54,
+    0.69
+   ],
+   "state": "rest",
+   "verified": true,
+   "ref": 46,
+   "ours": {
+    "ids": [
+     "calf_soleus"
+    ],
+    "angle_app_deg": [
+     15,
+     0,
+     -15,
+     -30
+    ],
+    "arm_cm": [
+     3.9,
+     4.48,
+     4.75,
+     4.7
+    ],
+    "gastrocnemius_med_cm": [
+     4.26,
+     4.65,
+     4.67,
+     4.37
+    ],
+    "path_arm_cm": [
+     3.93,
+     4.5,
+     4.78,
+     4.79
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "ankle angle between foot and tibia; 90 = foot perpendicular to tibia; 75 = dorsiflexion, 120 = plantarflexion (equivalent to -15, 0, +15, +30 deg in the neutral-zero convention)",
+   "angle_deg": [
+    75,
+    90,
+    105,
+    120
+   ],
+   "arm_cm": [
+    4.61,
+    5.17,
+    5.54,
+    5.67
+   ],
+   "method": "in vivo MRI centre of rotation (Reuleaux), rest",
+   "n": "6 (4 M, 2 F)",
+   "note": null,
+   "arm_cm_sd": [
+    0.33,
+    0.43,
+    0.15,
+    0.24
+   ],
+   "state": "rest",
+   "verified": true,
+   "ref": 46,
+   "ours": {
+    "ids": [
+     "calf_soleus"
+    ],
+    "angle_app_deg": [
+     15,
+     0,
+     -15,
+     -30
+    ],
+    "arm_cm": [
+     3.9,
+     4.48,
+     4.75,
+     4.7
+    ],
+    "gastrocnemius_med_cm": [
+     4.26,
+     4.65,
+     4.67,
+     4.37
+    ],
+    "path_arm_cm": [
+     3.93,
+     4.5,
+     4.78,
+     4.79
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "ankle angle between foot and tibia; 90 = foot perpendicular to tibia; 75 = dorsiflexion, 120 = plantarflexion (equivalent to -15, 0, +15, +30 deg in the neutral-zero convention)",
+   "angle_deg": [
+    75,
+    90,
+    105,
+    120
+   ],
+   "arm_cm": [
+    4.65,
+    5.38,
+    5.85,
+    6.18
+   ],
+   "method": "in vivo MRI centre of rotation (Reuleaux), during MVC",
+   "n": "6 (4 M, 2 F)",
+   "note": "TE-rest vs COR-MVC correlation r = 0.72-0.93 across angles.",
+   "arm_cm_sd": [
+    0.34,
+    0.55,
+    0.55,
+    0.52
+   ],
+   "state": "MVC",
+   "verified": true,
+   "ref": 46,
+   "ours": {
+    "ids": [
+     "calf_soleus"
+    ],
+    "angle_app_deg": [
+     15,
+     0,
+     -15,
+     -30
+    ],
+    "arm_cm": [
+     3.9,
+     4.48,
+     4.75,
+     4.7
+    ],
+    "gastrocnemius_med_cm": [
+     4.26,
+     4.65,
+     4.67,
+     4.37
+    ],
+    "path_arm_cm": [
+     3.93,
+     4.5,
+     4.78,
+     4.79
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "ankle angle; 0 = neutral; sign not defined in paper - larger values reported at greater plantarflexion, so +10 is inferred to be plantarflexion and -5 dorsiflexion",
+   "angle_deg": [
+    -5,
+    0,
+    10
+   ],
+   "arm_cm": [
+    4.15,
+    4.33,
+    4.54
+   ],
+   "method": "in vivo MRI, centre of rotation (Reuleaux); knee extended; rest",
+   "n": "12 adults (31.4 ± 9.5 y, 174.0 ± 9.5 cm, 76.2 ± 16.6 kg)",
+   "note": "MRI SD at 0 deg printed 0.36 cm in Table 1 and 0.37 cm in Discussion.",
+   "arm_cm_sd": [
+    0.34,
+    0.36,
+    0.38
+   ],
+   "state": "rest",
+   "verified": true,
+   "ref": 39,
+   "ours": {
+    "ids": [
+     "calf_soleus"
+    ],
+    "angle_app_deg": [
+     5,
+     0,
+     -10
+    ],
+    "arm_cm": [
+     4.3,
+     4.48,
+     4.71
+    ],
+    "gastrocnemius_med_cm": [
+     4.54,
+     4.65,
+     4.72
+    ],
+    "path_arm_cm": [
+     4.33,
+     4.5,
+     4.73
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "ankle angle; 0 = neutral; sign not defined in paper - larger values reported at greater plantarflexion, so +10 is inferred to be plantarflexion and -5 dorsiflexion",
+   "angle_deg": [
+    -5,
+    0,
+    10
+   ],
+   "arm_cm": [
+    5.09,
+    5.38,
+    5.67
+   ],
+   "method": "in vivo DXA lateral image, centre-of-rotation geometry; rest",
+   "n": "12 adults",
+   "note": "DXA overestimates vs MRI in this study.",
+   "arm_cm_sd": [
+    0.45,
+    0.5,
+    0.58
+   ],
+   "state": "rest",
+   "verified": true,
+   "ref": 39,
+   "ours": {
+    "ids": [
+     "calf_soleus"
+    ],
+    "angle_app_deg": [
+     5,
+     0,
+     -10
+    ],
+    "arm_cm": [
+     4.3,
+     4.48,
+     4.71
+    ],
+    "gastrocnemius_med_cm": [
+     4.54,
+     4.65,
+     4.72
+    ],
+    "path_arm_cm": [
+     4.33,
+     4.5,
+     4.73
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "ankle angle; 0 = neutral; sign not defined in paper - larger values reported at greater plantarflexion, so +10 is inferred to be plantarflexion and -5 dorsiflexion",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    2.95
+   ],
+   "method": "in vivo ultrasound tendon excursion (passive)",
+   "n": "12 adults",
+   "note": null,
+   "arm_cm_sd": [
+    0.62
+   ],
+   "state": "rest",
+   "verified": true,
+   "ref": 39,
+   "ours": {
+    "ids": [
+     "calf_soleus"
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "arm_cm": [
+     4.48
+    ],
+    "gastrocnemius_med_cm": [
+     4.65
+    ],
+    "path_arm_cm": [
+     4.5
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "tendon excursion slope between 10 deg dorsiflexion and 10 deg plantarflexion (neutral-zero convention)",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "in vivo ultrasound tendon excursion (MG myotendinous junction, passive 10 deg/s) vs MRI geometric (COR) estimate",
+   "n": "19 healthy young males (26.0 ± 3.5 y, 177.7 ± 7.7 cm, 76.3 ± 15.6 kg)",
+   "note": "Reported as 95% CI of the mean: TE 2.9-3.6 cm; MRI/geometric 5.1-5.6 cm. TE underestimated by ~40%; TE vs geometric R2 = 0.21 (p = 0.052).",
+   "arm_cm_ci95": {
+    "tendon_excursion": [
+     2.9,
+     3.6
+    ],
+    "mri_geometric": [
+     5.1,
+     5.6
+    ]
+   },
+   "state": "rest",
+   "verified": true,
+   "ref": 36,
+   "ours": {
+    "ids": [
+     "calf_soleus",
+     "calf_gastrocnemius_med"
+    ],
+    "arm_cm_range": [
+     3.67,
+     4.79
+    ],
+    "what": "диапазон камбаловидной, тыльное 20° … подошвенное 30°",
+    "path_arm_cm_range": [
+     3.7,
+     4.83
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "tendon excursion slope over ~10 deg dorsiflexion to 20 deg plantarflexion",
+   "angle_deg": [],
+   "arm_cm": [
+    4.16
+   ],
+   "method": "in vivo ultrasound tendon excursion (linear fit of MTJ displacement vs angle), passive",
+   "n": "12 height-matched non-sprinters (+12 sprinters)",
+   "note": "Non-sprinters 41.6 mm; sprinters 25% smaller (P<0.001), ~31 mm (31 ± 3.7 mm as quoted by buffey2021). Authors scale US values by 1.22-1.27 to approximate MRI (non-sprinters -> 51.8 mm).",
+   "state": "rest",
+   "verified": true,
+   "ref": 52,
+   "ours": {
+    "ids": [
+     "calf_soleus",
+     "calf_gastrocnemius_med"
+    ],
+    "arm_cm_range": [
+     3.67,
+     4.79
+    ],
+    "what": "диапазон камбаловидной, тыльное 20° … подошвенное 30°",
+    "path_arm_cm_range": [
+     3.7,
+     4.83
+    ]
+   }
+  },
+  {
+   "muscle": "Achilles tendon (triceps surae)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "MRI at -15, 0, +15 deg (COR); TE over passive range",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "in vivo MRI centre of rotation vs ultrasound tendon excursion",
+   "n": "9 (MRI)",
+   "note": "Abstract: COR > TE (P<0.01), 25-30% between-method difference; best agreement R2 = 0.94 with linear differentiation over ±10 deg. Means quoted second-hand by buffey2021: COR 5.4 cm (95% CI 5.1-5.7), TE 3.8 cm (95% CI 3.5-4.2).",
+   "arm_cm_ci95": {
+    "mri_cor_secondary": [
+     5.1,
+     5.7
+    ],
+    "tendon_excursion_secondary": [
+     3.5,
+     4.2
+    ]
+   },
+   "verified": false,
+   "ref": 45,
+   "ours": {
+    "ids": [
+     "calf_soleus",
+     "calf_gastrocnemius_med"
+    ],
+    "arm_cm_range": [
+     3.67,
+     4.79
+    ],
+    "what": "диапазон камбаловидной, тыльное 20° … подошвенное 30°",
+    "path_arm_cm_range": [
+     3.7,
+     4.83
+    ]
+   }
+  },
+  {
+   "muscle": "Triceps surae (Achilles)",
+   "joint": "subtalar (frontal)",
+   "motion": "inversion(-)/eversion(+)",
+   "angle_convention": "sign: negative = inversion moment arm, positive = eversion; value = mean over the full subtalar range of motion",
+   "angle_deg": [],
+   "arm_cm": [
+    -0.53
+   ],
+   "method": "cadaver tendon excursion, orthogonal-polynomial fit differentiated w.r.t. joint angle",
+   "n": "10 embalmed specimens (8 donors > 60 y)",
+   "note": "Sign reverses between everted and inverted positions.",
+   "verified": true,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "calf_soleus"
+    ],
+    "arm_cm": [
+     -0.44
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "what": "инверсия(−)/эверсия(+), голеностоп 0°"
+   }
+  },
+  {
+   "muscle": "Tibialis posterior",
+   "joint": "subtalar (frontal)",
+   "motion": "inversion(-)/eversion(+)",
+   "angle_convention": "sign: negative = inversion moment arm, positive = eversion; value = mean over the full subtalar range of motion",
+   "angle_deg": [],
+   "arm_cm": [
+    -1.91
+   ],
+   "method": "cadaver tendon excursion, orthogonal-polynomial fit differentiated w.r.t. joint angle",
+   "n": "10 embalmed specimens (8 donors > 60 y)",
+   "note": null,
+   "verified": true,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "deep_tibialis_posterior"
+    ],
+    "arm_cm": [
+     -1.84
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "what": "инверсия(−)/эверсия(+), голеностоп 0°"
+   }
+  },
+  {
+   "muscle": "Tibialis anterior",
+   "joint": "subtalar (frontal)",
+   "motion": "inversion(-)/eversion(+)",
+   "angle_convention": "sign: negative = inversion moment arm, positive = eversion; value = mean over the full subtalar range of motion",
+   "angle_deg": [],
+   "arm_cm": [
+    -0.38
+   ],
+   "method": "cadaver tendon excursion, orthogonal-polynomial fit differentiated w.r.t. joint angle",
+   "n": "10 embalmed specimens (8 donors > 60 y)",
+   "note": "Acted as an everter in some specimens.",
+   "verified": true,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "shin_tibialis_anterior"
+    ],
+    "arm_cm": [
+     -0.95
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "what": "инверсия(−)/эверсия(+), голеностоп 0°"
+   }
+  },
+  {
+   "muscle": "Peroneus longus",
+   "joint": "subtalar (frontal)",
+   "motion": "inversion(-)/eversion(+)",
+   "angle_convention": "sign: negative = inversion moment arm, positive = eversion; value = mean over the full subtalar range of motion",
+   "angle_deg": [],
+   "arm_cm": [
+    2.18
+   ],
+   "method": "cadaver tendon excursion, orthogonal-polynomial fit differentiated w.r.t. joint angle",
+   "n": "10 embalmed specimens (8 donors > 60 y)",
+   "note": null,
+   "verified": true,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "peroneus_longus"
+    ],
+    "arm_cm": [
+     2.6
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "what": "инверсия(−)/эверсия(+), голеностоп 0°"
+   }
+  },
+  {
+   "muscle": "Peroneus brevis",
+   "joint": "subtalar (frontal)",
+   "motion": "inversion(-)/eversion(+)",
+   "angle_convention": "sign: negative = inversion moment arm, positive = eversion; value = mean over the full subtalar range of motion",
+   "angle_deg": [],
+   "arm_cm": [
+    2.05
+   ],
+   "method": "cadaver tendon excursion, orthogonal-polynomial fit differentiated w.r.t. joint angle",
+   "n": "10 embalmed specimens (8 donors > 60 y)",
+   "note": null,
+   "verified": true,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "peroneus_brevis"
+    ],
+    "arm_cm": [
+     2.76
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "what": "инверсия(−)/эверсия(+), голеностоп 0°"
+   }
+  },
+  {
+   "muscle": "Triceps surae (Achilles)",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "summary value over sagittal range (angles not given in secondary source)",
+   "angle_deg": [],
+   "arm_cm": [
+    5.28
+   ],
+   "method": "cadaver tendon excursion",
+   "n": "10 specimens",
+   "note": "SECONDARY: value from Brookbush Institute review of Klein 1996 (abstract only says TS and FHL are the main plantarflexors; PL, PB, TP contribute much less). Verify against the paper before use.",
+   "via": "brookbush_klein",
+   "verified": false,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "calf_soleus",
+     "calf_gastrocnemius_med"
+    ],
+    "arm_cm_range": [
+     3.67,
+     4.79
+    ],
+    "what": "диапазон камбаловидной, тыльное 20° … подошвенное 30°",
+    "path_arm_cm_range": [
+     3.7,
+     4.83
+    ]
+   }
+  },
+  {
+   "muscle": "Flexor hallucis longus",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "summary value over sagittal range (angles not given in secondary source)",
+   "angle_deg": [],
+   "arm_cm": [
+    2.66
+   ],
+   "method": "cadaver tendon excursion",
+   "n": "10 specimens",
+   "note": "SECONDARY: value from Brookbush Institute review of Klein 1996 (abstract only says TS and FHL are the main plantarflexors; PL, PB, TP contribute much less). Verify against the paper before use.",
+   "via": "brookbush_klein",
+   "verified": false,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "deep_flexor_hallucis_longus"
+    ],
+    "arm_cm_mean": 1.57,
+    "what": "среднее по диапазону тыльное 20° … подошвенное 30°",
+    "path_arm_cm_mean": 1.56
+   }
+  },
+  {
+   "muscle": "Peroneus longus",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "summary value over sagittal range (angles not given in secondary source)",
+   "angle_deg": [],
+   "arm_cm": [
+    1.28
+   ],
+   "method": "cadaver tendon excursion",
+   "n": "10 specimens",
+   "note": "SECONDARY: value from Brookbush Institute review of Klein 1996 (abstract only says TS and FHL are the main plantarflexors; PL, PB, TP contribute much less). Verify against the paper before use.",
+   "via": "brookbush_klein",
+   "verified": false,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "peroneus_longus"
+    ],
+    "arm_cm_mean": 1.0,
+    "what": "среднее по диапазону тыльное 20° … подошвенное 30°"
+   }
+  },
+  {
+   "muscle": "Peroneus brevis",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "summary value over sagittal range (angles not given in secondary source)",
+   "angle_deg": [],
+   "arm_cm": [
+    0.99
+   ],
+   "method": "cadaver tendon excursion",
+   "n": "10 specimens",
+   "note": "SECONDARY: value from Brookbush Institute review of Klein 1996 (abstract only says TS and FHL are the main plantarflexors; PL, PB, TP contribute much less). Verify against the paper before use.",
+   "via": "brookbush_klein",
+   "verified": false,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "peroneus_brevis"
+    ],
+    "arm_cm_mean": 0.68,
+    "what": "среднее по диапазону тыльное 20° … подошвенное 30°"
+   }
+  },
+  {
+   "muscle": "Tibialis posterior",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "plantarflexion",
+   "angle_convention": "summary value over sagittal range (angles not given in secondary source)",
+   "angle_deg": [],
+   "arm_cm": [
+    0.8
+   ],
+   "method": "cadaver tendon excursion",
+   "n": "10 specimens",
+   "note": "SECONDARY: value from Brookbush Institute review of Klein 1996 (abstract only says TS and FHL are the main plantarflexors; PL, PB, TP contribute much less). Verify against the paper before use.",
+   "via": "brookbush_klein",
+   "verified": false,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "deep_tibialis_posterior"
+    ],
+    "arm_cm_mean": 1.03,
+    "what": "среднее по диапазону тыльное 20° … подошвенное 30°"
+   }
+  },
+  {
+   "muscle": "Tibialis anterior",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "dorsiflexion",
+   "angle_convention": "summary value over sagittal range (angles not given in secondary source)",
+   "angle_deg": [],
+   "arm_cm": [
+    3.2
+   ],
+   "method": "cadaver tendon excursion",
+   "n": "10 specimens",
+   "note": "SECONDARY: value from Brookbush Institute review of Klein 1996 (abstract only says TS and FHL are the main plantarflexors; PL, PB, TP contribute much less). Verify against the paper before use.",
+   "via": "brookbush_klein",
+   "verified": false,
+   "ref": 50,
+   "ours": {
+    "ids": [
+     "shin_tibialis_anterior"
+    ],
+    "arm_cm_mean": 4.39,
+    "what": "среднее по диапазону тыльное 20° … подошвенное 30°",
+    "path_arm_cm_mean": 4.38
+   }
+  },
+  {
+   "muscle": "Tibialis anterior tendon",
+   "joint": "ankle (talocrural, sagittal)",
+   "motion": "dorsiflexion",
+   "angle_convention": "four angles -15, 0, +15, +30 deg (sign convention not defined in abstract)",
+   "angle_deg": [
+    -15,
+    0,
+    15,
+    30
+   ],
+   "arm_cm": [],
+   "method": "in vivo sagittal MRI, rest vs maximum isometric dorsiflexion; supine, knee 90 deg",
+   "n": "6",
+   "note": "Absolute values not in abstract. During MVC the TA moment arm was 0.9-1.5 cm larger than at rest at every angle (P<0.01); tendon action line moved 0.8-1.2 cm distally; centre of rotation 0.3-0.4 cm distally; using resting values can err by up to 30%.",
+   "arm_cm_delta_mvc_minus_rest": [
+    0.9,
+    1.5
+   ],
+   "verified": true,
+   "ref": 54,
+   "ours": {
+    "ids": [
+     "shin_tibialis_anterior"
+    ],
+    "angle_app_deg": [
+     15,
+     0,
+     -15,
+     -30
+    ],
+    "arm_cm": [
+     4.71,
+     4.6,
+     4.24,
+     3.75
+    ],
+    "path_arm_cm": [
+     4.71,
+     4.58,
+     4.23,
+     3.77
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion",
+   "angle_deg": [
+    0,
+    20,
+    40,
+    60
+   ],
+   "arm_cm": [
+    4.255,
+    3.991,
+    3.773,
+    3.618
+   ],
+   "method": "in vivo MRI, perpendicular distance from tendon line of action to joint rotation axis",
+   "n": "not reported in abstract",
+   "note": "Linear decrease with flexion over 0-60 deg (repeated-measures ANOVA p<0.05).",
+   "arm_cm_sd": [
+    0.42,
+    0.298,
+    0.287,
+    0.29
+   ],
+   "verified": true,
+   "ref": 48,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     0,
+     20,
+     40,
+     60
+    ],
+    "arm_cm": [
+     4.1,
+     4.59,
+     4.27,
+     3.76
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     5.02,
+     4.51,
+     3.97,
+     3.43
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "in vivo lateral videofluoroscopy during slow submaximal knee extension-flexion; tibiofemoral contact point",
+   "n": "10 adult males",
+   "note": "Range over the movement 3.691 (SD 0.32) to 4.263 (SD 0.45) cm; peak 42.6 mm at 45 deg flexion per tsaopoulos2006 Table 1.",
+   "arm_cm_range": [
+    3.691,
+    4.263
+   ],
+   "verified": true,
+   "ref": 49,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "arm_cm_range": [
+     2.18,
+     4.59
+    ],
+    "what": "эффективное плечо четырёхглавой, колено 0–90°",
+    "path_arm_cm_range": [
+     2.71,
+     5.02
+    ]
+   }
+  },
+  {
+   "muscle": "Biceps femoris (hamstrings)",
+   "joint": "knee",
+   "motion": "flexion",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "in vivo lateral videofluoroscopy during slow submaximal knee flexion; tibiofemoral contact point",
+   "n": "10 adult males",
+   "note": "Range over the movement 2.393 (SD 0.259) to 2.825 (SD 0.304) cm.",
+   "arm_cm_range": [
+    2.393,
+    2.825
+   ],
+   "verified": true,
+   "ref": 49,
+   "ours": {
+    "ids": [
+     "hamstrings_biceps_long"
+    ],
+    "arm_cm_range": [
+     2.87,
+     3.27
+    ],
+    "what": "колено 0–90°",
+    "path_arm_cm_range": [
+     2.82,
+     3.22
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion",
+   "angle_deg": [
+    0,
+    90
+   ],
+   "arm_cm": [
+    5.8,
+    4.8
+   ],
+   "method": "in vivo lateral videofluoroscopy, passive; moment arm about geometric centre of posterior femoral condyles (GCFC)",
+   "n": "7 healthy males",
+   "note": "Approximate values from abstract. Instant centre of rotation (ICR) method: ~5.9 -> ~4.8 cm; tibiofemoral contact point method: ascending-descending, peak ~5.0 cm at 60 deg. GCFC vs ICR not different; TFCP differed at 0-45 deg.",
+   "verified": true,
+   "ref": 64,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     0,
+     90
+    ],
+    "arm_cm": [
+     4.1,
+     2.18
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     5.02,
+     2.71
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; measured every 5 deg from 55 to 90 deg",
+   "angle_deg": [
+    90
+   ],
+   "arm_cm": [
+    4.2
+   ],
+   "method": "in vivo MRI, geometric centre of femoral condyle",
+   "n": "20 adults (both sexes) vs 20 pre-pubertal children",
+   "note": "Adults 4.2 ± 0.4 cm vs children 3.6 ± 0.3 cm at 90 deg (P<0.01); PTMA decreased from 55 to 90 deg similarly in both groups. No strong correlations with anthropometry in adults.",
+   "arm_cm_sd": [
+    0.4
+   ],
+   "children_arm_cm_at_90": 3.6,
+   "verified": true,
+   "ref": 60,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     90
+    ],
+    "arm_cm": [
+     2.18
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     2.71
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    30
+   ],
+   "arm_cm": [
+    5.28
+   ],
+   "method": "in vitro, tibiofemoral contact point",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1.",
+   "via": "tsaopoulos2006",
+   "verified": false,
+   "ref": 47,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     30
+    ],
+    "arm_cm": [
+     4.51
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     4.24
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    5.11
+   ],
+   "method": "in vitro tendon excursion (15 specimens)",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1.",
+   "via": "tsaopoulos2006",
+   "verified": false,
+   "ref": 40,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "arm_cm": [
+     4.1
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     5.02
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    45
+   ],
+   "arm_cm": [
+    5.19
+   ],
+   "method": "in vitro 3-D instantaneous screw axis",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1.",
+   "via": "tsaopoulos2006",
+   "verified": false,
+   "ref": 51,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     45
+    ],
+    "arm_cm": [
+     4.14
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     3.83
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    45
+   ],
+   "arm_cm": [
+    4.26
+   ],
+   "method": "in vivo videofluoroscopy, tibiofemoral contact point",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1. 42.6 mm",
+   "via": "tsaopoulos2006",
+   "verified": true,
+   "ref": 49,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     45
+    ],
+    "arm_cm": [
+     4.14
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     3.83
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    5.08
+   ],
+   "method": "in vivo MRI, tibiofemoral contact point; MALES",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1. sex difference significant",
+   "via": "tsaopoulos2006",
+   "verified": false,
+   "ref": 65,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "arm_cm": [
+     4.1
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     5.02
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    30
+   ],
+   "arm_cm": [
+    4.71
+   ],
+   "method": "in vivo MRI, tibiofemoral contact point; FEMALES",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1. sex difference significant",
+   "via": "tsaopoulos2006",
+   "verified": false,
+   "ref": 65,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     30
+    ],
+    "arm_cm": [
+     4.51
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     4.24
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    30
+   ],
+   "arm_cm": [
+    4.9
+   ],
+   "method": "original: Smidt (1973), in vivo, instant centre of rotation",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1. original not retrieved",
+   "via": "tsaopoulos2006",
+   "verified": false,
+   "ref": 63,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     30
+    ],
+    "arm_cm": [
+     4.51
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     4.24
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    60
+   ],
+   "arm_cm": [
+    4.62
+   ],
+   "method": "original: Nisell et al. (1986) MALES, in vivo, tibiofemoral contact point",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1. original not retrieved",
+   "via": "tsaopoulos2006",
+   "verified": false,
+   "ref": 63,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     60
+    ],
+    "arm_cm": [
+     3.76
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     3.43
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    60
+   ],
+   "arm_cm": [
+    3.79
+   ],
+   "method": "original: Nisell et al. (1986) FEMALES, in vivo, tibiofemoral contact point",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1. original not retrieved",
+   "via": "tsaopoulos2006",
+   "verified": false,
+   "ref": 63,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     60
+    ],
+    "arm_cm": [
+     3.76
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     3.43
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion; value is the PEAK moment arm and the angle at which it occurs",
+   "angle_deg": [
+    45
+   ],
+   "arm_cm": [
+    3.987
+   ],
+   "method": "original: Baltzopoulos (1995), in vivo, tibiofemoral contact point",
+   "n": null,
+   "note": "PEAK value as tabulated in Tsaopoulos et al. 2006 review, Table 1. original not retrieved",
+   "via": "tsaopoulos2006",
+   "verified": false,
+   "ref": 63,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "angle_app_deg": [
+     45
+    ],
+    "arm_cm": [
+     4.14
+    ],
+    "what": "эффективное плечо четырёхглавой (среднее по PCSA): плечо связки надколенника × F_связки/F_мышцы",
+    "path_arm_cm": [
+     3.83
+    ]
+   }
+  },
+  {
+   "muscle": "Patellar tendon (quadriceps)",
+   "joint": "knee",
+   "motion": "extension",
+   "angle_convention": "knee flexion angle; 0 = full extension, positive = flexion",
+   "angle_deg": [],
+   "arm_cm": [
+    4.6
+   ],
+   "method": "cadaver, optical tracking, moment arm about instantaneous helical axis",
+   "n": "24 fresh-frozen knees",
+   "note": "Mean unscaled PTMA 46 mm; peak at 15 deg flexion in females vs 29 deg in males (p = .01); males 5-10 mm larger unscaled; knee size explained ~2/3 of PTMA magnitude variance and scaling removed the sex difference.",
+   "verified": true,
+   "ref": 42,
+   "ours": {
+    "ids": [
+     "quads_vastus_lateralis",
+     "quads_vastus_medialis",
+     "quads_vastus_intermedius",
+     "quads_rectus_femoris"
+    ],
+    "arm_cm_range": [
+     2.18,
+     4.59
+    ],
+    "what": "эффективное плечо четырёхглавой, колено 0–90°",
+    "path_arm_cm_range": [
+     2.71,
+     5.02
+    ]
+   }
+  },
+  {
+   "muscle": "Gluteus medius",
+   "joint": "hip",
+   "motion": "frontal: abduction",
+   "angle_convention": "hip in anatomical neutral (0 deg flexion/abduction/rotation), supine; coronal-plane moment arm about AP axis through femoral head centre",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    6.0
+   ],
+   "method": "in vivo CT (GE CT/T 7800), 3-D digitised; moment arm from femoral-head centre to muscle-belly centre, cosine obliquity correction",
+   "n": "men 70 ± 3 y, 1.76 m, 75 kg; women 63 ± 7 y, 1.66 m, 60 kg (paper: N = 20, listed as 11 men + 10 women; one man excluded for Gmed, Gmin, hamstrings)",
+   "note": "All abductors differed by sex; among adductors only hamstrings differed. Single position only.",
+   "arm_cm_men": 6.5,
+   "arm_cm_men_sd": 0.3,
+   "arm_cm_women": 5.4,
+   "arm_cm_women_sd": 0.3,
+   "verified": true,
+   "ref": 59,
+   "ours": {
+    "ids": [
+     "glute_med_ant",
+     "glute_med_mid",
+     "glute_med_post"
+    ],
+    "arm_cm": [
+     5.12
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "per_bundle_cm": {
+     "glute_med_ant": 5.67,
+     "glute_med_mid": 5.23,
+     "glute_med_post": 4.34
+    },
+    "what": "стоя, бедро 0°; для пучков — среднее по PCSA; знак + = то же действие, что в источнике",
+    "path_arm_cm": [
+     5.13
+    ]
+   }
+  },
+  {
+   "muscle": "Gluteus minimus",
+   "joint": "hip",
+   "motion": "frontal: abduction",
+   "angle_convention": "hip in anatomical neutral (0 deg flexion/abduction/rotation), supine; coronal-plane moment arm about AP axis through femoral head centre",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    4.5
+   ],
+   "method": "in vivo CT (GE CT/T 7800), 3-D digitised; moment arm from femoral-head centre to muscle-belly centre, cosine obliquity correction",
+   "n": "men 70 ± 3 y, 1.76 m, 75 kg; women 63 ± 7 y, 1.66 m, 60 kg (paper: N = 20, listed as 11 men + 10 women; one man excluded for Gmed, Gmin, hamstrings)",
+   "note": "All abductors differed by sex; among adductors only hamstrings differed. Single position only.",
+   "arm_cm_men": 4.8,
+   "arm_cm_men_sd": 0.5,
+   "arm_cm_women": 4.2,
+   "arm_cm_women_sd": 0.2,
+   "verified": true,
+   "ref": 59,
+   "ours": {
+    "ids": [
+     "glute_min_ant",
+     "glute_min_mid",
+     "glute_min_post"
+    ],
+    "arm_cm": [
+     4.83
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "per_bundle_cm": {
+     "glute_min_ant": 5.36,
+     "glute_min_mid": 5.02,
+     "glute_min_post": 4.22
+    },
+    "what": "стоя, бедро 0°; для пучков — среднее по PCSA; знак + = то же действие, что в источнике",
+    "path_arm_cm": [
+     4.84
+    ]
+   }
+  },
+  {
+   "muscle": "Tensor fasciae latae",
+   "joint": "hip",
+   "motion": "frontal: abduction",
+   "angle_convention": "hip in anatomical neutral (0 deg flexion/abduction/rotation), supine; coronal-plane moment arm about AP axis through femoral head centre",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    5.2
+   ],
+   "method": "in vivo CT (GE CT/T 7800), 3-D digitised; moment arm from femoral-head centre to muscle-belly centre, cosine obliquity correction",
+   "n": "men 70 ± 3 y, 1.76 m, 75 kg; women 63 ± 7 y, 1.66 m, 60 kg (paper: N = 20, listed as 11 men + 10 women; one man excluded for Gmed, Gmin, hamstrings)",
+   "note": "All abductors differed by sex; among adductors only hamstrings differed. Single position only.",
+   "arm_cm_men": 5.7,
+   "arm_cm_men_sd": 0.4,
+   "arm_cm_women": 4.6,
+   "arm_cm_women_sd": 0.4,
+   "verified": true,
+   "ref": 59,
+   "ours": {
+    "ids": [
+     "tfl"
+    ],
+    "arm_cm": [
+     5.85
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "what": "стоя, бедро 0°; для пучков — среднее по PCSA; знак + = то же действие, что в источнике",
+    "path_arm_cm": [
+     5.87
+    ]
+   }
+  },
+  {
+   "muscle": "Rectus femoris",
+   "joint": "hip",
+   "motion": "frontal: abduction",
+   "angle_convention": "hip in anatomical neutral (0 deg flexion/abduction/rotation), supine; coronal-plane moment arm about AP axis through femoral head centre",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    2.6
+   ],
+   "method": "in vivo CT (GE CT/T 7800), 3-D digitised; moment arm from femoral-head centre to muscle-belly centre, cosine obliquity correction",
+   "n": "men 70 ± 3 y, 1.76 m, 75 kg; women 63 ± 7 y, 1.66 m, 60 kg (paper: N = 20, listed as 11 men + 10 women; one man excluded for Gmed, Gmin, hamstrings)",
+   "note": "All abductors differed by sex; among adductors only hamstrings differed. Single position only.",
+   "arm_cm_men": 2.9,
+   "arm_cm_men_sd": 0.3,
+   "arm_cm_women": 2.3,
+   "arm_cm_women_sd": 0.2,
+   "verified": true,
+   "ref": 59,
+   "ours": {
+    "ids": [
+     "quads_rectus_femoris"
+    ],
+    "arm_cm": [
+     1.55
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "what": "стоя, бедро 0°; для пучков — среднее по PCSA; знак + = то же действие, что в источнике",
+    "path_arm_cm": [
+     1.52
+    ]
+   }
+  },
+  {
+   "muscle": "Sartorius",
+   "joint": "hip",
+   "motion": "frontal: abduction",
+   "angle_convention": "hip in anatomical neutral (0 deg flexion/abduction/rotation), supine; coronal-plane moment arm about AP axis through femoral head centre",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    1.7
+   ],
+   "method": "in vivo CT (GE CT/T 7800), 3-D digitised; moment arm from femoral-head centre to muscle-belly centre, cosine obliquity correction",
+   "n": "men 70 ± 3 y, 1.76 m, 75 kg; women 63 ± 7 y, 1.66 m, 60 kg (paper: N = 20, listed as 11 men + 10 women; one man excluded for Gmed, Gmin, hamstrings)",
+   "note": "All abductors differed by sex; among adductors only hamstrings differed. Single position only.",
+   "arm_cm_men": 1.9,
+   "arm_cm_men_sd": 0.4,
+   "arm_cm_women": 1.5,
+   "arm_cm_women_sd": 0.3,
+   "verified": true,
+   "ref": 59,
+   "ours": {
+    "ids": [
+     "sartorius"
+    ],
+    "arm_cm": [
+     1.89
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "what": "стоя, бедро 0°; для пучков — среднее по PCSA; знак + = то же действие, что в источнике",
+    "path_arm_cm": [
+     1.94
+    ]
+   }
+  },
+  {
+   "muscle": "Adductor magnus",
+   "joint": "hip",
+   "motion": "frontal: adduction",
+   "angle_convention": "hip in anatomical neutral (0 deg flexion/abduction/rotation), supine; coronal-plane moment arm about AP axis through femoral head centre",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    7.3
+   ],
+   "method": "in vivo CT (GE CT/T 7800), 3-D digitised; moment arm from femoral-head centre to muscle-belly centre, cosine obliquity correction",
+   "n": "men 70 ± 3 y, 1.76 m, 75 kg; women 63 ± 7 y, 1.66 m, 60 kg (paper: N = 20, listed as 11 men + 10 women; one man excluded for Gmed, Gmin, hamstrings)",
+   "note": "All abductors differed by sex; among adductors only hamstrings differed. Single position only.",
+   "arm_cm_men": 7.5,
+   "arm_cm_men_sd": 0.3,
+   "arm_cm_women": 7.2,
+   "arm_cm_women_sd": 0.3,
+   "verified": true,
+   "ref": 59,
+   "ours": {
+    "ids": [
+     "adductor_magnus_prox",
+     "adductor_magnus_mid",
+     "adductor_magnus_dist",
+     "adductor_magnus_isch"
+    ],
+    "arm_cm": [
+     5.27
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "per_bundle_cm": {
+     "adductor_magnus_prox": 5.62,
+     "adductor_magnus_mid": 6.76,
+     "adductor_magnus_dist": 5.04,
+     "adductor_magnus_isch": 3.68
+    },
+    "what": "стоя, бедро 0°; для пучков — среднее по PCSA; знак + = то же действие, что в источнике",
+    "path_arm_cm": [
+     5.32
+    ]
+   }
+  },
+  {
+   "muscle": "Hamstrings",
+   "joint": "hip",
+   "motion": "frontal: adduction",
+   "angle_convention": "hip in anatomical neutral (0 deg flexion/abduction/rotation), supine; coronal-plane moment arm about AP axis through femoral head centre",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    2.8
+   ],
+   "method": "in vivo CT (GE CT/T 7800), 3-D digitised; moment arm from femoral-head centre to muscle-belly centre, cosine obliquity correction",
+   "n": "men 70 ± 3 y, 1.76 m, 75 kg; women 63 ± 7 y, 1.66 m, 60 kg (paper: N = 20, listed as 11 men + 10 women; one man excluded for Gmed, Gmin, hamstrings)",
+   "note": "All abductors differed by sex; among adductors only hamstrings differed. Single position only.",
+   "arm_cm_men": 3.4,
+   "arm_cm_men_sd": 0.3,
+   "arm_cm_women": 2.2,
+   "arm_cm_women_sd": 0.4,
+   "verified": true,
+   "ref": 59,
+   "ours": {
+    "ids": [
+     "hamstrings_biceps_long",
+     "hamstrings_semimembranosus",
+     "hamstrings_semitendinosus"
+    ],
+    "arm_cm": [
+     2.06
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "per_bundle_cm": {
+     "hamstrings_biceps_long": 2.47,
+     "hamstrings_semimembranosus": 1.64,
+     "hamstrings_semitendinosus": 2.74
+    },
+    "what": "стоя, бедро 0°; для пучков — среднее по PCSA; знак + = то же действие, что в источнике",
+    "path_arm_cm": [
+     2.08
+    ]
+   }
+  },
+  {
+   "muscle": "Gluteus maximus",
+   "joint": "hip",
+   "motion": "frontal: adduction",
+   "angle_convention": "hip in anatomical neutral (0 deg flexion/abduction/rotation), supine; coronal-plane moment arm about AP axis through femoral head centre",
+   "angle_deg": [
+    0
+   ],
+   "arm_cm": [
+    1.7
+   ],
+   "method": "in vivo CT (GE CT/T 7800), 3-D digitised; moment arm from femoral-head centre to muscle-belly centre, cosine obliquity correction",
+   "n": "men 70 ± 3 y, 1.76 m, 75 kg; women 63 ± 7 y, 1.66 m, 60 kg (paper: N = 20, listed as 11 men + 10 women; one man excluded for Gmed, Gmin, hamstrings)",
+   "note": "All abductors differed by sex; among adductors only hamstrings differed. Single position only.",
+   "arm_cm_men": 1.7,
+   "arm_cm_men_sd": 0.2,
+   "arm_cm_women": 1.6,
+   "arm_cm_women_sd": 0.2,
+   "verified": true,
+   "ref": 59,
+   "ours": {
+    "ids": [
+     "glute_max_sup",
+     "glute_max_mid",
+     "glute_max_inf"
+    ],
+    "arm_cm": [
+     0.34
+    ],
+    "angle_app_deg": [
+     0
+    ],
+    "per_bundle_cm": {
+     "glute_max_sup": -1.94,
+     "glute_max_mid": -0.97,
+     "glute_max_inf": 4.66
+    },
+    "what": "стоя, бедро 0°; для пучков — среднее по PCSA; знак + = то же действие, что в источнике"
+   }
+  },
+  {
+   "muscle": "Psoas",
+   "joint": "hip",
+   "motion": "flexion",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    2.0,
+    3.0
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "iliopsoas_psoas"
+    ],
+    "arm_cm_range": [
+     0.14,
+     3.64
+    ],
+    "what": "сгибание, бедро −20…120°",
+    "path_arm_cm_range": [
+     0.1,
+     3.68
+    ]
+   }
+  },
+  {
+   "muscle": "Iliacus",
+   "joint": "hip",
+   "motion": "flexion",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    2.5,
+    5.2
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "iliopsoas_iliacus"
+    ],
+    "arm_cm_range": [
+     -1.31,
+     4.69
+    ],
+    "what": "сгибание, бедро −20…120°",
+    "path_arm_cm_range": [
+     -1.31,
+     4.74
+    ]
+   }
+  },
+  {
+   "muscle": "Psoas",
+   "joint": "hip",
+   "motion": "adduction",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    1.5,
+    2.0
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "iliopsoas_psoas"
+    ],
+    "arm_cm_range": [
+     -1.05,
+     0.84
+    ],
+    "what": "приведение, бедро −20…120°, все пучки",
+    "path_arm_cm_range": [
+     -1.07,
+     0.84
+    ]
+   }
+  },
+  {
+   "muscle": "Iliacus",
+   "joint": "hip",
+   "motion": "adduction",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    0.0,
+    1.5
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "iliopsoas_iliacus"
+    ],
+    "arm_cm_range": [
+     -1.84,
+     -0.29
+    ],
+    "what": "приведение, бедро −20…120°, все пучки",
+    "path_arm_cm_range": [
+     -1.85,
+     -0.01
+    ]
+   }
+  },
+  {
+   "muscle": "Psoas",
+   "joint": "hip",
+   "motion": "internal rotation",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    0.2,
+    0.8
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "iliopsoas_psoas"
+    ],
+    "arm_cm_range": [
+     -0.38,
+     0.1
+    ],
+    "what": "внутренняя ротация, бедро 0–90°, все пучки"
+   }
+  },
+  {
+   "muscle": "Iliacus",
+   "joint": "hip",
+   "motion": "internal rotation",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    0.2,
+    0.9
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "iliopsoas_iliacus"
+    ],
+    "arm_cm_range": [
+     0.93,
+     1.1
+    ],
+    "what": "внутренняя ротация, бедро 0–90°, все пучки"
+   }
+  },
+  {
+   "muscle": "Gluteus maximus",
+   "joint": "hip",
+   "motion": "extension",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    1.0,
+    7.0
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "glute_max_sup",
+     "glute_max_mid",
+     "glute_max_inf"
+    ],
+    "arm_cm_range": [
+     1.42,
+     8.11
+    ],
+    "what": "разгибание, бедро −20…120°, все пучки",
+    "path_arm_cm_range": [
+     1.39,
+     8.13
+    ]
+   }
+  },
+  {
+   "muscle": "Gluteus medius",
+   "joint": "hip",
+   "motion": "extension",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    -2.0,
+    2.0
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "glute_med_ant",
+     "glute_med_mid",
+     "glute_med_post"
+    ],
+    "arm_cm_range": [
+     -2.32,
+     2.78
+    ],
+    "what": "разгибание, бедро −20…120°, все пучки",
+    "path_arm_cm_range": [
+     -2.33,
+     2.78
+    ]
+   }
+  },
+  {
+   "muscle": "Gluteus maximus",
+   "joint": "hip",
+   "motion": "adduction",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    0.1,
+    7.0
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "glute_max_sup",
+     "glute_max_mid",
+     "glute_max_inf"
+    ],
+    "arm_cm_range": [
+     -2.44,
+     5.51
+    ],
+    "what": "приведение, бедро −20…120°, все пучки",
+    "path_arm_cm_range": [
+     -2.33,
+     5.51
+    ]
+   }
+  },
+  {
+   "muscle": "Gluteus medius",
+   "joint": "hip",
+   "motion": "adduction",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    -3.0,
+    1.5
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "glute_med_ant",
+     "glute_med_mid",
+     "glute_med_post"
+    ],
+    "arm_cm_range": [
+     -6.05,
+     -3.28
+    ],
+    "what": "приведение, бедро −20…120°, все пучки",
+    "path_arm_cm_range": [
+     -6.06,
+     -3.29
+    ]
+   }
+  },
+  {
+   "muscle": "Gluteus maximus",
+   "joint": "hip",
+   "motion": "internal rotation",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    -3.5,
+    -0.2
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "glute_max_sup",
+     "glute_max_mid",
+     "glute_max_inf"
+    ],
+    "arm_cm_range": [
+     -2.04,
+     2.17
+    ],
+    "what": "внутренняя ротация, бедро 0–90°, все пучки"
+   }
+  },
+  {
+   "muscle": "Gluteus medius",
+   "joint": "hip",
+   "motion": "internal rotation",
+   "angle_convention": "range of PEAK moment arms across individual fibres of the 3-D model; hip angle at peak not stated",
+   "angle_deg": [],
+   "arm_cm": [],
+   "method": "3-D finite-element muscle model built from MRI (NOT experimental)",
+   "n": "1 subject model",
+   "note": "Model values; negative = opposite action (e.g. gluteus medius adduction range includes abduction).",
+   "arm_cm_range": [
+    -2.3,
+    2.1
+   ],
+   "verified": true,
+   "model_not_experimental": true,
+   "ref": 37,
+   "ours": {
+    "ids": [
+     "glute_med_ant",
+     "glute_med_mid",
+     "glute_med_post"
+    ],
+    "arm_cm_range": [
+     -1.94,
+     5.88
+    ],
+    "what": "внутренняя ротация, бедро 0–90°, все пучки"
+   }
+  }
+ ],
+ "qualitative": [
+  {
+   "ref": 43,
+   "finding": "Cadaver (4) + model: rotation moment arms measured at 0, 20, 45, 60, 90 deg hip flexion for Gmax (6 compartments), Gmed (4), Gmin (3), iliopsoas, piriformis, quadratus femoris, obturator internus/externus. 15 of 18 compartments trend toward internal rotation with flexion; some switch from external to internal rotators. Numbers only in paper figures/tables (not accessible)."
+  },
+  {
+   "ref": 44,
+   "finding": "Straight-line 3-D model on one dry-bone specimen; classifies hip muscle actions at 0, 40 and 90 deg hip flexion (no numbers in abstract)."
+  },
+  {
+   "ref": 58,
+   "finding": "In vivo (CT) hip-extensor moment arms vs hip flexion - closed access, no abstract numbers retrievable; not recorded. Beardsley & Contreras (2014, Strength Cond J 36(4):100-101) cite it for adductor magnus acting as a hip extensor through the flexion range."
+  },
+  {
+   "ref": 62,
+   "finding": "DTI in 15 young adults: posterior and anterior-distal adductor magnus portions (>80% of volume/PCSA) have longer hip-extension than adduction moment arms in neutral; whole-muscle extension potential torque >2x adduction. No moment-arm values in abstract."
+  },
+  {
+   "ref": 65,
+   "finding": "In vivo MRI (10 M, 7 F) at 0, 30, 60 deg knee flexion for BF, ST, SM, gracilis, sartorius, medial/lateral gastrocnemius and patellar tendon; significant sex differences in sagittal moment arms for all except BF and sartorius."
+  },
+  {
+   "ref": 35,
+   "finding": "MRI-based models of 3 cadaver limbs reproduced measured medial-hamstring and psoas moment arms within 4 mm (within 10%) over functional hip/knee ranges."
+  },
+  {
+   "ref": 61,
+   "finding": "Cadaver tendon-travel study of 13 lower-leg muscles: gastrocnemius moment arms depend much more on joint angle than commonly assumed."
+  },
+  {
+   "ref": 56,
+   "finding": "Review: Achilles and TA moment arms on 2-D MRI increase 22-44% from rest to MVC (joint displacement, muscle thickening, tendon stretch)."
+  },
+  {
+   "ref": 57,
+   "finding": "21 men: no significant correlation between fibre length (GM, GL, SOL, VL, VI) and Achilles/patellar-tendon moment arm (r = -0.2 to 0.29)."
+  },
+  {
+   "ref": 40,
+   "finding": "15 fresh hemipelvis specimens, tendon excursion; flexion-extension moment arms for 13 muscles + patellar tendon vs knee angle; normal vs ACL-deficient mostly not different. Curves not accessible; only peak PT (51.1 mm at 0 deg) via tsaopoulos2006."
+  },
+  {
+   "ref": 41,
+   "finding": "Best route to full angle-resolved curves for Buford 1997, Herzog & Read 1993, Spoor & van Leeuwen 1992, Visser 1990, Wretenberg 1996, Delp 1999, Klein 1996, Rugg 1990, Maganaris 2000 etc.: 300 digitized datasets (ISB sign conventions except knee flexion/extension reversed; NaN where secondary DOF unspecified) in figshare 10.6084/m9.figshare.26018563 (CC BY 4.0). Download blocked in this sandbox."
+  }
+ ]
+}

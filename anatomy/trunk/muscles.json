@@ -1,0 +1,5032 @@
+[
+ {
+  "id": "es_iliocostalis_lumborum",
+  "name_ru": "Подвздошно-рёберная мышца поясницы, поясничная часть",
+  "group_ru": "Мышца, выпрямляющая позвоночник",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.272,
+    "a": -0.0632,
+    "l": 0.042,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.465,
+    "a": -0.033,
+    "l": 0.0284,
+    "body": "L2"
+   }
+  ],
+  "belly": [
+   0.05,
+   0.95
+  ],
+  "width_m": 0.03,
+  "thickness_m": 0.025,
+  "pcsa_cm2": 6.59,
+  "opt_fiber_cm": 14.2,
+  "pennation_deg": 13.8,
+  "actions": [
+   {
+    "motion": "lumbar_ext",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      4.45,
+      4.43,
+      4.39,
+      4.3,
+      4.19,
+      4.06
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      4.1
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": -4.9e-05,
+    "l": 9e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.5 · рост^0.43 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      2.52,
+      -3.02,
+      -0.0439,
+      0.048,
+      0.124
+     ],
+     "ap_L3": [
+      -0.87,
+      0.0912,
+      -0.00478,
+      -0.0257,
+      -0.00492
+     ],
+     "ml_L3": [
+      1.3,
+      -0.0815,
+      0.00208,
+      0.014,
+      0.00903
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 4.1,
+    "src": "Delp 2001, cadaver, iliocostalis lumborum"
+   },
+   {
+    "value": 15.9,
+    "src": "McGill 1988, CT at L4/L5, sacrospinalis, active men"
+   },
+   {
+    "value": 20.0,
+    "src": "Anderson 2012 regression, ES CSA at L3, man 25 y 180 cm 80 kg"
+   }
+  ],
+  "extra": {
+   "members": [
+    "IL_L1",
+    "IL_L2",
+    "IL_L3",
+    "IL_L4"
+   ],
+   "representative_fascicle": "IL_L2",
+   "path_shift_m": {
+    "a": 0.0062,
+    "l": 0.0011
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.45,
+      4.43,
+      4.39,
+      4.3,
+      4.19,
+      4.06
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.49,
+      4.39,
+      4.21,
+      4.0,
+      3.76,
+      3.49
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.26,
+      3.15,
+      2.97,
+      2.76,
+      2.52,
+      2.25
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.78,
+      1.73,
+      1.62,
+      1.49,
+      1.34,
+      1.17
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.63,
+      0.61,
+      0.57,
+      0.51,
+      0.45,
+      0.37
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 4.1,
+    "L4L5": 3.56,
+    "L3L4": 2.34,
+    "L2L3": 1.36,
+    "L1L2": 0.57
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.953,
+     1.0,
+     1.069,
+     1.136,
+     1.2,
+     1.26
+    ]
+   },
+   "fiber_ref": "Delp 2001 (iliocostalis lumborum)"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   4,
+   6,
+   13,
+   16,
+   12,
+   11
+  ]
+ },
+ {
+  "id": "es_iliocostalis_thoracis",
+  "name_ru": "Подвздошно-рёберная мышца поясницы, грудная часть (к рёбрам)",
+  "group_ru": "Мышца, выпрямляющая позвоночник",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.306,
+    "a": -0.05,
+    "l": 0.0504,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.45,
+    "a": -0.0584,
+    "l": 0.0519,
+    "body": "L2"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.638,
+    "a": -0.0875,
+    "l": 0.0534,
+    "body": "thorax"
+   }
+  ],
+  "belly": [
+   0.25,
+   0.75
+  ],
+  "width_m": 0.025,
+  "thickness_m": 0.015,
+  "pcsa_cm2": 5.21,
+  "opt_fiber_cm": 14.2,
+  "pennation_deg": 13.8,
+  "actions": [
+   {
+    "motion": "lumbar_ext",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      2.51,
+      2.78,
+      3.13,
+      3.42,
+      3.64,
+      3.8
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      4.96
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": -4.9e-05,
+    "l": 9e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.5 · рост^0.43 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      2.52,
+      -3.02,
+      -0.0439,
+      0.048,
+      0.124
+     ],
+     "ap_L3": [
+      -0.87,
+      0.0912,
+      -0.00478,
+      -0.0257,
+      -0.00492
+     ],
+     "ml_L3": [
+      1.3,
+      -0.0815,
+      0.00208,
+      0.014,
+      0.00903
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 4.1,
+    "src": "Delp 2001, cadaver, iliocostalis lumborum"
+   },
+   {
+    "value": 15.9,
+    "src": "McGill 1988, CT at L4/L5, sacrospinalis, active men"
+   },
+   {
+    "value": 20.0,
+    "src": "Anderson 2012 regression, ES CSA at L3, man 25 y 180 cm 80 kg"
+   }
+  ],
+  "extra": {
+   "members": [
+    "IL_R5",
+    "IL_R6",
+    "IL_R7",
+    "IL_R8",
+    "IL_R9",
+    "IL_R10",
+    "IL_R11",
+    "IL_R12"
+   ],
+   "representative_fascicle": "IL_R10",
+   "path_shift_m": {
+    "a": -0.0013,
+    "l": -0.0005
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      2.51,
+      2.78,
+      3.13,
+      3.42,
+      3.64,
+      3.8
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.98,
+      4.05,
+      4.09,
+      4.08,
+      4.0,
+      3.87
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.58,
+      4.53,
+      4.41,
+      4.24,
+      4.01,
+      3.74
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.41,
+      4.35,
+      4.22,
+      4.06,
+      3.86,
+      3.62
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.96,
+      3.89,
+      3.78,
+      3.65,
+      3.5,
+      3.33
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 4.96,
+    "L4L5": 5.01,
+    "L3L4": 5.07,
+    "L2L3": 5.13,
+    "L1L2": 5.02
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.958,
+     1.0,
+     1.063,
+     1.124,
+     1.184,
+     1.242
+    ]
+   },
+   "fiber_ref": "Delp 2001 (iliocostalis lumborum)"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   4,
+   6,
+   13,
+   16,
+   12,
+   11
+  ]
+ },
+ {
+  "id": "es_longissimus_lumborum",
+  "name_ru": "Длиннейшая мышца груди, поясничная часть",
+  "group_ru": "Мышца, выпрямляющая позвоночник",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.253,
+    "a": -0.076,
+    "l": 0.0395,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.359,
+    "a": -0.0336,
+    "l": 0.0253,
+    "body": "L4"
+   }
+  ],
+  "belly": [
+   0.05,
+   0.95
+  ],
+  "width_m": 0.025,
+  "thickness_m": 0.025,
+  "pcsa_cm2": 4.82,
+  "opt_fiber_cm": 11.7,
+  "pennation_deg": 12.6,
+  "actions": [
+   {
+    "motion": "lumbar_ext",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      4.38,
+      4.32,
+      4.21,
+      4.08,
+      3.92,
+      3.75
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      3.03
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": -4.9e-05,
+    "l": 9e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.5 · рост^0.43 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      2.52,
+      -3.02,
+      -0.0439,
+      0.048,
+      0.124
+     ],
+     "ap_L3": [
+      -0.87,
+      0.0912,
+      -0.00478,
+      -0.0257,
+      -0.00492
+     ],
+     "ml_L3": [
+      1.3,
+      -0.0815,
+      0.00208,
+      0.014,
+      0.00903
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 5.9,
+    "src": "Delp 2001, cadaver, longissimus thoracis"
+   },
+   {
+    "value": 15.9,
+    "src": "McGill 1988, CT at L4/L5, sacrospinalis, active men"
+   },
+   {
+    "value": 20.0,
+    "src": "Anderson 2012 regression, ES CSA at L3, man 25 y 180 cm 80 kg"
+   }
+  ],
+  "extra": {
+   "members": [
+    "LTpL_L5",
+    "LTpL_L4",
+    "LTpL_L3",
+    "LTpL_L2",
+    "LTpL_L1"
+   ],
+   "representative_fascicle": "LTpL_L4",
+   "path_shift_m": {
+    "a": -0.0064,
+    "l": 0.0038
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.38,
+      4.32,
+      4.21,
+      4.08,
+      3.92,
+      3.75
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.52,
+      3.43,
+      3.26,
+      3.08,
+      2.86,
+      2.63
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      2.42,
+      2.34,
+      2.2,
+      2.04,
+      1.85,
+      1.64
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.28,
+      1.24,
+      1.16,
+      1.06,
+      0.95,
+      0.81
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.48,
+      0.46,
+      0.44,
+      0.4,
+      0.35,
+      0.29
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 3.03,
+    "L4L5": 2.13,
+    "L3L4": 1.36,
+    "L2L3": 0.78,
+    "L1L2": 0.35
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.966,
+     1.0,
+     1.049,
+     1.095,
+     1.14,
+     1.181
+    ]
+   },
+   "fiber_ref": "Delp 2001 (longissimus thoracis)"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   4,
+   6,
+   13,
+   16,
+   12,
+   11
+  ]
+ },
+ {
+  "id": "es_longissimus_thoracis",
+  "name_ru": "Длиннейшая мышца груди, грудная часть (от крестца)",
+  "group_ru": "Мышца, выпрямляющая позвоночник",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.177,
+    "a": -0.081,
+    "l": 0.0102,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.35,
+    "a": -0.0486,
+    "l": 0.0185,
+    "body": "L4"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.403,
+    "a": -0.0459,
+    "l": 0.0224,
+    "body": "L3"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.452,
+    "a": -0.049,
+    "l": 0.0261,
+    "body": "L2"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.657,
+    "a": -0.0856,
+    "l": 0.0448,
+    "body": "thorax"
+   }
+  ],
+  "belly": [
+   0.5,
+   0.9
+  ],
+  "width_m": 0.03,
+  "thickness_m": 0.02,
+  "pcsa_cm2": 8.43,
+  "opt_fiber_cm": 11.7,
+  "pennation_deg": 12.6,
+  "actions": [
+   {
+    "motion": "lumbar_ext",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      4.45,
+      4.41,
+      4.33,
+      4.24,
+      4.13,
+      4.02
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      1.31
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": -4.9e-05,
+    "l": 9e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.5 · рост^0.43 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      2.52,
+      -3.02,
+      -0.0439,
+      0.048,
+      0.124
+     ],
+     "ap_L3": [
+      -0.87,
+      0.0912,
+      -0.00478,
+      -0.0257,
+      -0.00492
+     ],
+     "ml_L3": [
+      1.3,
+      -0.0815,
+      0.00208,
+      0.014,
+      0.00903
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 5.9,
+    "src": "Delp 2001, cadaver, longissimus thoracis"
+   },
+   {
+    "value": 15.9,
+    "src": "McGill 1988, CT at L4/L5, sacrospinalis, active men"
+   },
+   {
+    "value": 20.0,
+    "src": "Anderson 2012 regression, ES CSA at L3, man 25 y 180 cm 80 kg"
+   }
+  ],
+  "extra": {
+   "members": [
+    "LTpT_T7",
+    "LTpT_T8",
+    "LTpT_T9",
+    "LTpT_T10",
+    "LTpT_T11",
+    "LTpT_T12",
+    "LTpT_R7",
+    "LTpT_R8",
+    "LTpT_R9",
+    "LTpT_R10",
+    "LTpT_R11",
+    "LTpT_R12"
+   ],
+   "representative_fascicle": "LTpT_R10",
+   "path_shift_m": {
+    "a": 0.0041,
+    "l": -0.0001
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.45,
+      4.41,
+      4.33,
+      4.24,
+      4.13,
+      4.02
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.69,
+      4.66,
+      4.6,
+      4.53,
+      4.45,
+      4.35
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.51,
+      4.48,
+      4.44,
+      4.39,
+      4.33,
+      4.27
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.14,
+      4.11,
+      4.08,
+      4.04,
+      3.99,
+      3.93
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.75,
+      3.7,
+      3.62,
+      3.53,
+      3.43,
+      3.32
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 1.31,
+    "L4L5": 1.51,
+    "L3L4": 1.78,
+    "L2L3": 2.04,
+    "L1L2": 2.21
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.971,
+     1.0,
+     1.044,
+     1.087,
+     1.129,
+     1.171
+    ]
+   },
+   "fiber_ref": "Delp 2001 (longissimus thoracis)"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   4,
+   6,
+   13,
+   16,
+   12,
+   11
+  ]
+ },
+ {
+  "id": "es_longissimus_thoracis_upper",
+  "name_ru": "Длиннейшая мышца груди, грудная часть (от поясничных позвонков)",
+  "group_ru": "Мышца, выпрямляющая позвоночник",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.374,
+    "a": -0.051,
+    "l": 0.0039,
+    "body": "L3"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.473,
+    "a": -0.0569,
+    "l": 0.0048,
+    "body": "L1"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.698,
+    "a": -0.0734,
+    "l": 0.0144,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.723,
+    "a": -0.0741,
+    "l": 0.0154,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.999,
+    "a": -0.0668,
+    "l": 0.0249,
+    "body": "thorax"
+   }
+  ],
+  "belly": [
+   0.4,
+   0.9
+  ],
+  "width_m": 0.02,
+  "thickness_m": 0.012,
+  "pcsa_cm2": 2.83,
+  "opt_fiber_cm": 11.7,
+  "pennation_deg": 12.6,
+  "actions": [],
+  "spans": [
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": -4.9e-05,
+    "l": 9e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.5 · рост^0.43 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      2.52,
+      -3.02,
+      -0.0439,
+      0.048,
+      0.124
+     ],
+     "ap_L3": [
+      -0.87,
+      0.0912,
+      -0.00478,
+      -0.0257,
+      -0.00492
+     ],
+     "ml_L3": [
+      1.3,
+      -0.0815,
+      0.00208,
+      0.014,
+      0.00903
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 5.9,
+    "src": "Delp 2001, cadaver, longissimus thoracis"
+   },
+   {
+    "value": 15.9,
+    "src": "McGill 1988, CT at L4/L5, sacrospinalis, active men"
+   },
+   {
+    "value": 20.0,
+    "src": "Anderson 2012 regression, ES CSA at L3, man 25 y 180 cm 80 kg"
+   }
+  ],
+  "extra": {
+   "members": [
+    "LTpT_T1",
+    "LTpT_T2",
+    "LTpT_T3",
+    "LTpT_T4",
+    "LTpT_T5",
+    "LTpT_T6",
+    "LTpT_R4",
+    "LTpT_R5",
+    "LTpT_R6"
+   ],
+   "representative_fascicle": "LTpT_T3",
+   "path_shift_m": {
+    "a": 0.0,
+    "l": 0.0
+   },
+   "arms_cm_by_level": {
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.05,
+      1.04,
+      1.02,
+      1.0,
+      0.97,
+      0.93
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      2.58,
+      2.54,
+      2.48,
+      2.41,
+      2.33,
+      2.24
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.19,
+      3.18,
+      3.13,
+      3.07,
+      2.99,
+      2.9
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.53,
+      3.51,
+      3.45,
+      3.38,
+      3.29,
+      3.18
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L4L5": 0.05,
+    "L3L4": 0.3,
+    "L2L3": 0.6,
+    "L1L2": 0.87
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.987,
+     1.0,
+     1.019,
+     1.038,
+     1.057,
+     1.074
+    ]
+   },
+   "fiber_ref": "Delp 2001 (longissimus thoracis)",
+   "note": "Не пересекает L5–S1: в приложении с жёстким туловищем не нагружается; плечи на верхних поясничных уровнях в arms_cm_by_level."
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   4,
+   6,
+   13,
+   16,
+   12,
+   11
+  ]
+ },
+ {
+  "id": "multifidus_sacral",
+  "name_ru": "Многораздельная мышца, пучки от крестца",
+  "group_ru": "Глубокие мышцы спины",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.191,
+    "a": -0.0683,
+    "l": 0.025,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.361,
+    "a": -0.0424,
+    "l": 0.0066,
+    "body": "L3"
+   }
+  ],
+  "belly": [
+   0.05,
+   0.95
+  ],
+  "width_m": 0.025,
+  "thickness_m": 0.03,
+  "pcsa_cm2": 8.76,
+  "opt_fiber_cm": 5.66,
+  "pennation_deg": 18.4,
+  "actions": [
+   {
+    "motion": "lumbar_ext",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      3.68,
+      3.7,
+      3.72,
+      3.71,
+      3.67,
+      3.61
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      1.69
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 2e-06,
+    "l": null,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.09 · рост^0.14 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      5.7,
+      -1.65,
+      -0.0143,
+      0.00518,
+      0.00731
+     ],
+     "ap_L3": [
+      1.03,
+      -0.13,
+      -0.00948,
+      -0.035,
+      0.000174
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 23.9,
+    "src": "Ward 2009, cadaver PCSA"
+   },
+   {
+    "value": 4.2,
+    "src": "McGill 1988, CT at L4/L5"
+   }
+  ],
+  "extra": {
+   "members": [
+    "MF_m1t.2",
+    "MF_m1t.3",
+    "MF_m2t.1",
+    "MF_m2t.2",
+    "MF_m2t.3",
+    "MF_m3s",
+    "MF_m3t.1",
+    "MF_m3t.2",
+    "MF_m3t.3",
+    "MF_m4s",
+    "MF_m4t.1",
+    "MF_m4t.2",
+    "MF_m4t.3",
+    "MF_m5s",
+    "MF_m5t.1",
+    "MF_m5t.2",
+    "MF_m5t.3",
+    "MF_m4.laminar",
+    "MF_m5.laminar"
+   ],
+   "representative_fascicle": "MF_m3t.3",
+   "path_shift_m": {
+    "a": 0.0062,
+    "l": 0.0041
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.68,
+      3.7,
+      3.72,
+      3.71,
+      3.67,
+      3.61
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.48,
+      3.51,
+      3.51,
+      3.48,
+      3.41,
+      3.31
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      2.47,
+      2.52,
+      2.56,
+      2.55,
+      2.5,
+      2.42
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.32,
+      1.38,
+      1.45,
+      1.49,
+      1.49,
+      1.47
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.4,
+      0.42,
+      0.44,
+      0.44,
+      0.43,
+      0.42
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 1.69,
+    "L4L5": 0.96,
+    "L3L4": 0.38,
+    "L2L3": -0.02,
+    "L1L2": -0.01
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.957,
+     1.0,
+     1.065,
+     1.131,
+     1.197,
+     1.261
+    ]
+   },
+   "fiber_ref": "Ward 2009 JBJS (fiber length); pennation as tabulated with Delp 2001 in Vasavada 2010"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   4,
+   7,
+   12
+  ]
+ },
+ {
+  "id": "multifidus_lumbar",
+  "name_ru": "Многораздельная мышца, короткие межпозвонковые пучки",
+  "group_ru": "Глубокие мышцы спины",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.326,
+    "a": -0.0351,
+    "l": 0.0169,
+    "body": "L5"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.469,
+    "a": -0.0606,
+    "l": 0.003,
+    "body": "L1"
+   }
+  ],
+  "belly": [
+   0.05,
+   0.95
+  ],
+  "width_m": 0.015,
+  "thickness_m": 0.015,
+  "pcsa_cm2": 1.82,
+  "opt_fiber_cm": 5.66,
+  "pennation_deg": 18.4,
+  "actions": [],
+  "spans": [
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 2e-06,
+    "l": null,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.09 · рост^0.14 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      5.7,
+      -1.65,
+      -0.0143,
+      0.00518,
+      0.00731
+     ],
+     "ap_L3": [
+      1.03,
+      -0.13,
+      -0.00948,
+      -0.035,
+      0.000174
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 23.9,
+    "src": "Ward 2009, cadaver PCSA"
+   },
+   {
+    "value": 4.2,
+    "src": "McGill 1988, CT at L4/L5"
+   }
+  ],
+  "extra": {
+   "members": [
+    "MF_m1s",
+    "MF_m1t.1",
+    "MF_m2s",
+    "MF_m1.laminar",
+    "MF_m2.laminar",
+    "MF_m3.laminar"
+   ],
+   "representative_fascicle": "MF_m1t.1",
+   "path_shift_m": {
+    "a": 0.0,
+    "l": 0.0
+   },
+   "arms_cm_by_level": {
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.23,
+      1.29,
+      1.37,
+      1.42,
+      1.46,
+      1.49
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      2.75,
+      2.78,
+      2.8,
+      2.78,
+      2.75,
+      2.69
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.08,
+      3.09,
+      3.06,
+      3.0,
+      2.92,
+      2.81
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.99,
+      2.0,
+      1.99,
+      1.97,
+      1.93,
+      1.87
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L4L5": 0.89,
+    "L3L4": 0.99,
+    "L2L3": 0.43,
+    "L1L2": 0.02
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.932,
+     1.0,
+     1.102,
+     1.205,
+     1.307,
+     1.407
+    ]
+   },
+   "fiber_ref": "Ward 2009 JBJS (fiber length); pennation as tabulated with Delp 2001 in Vasavada 2010",
+   "note": "Не пересекает L5–S1: в приложении с жёстким туловищем не нагружается; плечи на верхних поясничных уровнях в arms_cm_by_level."
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   4,
+   7,
+   12
+  ]
+ },
+ {
+  "id": "ql_iliolumbar",
+  "name_ru": "Квадратная мышца поясницы, подвздошно-поясничные пучки",
+  "group_ru": "Квадратная мышца поясницы",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.32,
+    "a": -0.0272,
+    "l": 0.057,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.414,
+    "a": -0.0302,
+    "l": 0.0295,
+    "body": "L3"
+   }
+  ],
+  "belly": [
+   0.05,
+   0.95
+  ],
+  "width_m": 0.03,
+  "thickness_m": 0.012,
+  "pcsa_cm2": 2.51,
+  "opt_fiber_cm": 5.6,
+  "pennation_deg": 7.4,
+  "actions": [
+   {
+    "motion": "lumbar_ext",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      0.23,
+      0.52,
+      0.93,
+      1.33,
+      1.71,
+      2.05
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      6.59
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 0.000145,
+    "l": 4.3e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.23 · рост^0.95 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      -0.29,
+      -1.44,
+      -0.0389,
+      0.0362,
+      0.0199
+     ],
+     "ap_L3": [
+      0.63,
+      -0.0152,
+      -0.00875,
+      -0.029,
+      0.0145
+     ],
+     "ml_L3": [
+      2.82,
+      -0.38,
+      -0.00467,
+      0.0222,
+      0.0043
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 2.8,
+    "src": "Delp 2001 (proximal+distal)"
+   }
+  ],
+  "extra": {
+   "members": [
+    "QL_post_I.1-L3",
+    "QL_post_I.2-L4",
+    "QL_post_I.2-L3",
+    "QL_post_I.2-L2",
+    "QL_post_I.3-L1",
+    "QL_post_I.3-L2",
+    "QL_post_I.3-L3"
+   ],
+   "representative_fascicle": "QL_post_I.2-L3",
+   "path_shift_m": {
+    "a": 0.0031,
+    "l": 0.0005
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.23,
+      0.52,
+      0.93,
+      1.33,
+      1.71,
+      2.05
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.47,
+      1.59,
+      1.75,
+      1.9,
+      2.01,
+      2.1
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.73,
+      1.74,
+      1.75,
+      1.74,
+      1.71,
+      1.67
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.91,
+      0.89,
+      0.86,
+      0.82,
+      0.77,
+      0.72
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.27,
+      0.26,
+      0.24,
+      0.22,
+      0.2,
+      0.17
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 6.59,
+    "L4L5": 5.02,
+    "L3L4": 3.12,
+    "L2L3": 1.21,
+    "L1L2": 0.32
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.976,
+     1.0,
+     1.039,
+     1.081,
+     1.126,
+     1.172
+    ]
+   },
+   "fiber_ref": "Delp 2001 (QL distal)"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   6,
+   12
+  ]
+ },
+ {
+  "id": "ql_iliocostal",
+  "name_ru": "Квадратная мышца поясницы, подвздошно-рёберные пучки",
+  "group_ru": "Квадратная мышца поясницы",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.33,
+    "a": -0.0298,
+    "l": 0.0654,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.552,
+    "a": -0.0616,
+    "l": 0.0432,
+    "body": "thorax"
+   }
+  ],
+  "belly": [
+   0.05,
+   0.95
+  ],
+  "width_m": 0.03,
+  "thickness_m": 0.01,
+  "pcsa_cm2": 0.99,
+  "opt_fiber_cm": 8.5,
+  "pennation_deg": 7.4,
+  "actions": [
+   {
+    "motion": "lumbar_ext",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      0.0,
+      0.01,
+      0.7,
+      1.36,
+      1.96,
+      2.49
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_flex",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      0.46,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      6.9
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 0.000145,
+    "l": 4.3e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.23 · рост^0.95 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      -0.29,
+      -1.44,
+      -0.0389,
+      0.0362,
+      0.0199
+     ],
+     "ap_L3": [
+      0.63,
+      -0.0152,
+      -0.00875,
+      -0.029,
+      0.0145
+     ],
+     "ml_L3": [
+      2.82,
+      -0.38,
+      -0.00467,
+      0.0222,
+      0.0043
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 2.8,
+    "src": "Delp 2001 (proximal+distal)"
+   }
+  ],
+  "extra": {
+   "members": [
+    "QL_ant_I.2-T12",
+    "QL_ant_I.3-T12",
+    "QL_ant_I.2-12.1",
+    "QL_ant_I.3-12.1",
+    "QL_ant_I.3-12.2",
+    "QL_ant_I.3-12.3"
+   ],
+   "representative_fascicle": "QL_ant_I.3-12.2",
+   "path_shift_m": {
+    "a": -0.0063,
+    "l": -0.0009
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -0.46,
+      0.01,
+      0.7,
+      1.36,
+      1.96,
+      2.49
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.25,
+      1.43,
+      1.68,
+      1.88,
+      2.01,
+      2.09
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      2.16,
+      2.12,
+      2.04,
+      1.91,
+      1.73,
+      1.5
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      2.36,
+      2.2,
+      1.92,
+      1.62,
+      1.27,
+      0.9
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.89,
+      1.72,
+      1.46,
+      1.17,
+      0.86,
+      0.52
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 6.9,
+    "L4L5": 6.13,
+    "L3L4": 5.33,
+    "L2L3": 4.48,
+    "L1L2": 3.79
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.977,
+     1.0,
+     1.034,
+     1.067,
+     1.099,
+     1.128
+    ]
+   },
+   "fiber_ref": "Delp 2001 (QL proximal)"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   6,
+   12
+  ]
+ },
+ {
+  "id": "ql_lumbocostal",
+  "name_ru": "Квадратная мышца поясницы, пояснично-рёберные пучки",
+  "group_ru": "Квадратная мышца поясницы",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.571,
+    "a": -0.0558,
+    "l": 0.0299,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.418,
+    "a": -0.0336,
+    "l": 0.0291,
+    "body": "L3"
+   }
+  ],
+  "belly": [
+   0.05,
+   0.95
+  ],
+  "width_m": 0.02,
+  "thickness_m": 0.008,
+  "pcsa_cm2": 0.84,
+  "opt_fiber_cm": 5.6,
+  "pennation_deg": 7.4,
+  "actions": [],
+  "spans": [
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 0.000145,
+    "l": 4.3e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.23 · рост^0.95 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      -0.29,
+      -1.44,
+      -0.0389,
+      0.0362,
+      0.0199
+     ],
+     "ap_L3": [
+      0.63,
+      -0.0152,
+      -0.00875,
+      -0.029,
+      0.0145
+     ],
+     "ml_L3": [
+      2.82,
+      -0.38,
+      -0.00467,
+      0.0222,
+      0.0043
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 2.8,
+    "src": "Delp 2001 (proximal+distal)"
+   }
+  ],
+  "extra": {
+   "members": [
+    "QL_mid_L3-12.3",
+    "QL_mid_L3-12.2",
+    "QL_mid_L3-12.1",
+    "QL_mid_L2-12.1",
+    "QL_mid_L4-12.3"
+   ],
+   "representative_fascicle": "QL_mid_L3-12.1",
+   "path_shift_m": {
+    "a": 0.0,
+    "l": 0.0
+   },
+   "arms_cm_by_level": {
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.27,
+      0.28,
+      0.29,
+      0.29,
+      0.29,
+      0.28
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      1.9,
+      1.87,
+      1.82,
+      1.75,
+      1.66,
+      1.57
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      2.4,
+      2.33,
+      2.21,
+      2.07,
+      1.92,
+      1.77
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L3L4": 0.35,
+    "L2L3": 2.21,
+    "L1L2": 3.09
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.975,
+     1.0,
+     1.036,
+     1.071,
+     1.104,
+     1.136
+    ]
+   },
+   "fiber_ref": "Delp 2001 (QL distal)",
+   "note": "Не пересекает L5–S1: в приложении с жёстким туловищем не нагружается; плечи на верхних поясничных уровнях в arms_cm_by_level."
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   6,
+   12
+  ]
+ },
+ {
+  "id": "rectus_abdominis",
+  "name_ru": "Прямая мышца живота",
+  "group_ru": "Мышцы живота",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.032,
+    "a": 0.0289,
+    "l": 0.0101,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.733,
+    "a": 0.0729,
+    "l": 0.0329,
+    "body": "thorax"
+   }
+  ],
+  "belly": [
+   0.05,
+   0.95
+  ],
+  "width_m": 0.07,
+  "thickness_m": 0.01,
+  "pcsa_cm2": 5.67,
+  "opt_fiber_cm": 26.7,
+  "pennation_deg": 0,
+  "actions": [
+   {
+    "motion": "lumbar_flex",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      5.16,
+      6.14,
+      7.52,
+      8.76,
+      9.84,
+      9.04
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      1.72
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 0.00119,
+    "l": 0.000335,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.48 · рост^-0.09 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      6.37,
+      -2.12,
+      -0.0415,
+      -0.00452,
+      0.0516
+     ],
+     "ap_L3": [
+      6.41,
+      -1.47,
+      0.024,
+      -0.0309,
+      0.12
+     ],
+     "ap_moment_arm_L3": [
+      6.38,
+      -1.46,
+      0.0239,
+      -0.0308,
+      0.119
+     ],
+     "ml_L3": [
+      1.5,
+      0.0102,
+      0.00546,
+      0.0025,
+      0.0335
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 2.6,
+    "src": "Delp 2001"
+   },
+   {
+    "value": 3.3,
+    "src": "Brown 2011"
+   },
+   {
+    "value": 7.9,
+    "src": "McGill 1988 CT"
+   }
+  ],
+  "extra": {
+   "members": [
+    "rect_abd"
+   ],
+   "representative_fascicle": "rect_abd",
+   "path_shift_m": {
+    "a": 0.0001,
+    "l": -0.0001
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -5.16,
+      -6.14,
+      -7.52,
+      -8.76,
+      -9.84,
+      -9.04
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -4.3,
+      -5.49,
+      -7.18,
+      -8.73,
+      -10.12,
+      -8.91
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -4.35,
+      -5.65,
+      -7.49,
+      -9.2,
+      -10.74,
+      -8.97
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -5.22,
+      -6.51,
+      -8.35,
+      -10.04,
+      -11.56,
+      -9.01
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -6.6,
+      -7.78,
+      -9.45,
+      -10.96,
+      -12.29,
+      -8.89
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 1.72,
+    "L4L5": 1.92,
+    "L3L4": 2.11,
+    "L2L3": 2.32,
+    "L1L2": 2.49
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     1.028,
+     1.0,
+     0.948,
+     0.884,
+     0.81,
+     0.736
+    ]
+   },
+   "fiber_ref": "Brown 2011 (normalized fascicle length; Delp 2001: 28.0)",
+   "alt_path_ct": {
+    "path": [
+     {
+      "seg": "trunk",
+      "t": 0.032,
+      "a": 0.0289,
+      "l": 0.0101,
+      "body": "pelvis"
+     },
+     {
+      "seg": "trunk",
+      "t": 0.314,
+      "a": 0.0939,
+      "l": 0.0215,
+      "body": "abdominal_wall"
+     },
+     {
+      "seg": "trunk",
+      "t": 0.733,
+      "a": 0.0729,
+      "l": 0.0329,
+      "body": "thorax"
+     }
+    ],
+    "arm_L5S1_neutral_cm": 9.08,
+    "note": "Путь по передней брюшной стенке: точка на уровне L4/L5 в 10,28 см кпереди (McGill 1988, КТ). У модели прямая линия лобок–мечевидный отросток даёт плечо 6,1 см на L5/S1; по КТ и регрессии Anderson 2012 мышца лежит на 10–11 см кпереди от позвонка."
+   }
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   10,
+   9,
+   6,
+   11,
+   12
+  ]
+ },
+ {
+  "id": "ext_oblique_anterior",
+  "name_ru": "Наружная косая мышца живота, передние пучки (к апоневрозу)",
+  "group_ru": "Мышцы живота",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.59,
+    "a": 0.0713,
+    "l": 0.1004,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.437,
+    "a": 0.0869,
+    "l": 0.0349,
+    "body": "abdominal_wall"
+   }
+  ],
+  "belly": [
+   0.0,
+   0.45
+  ],
+  "width_m": 0.1,
+  "thickness_m": 0.007,
+  "pcsa_cm2": 9.24,
+  "opt_fiber_cm": 14.6,
+  "pennation_deg": 0,
+  "actions": [],
+  "spans": [
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 0.000308,
+    "l": 0.000721,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.55 · рост^0.36 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      1.5,
+      -2.47,
+      -0.0202,
+      0.0222,
+      0.075
+     ],
+     "ap_L3": [
+      3.72,
+      -0.44,
+      0.00487,
+      -0.0198,
+      0.0308
+     ],
+     "ml_L3": [
+      5.86,
+      -0.38,
+      0.0203,
+      0.00535,
+      0.0721
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 6.6,
+    "src": "Brown 2011"
+   },
+   {
+    "value": 9.4,
+    "src": "McGill 1988 CT"
+   }
+  ],
+  "extra": {
+   "members": [
+    "EO1",
+    "EO2",
+    "EO3",
+    "EO4"
+   ],
+   "representative_fascicle": "EO2",
+   "path_shift_m": {
+    "a": 0.0,
+    "l": 0.0
+   },
+   "arms_cm_by_level": {
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -8.46,
+      -7.96,
+      -6.79,
+      -4.96,
+      -2.47,
+      0.29
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -7.46,
+      -7.11,
+      -6.17,
+      -4.58,
+      -2.29,
+      0.35
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -7.03,
+      -6.72,
+      -5.85,
+      -4.34,
+      -2.14,
+      0.42
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -7.2,
+      -6.81,
+      -5.82,
+      -4.23,
+      -2.02,
+      0.47
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L4L5": -1.04,
+    "L3L4": 1.0,
+    "L2L3": 3.15,
+    "L1L2": 4.92
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     1.102,
+     1.0,
+     0.861,
+     0.748,
+     0.676,
+     0.654
+    ]
+   },
+   "fiber_ref": "Brown 2011",
+   "note": "Не пересекает L5–S1: в приложении с жёстким туловищем не нагружается; плечи на верхних поясничных уровнях в arms_cm_by_level.",
+   "alt_path_to_pubis": {
+    "path": [
+     {
+      "seg": "trunk",
+      "t": 0.531,
+      "a": 0.0647,
+      "l": 0.1037,
+      "body": "thorax"
+     },
+     {
+      "seg": "trunk",
+      "t": 0.401,
+      "a": 0.0854,
+      "l": 0.0399,
+      "body": "abdominal_wall"
+     },
+     {
+      "seg": "trunk",
+      "t": 0.032,
+      "a": 0.0288,
+      "l": 0.0102,
+      "body": "pelvis"
+     }
+    ],
+    "actions": [
+     {
+      "motion": "lumbar_flex",
+      "arm": {
+       "angle_deg": [
+        -10,
+        0,
+        15,
+        30,
+        45,
+        60
+       ],
+       "arm_cm": [
+        7.55,
+        7.77,
+        8.08,
+        8.38,
+        8.67,
+        8.93
+       ]
+      }
+     },
+     {
+      "motion": "lumbar_latbend",
+      "arm": {
+       "angle_deg": [
+        0
+       ],
+       "arm_cm": [
+        2.44
+       ]
+      }
+     }
+    ],
+    "note": "Наше допущение: натяжение передних пучков целиком передаётся через влагалище прямой мышцы на лобок. Тогда при σ=100 Н/см² сгибающая способность корпуса 323 Н·м против ~179 Н·м без этого пути; измеренная сила сгибания у мужчин заметно ниже разгибания, поэтому по умолчанию оставлен путь модели."
+   }
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   10,
+   9,
+   11,
+   12
+  ]
+ },
+ {
+  "id": "ext_oblique_lateral",
+  "name_ru": "Наружная косая мышца живота, задние пучки (к гребню подвздошной кости)",
+  "group_ru": "Мышцы живота",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.528,
+    "a": -0.0035,
+    "l": 0.1067,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.321,
+    "a": 0.0176,
+    "l": 0.1029,
+    "body": "pelvis"
+   }
+  ],
+  "belly": [
+   0.0,
+   0.95
+  ],
+  "width_m": 0.06,
+  "thickness_m": 0.008,
+  "pcsa_cm2": 6.51,
+  "opt_fiber_cm": 14.6,
+  "pennation_deg": 0,
+  "actions": [
+   {
+    "motion": "lumbar_flex",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      4.48,
+      4.25,
+      3.8,
+      3.22,
+      2.54,
+      1.76
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      9.97
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 0.000308,
+    "l": 0.000721,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.55 · рост^0.36 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      1.5,
+      -2.47,
+      -0.0202,
+      0.0222,
+      0.075
+     ],
+     "ap_L3": [
+      3.72,
+      -0.44,
+      0.00487,
+      -0.0198,
+      0.0308
+     ],
+     "ml_L3": [
+      5.86,
+      -0.38,
+      0.0203,
+      0.00535,
+      0.0721
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 6.6,
+    "src": "Brown 2011"
+   },
+   {
+    "value": 9.4,
+    "src": "McGill 1988 CT"
+   }
+  ],
+  "extra": {
+   "members": [
+    "EO5",
+    "EO6"
+   ],
+   "representative_fascicle": "EO5",
+   "path_shift_m": {
+    "a": -0.0023,
+    "l": -0.0062
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -4.48,
+      -4.25,
+      -3.8,
+      -3.22,
+      -2.54,
+      -1.76
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -2.56,
+      -2.53,
+      -2.42,
+      -2.23,
+      -1.97,
+      -1.64
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -1.43,
+      -1.54,
+      -1.66,
+      -1.74,
+      -1.75,
+      -1.71
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -1.03,
+      -1.18,
+      -1.37,
+      -1.54,
+      -1.67,
+      -1.76
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -1.35,
+      -1.41,
+      -1.5,
+      -1.57,
+      -1.62,
+      -1.65
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 9.97,
+    "L4L5": 10.06,
+    "L3L4": 10.13,
+    "L2L3": 10.22,
+    "L1L2": 10.29
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     1.032,
+     1.0,
+     0.952,
+     0.904,
+     0.857,
+     0.814
+    ]
+   },
+   "fiber_ref": "Brown 2011"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   10,
+   9,
+   11,
+   12
+  ]
+ },
+ {
+  "id": "int_oblique_anterior",
+  "name_ru": "Внутренняя косая мышца живота, передние пучки (от гребня к апоневрозу)",
+  "group_ru": "Мышцы живота",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.356,
+    "a": 0.0768,
+    "l": 0.0585,
+    "body": "abdominal_wall"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.256,
+    "a": 0.0402,
+    "l": 0.131,
+    "body": "pelvis"
+   }
+  ],
+  "belly": [
+   0.3,
+   1.0
+  ],
+  "width_m": 0.08,
+  "thickness_m": 0.01,
+  "pcsa_cm2": 5.86,
+  "opt_fiber_cm": 7.8,
+  "pennation_deg": 0,
+  "actions": [
+   {
+    "motion": "lumbar_flex",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      3.35,
+      3.19,
+      2.96,
+      2.72,
+      2.51,
+      2.31
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      7.05
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 0.000421,
+    "l": 0.000632,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.52 · рост^? у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      30.64,
+      -5.41,
+      -0.0599,
+      -0.129,
+      0.0788
+     ],
+     "ap_L3": [
+      -5.07,
+      0.17,
+      0.0204,
+      0.0233,
+      0.0421
+     ],
+     "ml_L3": [
+      1.87,
+      -0.0303,
+      0.02,
+      0.0264,
+      0.0632
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 8.6,
+    "src": "Brown 2011"
+   },
+   {
+    "value": 8.1,
+    "src": "McGill 1988 CT"
+   }
+  ],
+  "extra": {
+   "members": [
+    "IO1",
+    "IO2",
+    "IO3"
+   ],
+   "representative_fascicle": "IO2",
+   "path_shift_m": {
+    "a": -0.0015,
+    "l": 0.0093
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -3.35,
+      -3.19,
+      -2.96,
+      -2.72,
+      -2.51,
+      -2.31
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 7.05
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     1.011,
+     1.0,
+     0.987,
+     0.977,
+     0.972,
+     0.969
+    ]
+   },
+   "fiber_ref": "Brown 2011"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   10,
+   9,
+   11,
+   12
+  ]
+ },
+ {
+  "id": "int_oblique_lateral",
+  "name_ru": "Внутренняя косая мышца живота, задние пучки (от гребня к нижним рёбрам)",
+  "group_ru": "Мышцы живота",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.502,
+    "a": 0.0251,
+    "l": 0.1137,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.334,
+    "a": 0.0029,
+    "l": 0.0948,
+    "body": "pelvis"
+   }
+  ],
+  "belly": [
+   0.0,
+   1.0
+  ],
+  "width_m": 0.06,
+  "thickness_m": 0.01,
+  "pcsa_cm2": 7.59,
+  "opt_fiber_cm": 7.8,
+  "pennation_deg": 0,
+  "actions": [
+   {
+    "motion": "lumbar_ext",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      0.0,
+      0.0,
+      0.0,
+      0.51,
+      1.36,
+      2.19
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_flex",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      1.6,
+      1.11,
+      0.32,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      8.16
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 0.000421,
+    "l": 0.000632,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.52 · рост^? у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      30.64,
+      -5.41,
+      -0.0599,
+      -0.129,
+      0.0788
+     ],
+     "ap_L3": [
+      -5.07,
+      0.17,
+      0.0204,
+      0.0233,
+      0.0421
+     ],
+     "ml_L3": [
+      1.87,
+      -0.0303,
+      0.02,
+      0.0264,
+      0.0632
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 8.6,
+    "src": "Brown 2011"
+   },
+   {
+    "value": 8.1,
+    "src": "McGill 1988 CT"
+   }
+  ],
+  "extra": {
+   "members": [
+    "IO4",
+    "IO5",
+    "IO6"
+   ],
+   "representative_fascicle": "IO5",
+   "path_shift_m": {
+    "a": 0.0073,
+    "l": 0.0072
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -1.6,
+      -1.11,
+      -0.32,
+      0.51,
+      1.36,
+      2.19
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -1.1,
+      -0.92,
+      -0.6,
+      -0.25,
+      0.15,
+      0.56
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -1.5,
+      -1.52,
+      -1.51,
+      -1.46,
+      -1.36,
+      -1.24
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -2.71,
+      -2.83,
+      -2.97,
+      -3.07,
+      -3.13,
+      -3.15
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -4.35,
+      -4.44,
+      -4.56,
+      -4.63,
+      -4.67,
+      -4.67
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 8.16,
+    "L4L5": 8.63,
+    "L3L4": 9.12,
+    "L2L3": 9.65,
+    "L1L2": 10.07
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     1.039,
+     1.0,
+     0.944,
+     0.891,
+     0.842,
+     0.797
+    ]
+   },
+   "fiber_ref": "Brown 2011"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   10,
+   9,
+   11,
+   12
+  ]
+ },
+ {
+  "id": "psoas_upper",
+  "name_ru": "Большая поясничная мышца, пучки от L1–L2",
+  "group_ru": "Подвздошно-поясничная мышца",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.502,
+    "a": -0.0243,
+    "l": 0.0186,
+    "body": "L1"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.103,
+    "a": 0.0452,
+    "l": 0.0715,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.021,
+    "a": 0.0349,
+    "l": 0.0688,
+    "body": "pelvis"
+   },
+   {
+    "seg": "thigh",
+    "t": 0.115,
+    "a": -0.0144,
+    "l": 0.005,
+    "body": "femur"
+   },
+   {
+    "seg": "thigh",
+    "t": 0.13,
+    "a": -0.0256,
+    "l": 0.0096,
+    "body": "femur"
+   }
+  ],
+  "belly": [
+   0.0,
+   0.8
+  ],
+  "width_m": 0.03,
+  "thickness_m": 0.03,
+  "pcsa_cm2": 7.01,
+  "opt_fiber_cm": 11.69,
+  "pennation_deg": 10.6,
+  "actions": [
+   {
+    "motion": "lumbar_flex",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      3.05,
+      3.47,
+      4.09,
+      4.68,
+      5.26,
+      5.8
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      4.71
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2",
+   "hip"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 2.6e-05,
+    "l": 8.3e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.29 · рост^-0.04 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      12.14,
+      -4.02,
+      -0.0763,
+      -0.00273,
+      0.049
+     ],
+     "ap_L3": [
+      1.6,
+      -0.42,
+      -0.00604,
+      -0.0113,
+      0.0026
+     ],
+     "ml_L3": [
+      1.24,
+      -0.29,
+      -0.000175,
+      0.012,
+      0.00825
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 7.7,
+    "src": "Ward 2009 CORR, cadaver"
+   },
+   {
+    "value": 17.6,
+    "src": "McGill 1988 CT"
+   }
+  ],
+  "extra": {
+   "members": [
+    "Ps_L1_VB",
+    "Ps_L1_TP",
+    "Ps_L1_L2_IVD",
+    "Ps_L2_TP",
+    "Ps_L2_L3_IVD"
+   ],
+   "representative_fascicle": "Ps_L1_L2_IVD",
+   "path_shift_m": {
+    "a": -0.0026,
+    "l": -0.0012
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -3.05,
+      -3.47,
+      -4.09,
+      -4.68,
+      -5.26,
+      -5.8
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -1.06,
+      -1.53,
+      -2.23,
+      -2.92,
+      -3.58,
+      -4.22
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.17,
+      -0.27,
+      -0.92,
+      -1.57,
+      -2.2,
+      -2.8
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.73,
+      0.44,
+      0.0,
+      -0.43,
+      -0.86,
+      -1.26
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.25,
+      0.14,
+      -0.02,
+      -0.19,
+      -0.34,
+      -0.49
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 4.71,
+    "L4L5": 3.98,
+    "L3L4": 3.23,
+    "L2L3": 2.44,
+    "L1L2": 1.12
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     1.004,
+     1.0,
+     0.99,
+     0.974,
+     0.953,
+     0.926
+    ]
+   },
+   "fiber_ref": "Ward 2009 CORR"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   8,
+   17,
+   11,
+   12
+  ],
+  "shared_with": "legs: дистальная часть идёт к малому вертелу (thigh); в регионе legs не дублировать большую поясничную"
+ },
+ {
+  "id": "psoas_lower",
+  "name_ru": "Большая поясничная мышца, пучки от L3–L5",
+  "group_ru": "Подвздошно-поясничная мышца",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.321,
+    "a": -0.0121,
+    "l": 0.0205,
+    "body": "L4"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.103,
+    "a": 0.0392,
+    "l": 0.0735,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.021,
+    "a": 0.0349,
+    "l": 0.0688,
+    "body": "pelvis"
+   },
+   {
+    "seg": "thigh",
+    "t": 0.115,
+    "a": -0.0144,
+    "l": 0.005,
+    "body": "femur"
+   },
+   {
+    "seg": "thigh",
+    "t": 0.13,
+    "a": -0.0256,
+    "l": 0.0096,
+    "body": "femur"
+   }
+  ],
+  "belly": [
+   0.0,
+   0.8
+  ],
+  "width_m": 0.04,
+  "thickness_m": 0.04,
+  "pcsa_cm2": 7.62,
+  "opt_fiber_cm": 11.69,
+  "pennation_deg": 10.6,
+  "actions": [
+   {
+    "motion": "lumbar_flex",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      1.77,
+      1.86,
+      1.99,
+      2.11,
+      2.23,
+      2.35
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      3.04
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "hip"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": 2.6e-05,
+    "l": 8.3e-05,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.29 · рост^-0.04 у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      12.14,
+      -4.02,
+      -0.0763,
+      -0.00273,
+      0.049
+     ],
+     "ap_L3": [
+      1.6,
+      -0.42,
+      -0.00604,
+      -0.0113,
+      0.0026
+     ],
+     "ml_L3": [
+      1.24,
+      -0.29,
+      -0.000175,
+      0.012,
+      0.00825
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 7.7,
+    "src": "Ward 2009 CORR, cadaver"
+   },
+   {
+    "value": 17.6,
+    "src": "McGill 1988 CT"
+   }
+  ],
+  "extra": {
+   "members": [
+    "Ps_L3_TP",
+    "Ps_L3_L4_IVD",
+    "Ps_L4_TP",
+    "Ps_L4_L5_IVD",
+    "Ps_L5_TP",
+    "Ps_L5_VB"
+   ],
+   "representative_fascicle": "Ps_L4_L5_IVD",
+   "path_shift_m": {
+    "a": -0.0086,
+    "l": 0.0008
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -1.77,
+      -1.86,
+      -1.99,
+      -2.11,
+      -2.23,
+      -2.35
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -0.11,
+      -0.18,
+      -0.28,
+      -0.37,
+      -0.47,
+      -0.56
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      0.15,
+      0.13,
+      0.09,
+      0.05,
+      0.01,
+      -0.03
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 3.04,
+    "L4L5": 1.41,
+    "L3L4": 0.46
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     1.003,
+     1.0,
+     0.995,
+     0.99,
+     0.984,
+     0.978
+    ]
+   },
+   "fiber_ref": "Ward 2009 CORR"
+  },
+  "refs": [
+   1,
+   2,
+   3,
+   8,
+   17,
+   11,
+   12
+  ],
+  "shared_with": "legs: дистальная часть идёт к малому вертелу (thigh); в регионе legs не дублировать большую поясничную"
+ },
+ {
+  "id": "ld_thoracic",
+  "name_ru": "Широчайшая мышца спины, грудные пучки (T7–T12, нижние рёбра)",
+  "group_ru": "Широчайшая мышца спины",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.804,
+    "a": -0.0824,
+    "l": 0.0085,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.836,
+    "a": -0.1031,
+    "l": 0.0318,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.876,
+    "a": -0.1023,
+    "l": 0.0653,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.936,
+    "a": -0.0706,
+    "l": 0.1278,
+    "body": "scapula"
+   },
+   {
+    "seg": "ua",
+    "t": 0.092,
+    "a": -0.007,
+    "l": -0.0137,
+    "body": "humerus"
+   },
+   {
+    "seg": "ua",
+    "t": 0.119,
+    "a": 0.0113,
+    "l": -0.0058,
+    "body": "humerus"
+   }
+  ],
+  "belly": [
+   0.1,
+   0.85
+  ],
+  "width_m": 0.1,
+  "thickness_m": 0.006,
+  "pcsa_cm2": 4.9,
+  "opt_fiber_cm": null,
+  "pennation_deg": 0,
+  "actions": [],
+  "spans": [
+   "shoulder"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": null,
+    "l": null,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.72 · рост^? у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      3.54,
+      -0.52,
+      0.0167,
+      -0.0194,
+      0.0147
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 9.7,
+    "src": "Christophy 2012 model total"
+   },
+   {
+    "value": 6.2,
+    "src": "Bogduk 1998 total without costal fibres"
+   }
+  ],
+  "extra": {
+   "members": [
+    "LD_thoracic"
+   ],
+   "representative_fascicle": "LD_thoracic",
+   "path_shift_m": {
+    "a": 0.0,
+    "l": 0.0
+   },
+   "arms_cm_by_level": {},
+   "latbend_arm_cm_by_level_neutral": {},
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "fiber_ref": "no reliable architecture data for the trunk fascicles of LD",
+   "note": "Не пересекает L5–S1: в приложении с жёстким туловищем не нагружается; плечи на верхних поясничных уровнях в arms_cm_by_level."
+  },
+  "refs": [
+   5,
+   19,
+   3,
+   2,
+   12
+  ],
+  "shared_with": "arms: действия в плечевом суставе считает регион arms/приложение по пути"
+ },
+ {
+  "id": "ld_lumbar",
+  "name_ru": "Широчайшая мышца спины, поясничные пучки (через пояснично-грудную фасцию)",
+  "group_ru": "Широчайшая мышца спины",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.367,
+    "a": -0.0425,
+    "l": 0.0028,
+    "body": "L3"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.71,
+    "a": -0.0986,
+    "l": 0.0276,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.794,
+    "a": -0.1095,
+    "l": 0.0738,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.924,
+    "a": -0.078,
+    "l": 0.1285,
+    "body": "scapula"
+   },
+   {
+    "seg": "ua",
+    "t": 0.146,
+    "a": -0.0099,
+    "l": -0.0159,
+    "body": "humerus"
+   },
+   {
+    "seg": "ua",
+    "t": 0.141,
+    "a": 0.0102,
+    "l": -0.005,
+    "body": "humerus"
+   }
+  ],
+  "belly": [
+   0.35,
+   0.85
+  ],
+  "width_m": 0.08,
+  "thickness_m": 0.006,
+  "pcsa_cm2": 2.0,
+  "opt_fiber_cm": null,
+  "pennation_deg": 0,
+  "actions": [],
+  "spans": [
+   "L2L3",
+   "L1L2",
+   "shoulder"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": null,
+    "l": null,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.72 · рост^? у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      3.54,
+      -0.52,
+      0.0167,
+      -0.0194,
+      0.0147
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 9.7,
+    "src": "Christophy 2012 model total"
+   },
+   {
+    "value": 6.2,
+    "src": "Bogduk 1998 total without costal fibres"
+   }
+  ],
+  "extra": {
+   "members": [
+    "LD_lumbar"
+   ],
+   "representative_fascicle": "LD_lumbar",
+   "path_shift_m": {
+    "a": 0.0,
+    "l": 0.0
+   },
+   "arms_cm_by_level": {
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.26,
+      4.1,
+      3.82,
+      3.51,
+      3.18,
+      2.82
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.28,
+      4.04,
+      3.66,
+      3.25,
+      2.81,
+      2.36
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L2L3": 0.78,
+    "L1L2": 1.15
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.992,
+     1.0,
+     1.011,
+     1.022,
+     1.031,
+     1.039
+    ]
+   },
+   "fiber_ref": "no reliable architecture data for the trunk fascicles of LD",
+   "note": "Не пересекает L5–S1: в приложении с жёстким туловищем не нагружается; плечи на верхних поясничных уровнях в arms_cm_by_level."
+  },
+  "refs": [
+   5,
+   19,
+   3,
+   2,
+   12
+  ],
+  "shared_with": "arms: действия в плечевом суставе считает регион arms/приложение по пути"
+ },
+ {
+  "id": "ld_iliac",
+  "name_ru": "Широчайшая мышца спины, подвздошные пучки",
+  "group_ru": "Широчайшая мышца спины",
+  "path": [
+   {
+    "seg": "trunk",
+    "t": 0.331,
+    "a": -0.0676,
+    "l": 0.0663,
+    "body": "pelvis"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.665,
+    "a": -0.1014,
+    "l": 0.053,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.729,
+    "a": -0.1081,
+    "l": 0.0889,
+    "body": "thorax"
+   },
+   {
+    "seg": "trunk",
+    "t": 0.873,
+    "a": -0.0813,
+    "l": 0.121,
+    "body": "scapula"
+   },
+   {
+    "seg": "ua",
+    "t": 0.151,
+    "a": -0.0145,
+    "l": -0.0144,
+    "body": "humerus"
+   },
+   {
+    "seg": "ua",
+    "t": 0.136,
+    "a": 0.013,
+    "l": -0.0029,
+    "body": "humerus"
+   }
+  ],
+  "belly": [
+   0.35,
+   0.85
+  ],
+  "width_m": 0.04,
+  "thickness_m": 0.006,
+  "pcsa_cm2": 0.7,
+  "opt_fiber_cm": null,
+  "pennation_deg": 0,
+  "actions": [
+   {
+    "motion": "lumbar_ext",
+    "arm": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm": [
+      0.0,
+      4.0,
+      9.73,
+      14.81,
+      19.04,
+      22.33
+     ]
+    }
+   },
+   {
+    "motion": "lumbar_latbend",
+    "arm": {
+     "angle_deg": [
+      0
+     ],
+     "arm_cm": [
+      6.78
+     ]
+    }
+   }
+  ],
+  "spans": [
+   "L5S1",
+   "L4L5",
+   "L3L4",
+   "L2L3",
+   "L1L2",
+   "shoulder"
+  ],
+  "scaling": {
+   "t": "доля длины сегмента: точки сами следуют за длиной туловища",
+   "a_l": "правило приложения (× длина туловища / 0,518 м) подходит; поправка на массу тела при неизменном росте — mass_shift",
+   "mass_shift_m_per_kg": {
+    "a": null,
+    "l": null,
+    "note": "сдвиг центра мышцы на 1 кг массы сверх 80 кг (Anderson 2012, уровень L3; a>0 — кпереди). Сильнее всего у мышц живота (жир, объём живота)."
+   },
+   "pcsa": "× (масса/80)^(2/3) по умолчанию приложения; по Anderson 2012 CSA ∝ масса^0.72 · рост^? у этой группы",
+   "opt_fiber": "× (длина пути мышцы в нейтрали / длина на эталоне) — как OpenSim Scale",
+   "regression": {
+    "equation": "value = C_I + C_S*sex(0 male,1 female) + C_A*age_y + C_H*height_cm + C_M*mass_kg",
+    "level": "L3",
+    "units": "csa cm^2 per side; ap/ml cm (muscle centroid relative to vertebral body centroid, AP + anterior)",
+    "coefficients": {
+     "csa_L3": [
+      3.54,
+      -0.52,
+      0.0167,
+      -0.0194,
+      0.0147
+     ]
+    },
+    "ref": "Anderson et al. 2012 (coefficients from PDF text extraction, check against the original tables)"
+   }
+  },
+  "pcsa_alt": [
+   {
+    "value": 9.7,
+    "src": "Christophy 2012 model total"
+   },
+   {
+    "value": 6.2,
+    "src": "Bogduk 1998 total without costal fibres"
+   }
+  ],
+  "extra": {
+   "members": [
+    "LD_iliac"
+   ],
+   "representative_fascicle": "LD_iliac",
+   "path_shift_m": {
+    "a": -0.0275,
+    "l": -0.0036
+   },
+   "arms_cm_by_level": {
+    "L5S1": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      -0.06,
+      4.0,
+      9.73,
+      14.81,
+      19.04,
+      22.33
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L4L5": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      2.27,
+      2.64,
+      3.08,
+      3.38,
+      3.54,
+      3.54
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L3L4": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      3.83,
+      3.91,
+      3.92,
+      3.79,
+      3.53,
+      3.15
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L2L3": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.74,
+      4.6,
+      4.31,
+      3.89,
+      3.37,
+      2.75
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    },
+    "L1L2": {
+     "angle_deg": [
+      -10,
+      0,
+      15,
+      30,
+      45,
+      60
+     ],
+     "arm_cm_signed": [
+      4.86,
+      4.65,
+      4.26,
+      3.78,
+      3.21,
+      2.56
+     ],
+     "note": "+ разгибатель, − сгибатель"
+    }
+   },
+   "latbend_arm_cm_by_level_neutral": {
+    "L5S1": 6.78,
+    "L4L5": 6.5,
+    "L3L4": 6.2,
+    "L2L3": 5.89,
+    "L1L2": 5.64
+   },
+   "length_rel_vs_lumbar_flex": {
+    "angle_deg": [
+     -10,
+     0,
+     15,
+     30,
+     45,
+     60
+    ],
+    "L_over_L0": [
+     0.985,
+     1.0,
+     1.023,
+     1.045,
+     1.067,
+     1.087
+    ]
+   },
+   "fiber_ref": "no reliable architecture data for the trunk fascicles of LD",
+   "note": "Bogduk 1998: moment arm about 4 cm for raphe and iliac fibres; our constructed origin gave 0.7 cm at L5/S1"
+  },
+  "refs": [
+   5,
+   19,
+   3,
+   2,
+   12
+  ],
+  "shared_with": "arms: действия в плечевом суставе считает регион arms/приложение по пути"
+ }
+]

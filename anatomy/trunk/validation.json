@@ -1,0 +1,581 @@
+[
+ {
+  "exercise": "deadlift",
+  "condition": "классическая тяга, 10% 1ПМ (1ПМ 244,5 кг), 19 пауэрлифтеров-мужчин; гриф в 21 см кпереди от L5/S1 по горизонтали",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 245.0,
+  "sd_Nm": 46.3,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 26
+ },
+ {
+  "exercise": "deadlift",
+  "condition": "классическая тяга, 50% 1ПМ (1ПМ 244,5 кг), 19 пауэрлифтеров-мужчин; гриф в 21 см кпереди от L5/S1 по горизонтали",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 363.8,
+  "sd_Nm": null,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 26
+ },
+ {
+  "exercise": "deadlift",
+  "condition": "классическая тяга, 80% 1ПМ (1ПМ 244,5 кг), 19 пауэрлифтеров-мужчин; гриф в 21 см кпереди от L5/S1 по горизонтали",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 446.9,
+  "sd_Nm": 73.9,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 26
+ },
+ {
+  "exercise": "deadlift",
+  "condition": "тяга с трэп-грифом, 80% 1ПМ (1ПМ 265 кг); гриф в 14,4 см от L5/S1 (для сравнения: упражнения нет в приложении)",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 409.2,
+  "sd_Nm": 98.3,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 26
+ },
+ {
+  "exercise": "deadlift",
+  "condition": "соревновательная тяга, 44 мужчины (1ПМ 256,7 ± 29,9 кг), модель WATBAK, плечо ES 6 см",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 988,
+  "range_Nm": [
+   445,
+   1071
+  ],
+  "compression_N": 17192,
+  "compression_range_N": [
+   7942,
+   18449
+  ],
+  "shear_range_N": [
+   2150,
+   3276
+  ],
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 20,
+  "ref_secondary": 21
+ },
+ {
+  "exercise": "deadlift",
+  "condition": "соревновательная тяга, женщины (1ПМ 145,8 ± 18,4 кг)",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "range_Nm": [
+   254.6,
+   460.1
+  ],
+  "compression_range_N": [
+   5090,
+   8018
+  ],
+  "shear_range_N": [
+   1363,
+   1778
+  ],
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 20,
+  "ref_secondary": 21
+ },
+ {
+  "exercise": "deadlift",
+  "condition": "6 элитных пауэрлифтеров, 212–335 кг (3,5–4,4 веса тела)",
+  "joint": "L5",
+  "level": "L3",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "compression_range_N": [
+   18800,
+   36400
+  ],
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 22,
+  "ref_secondary": 23
+ },
+ {
+  "exercise": "squat",
+  "condition": "присед классический (высокий гриф) до параллели, 30% 1ПМ (1ПМ 220,2 кг), 12 пауэрлифтеров-мужчин",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 266,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 27
+ },
+ {
+  "exercise": "squat",
+  "condition": "присед классический (высокий гриф) до параллели, 50% 1ПМ (1ПМ 220,2 кг), 12 пауэрлифтеров-мужчин",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 320,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 27
+ },
+ {
+  "exercise": "squat",
+  "condition": "присед классический (высокий гриф) до параллели, 70% 1ПМ (1ПМ 220,2 кг), 12 пауэрлифтеров-мужчин",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 354,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 27
+ },
+ {
+  "exercise": "squat",
+  "condition": "присед пауэрлифтерский до параллели, 30% 1ПМ (1ПМ 220,2 кг), 12 пауэрлифтеров-мужчин",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 222,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 27
+ },
+ {
+  "exercise": "squat",
+  "condition": "присед пауэрлифтерский до параллели, 50% 1ПМ (1ПМ 220,2 кг), 12 пауэрлифтеров-мужчин",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 261,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 27
+ },
+ {
+  "exercise": "squat",
+  "condition": "присед пауэрлифтерский до параллели, 70% 1ПМ (1ПМ 220,2 кг), 12 пауэрлифтеров-мужчин",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 308,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 27
+ },
+ {
+  "exercise": "squat",
+  "condition": "присед на ящик до параллели, 30% 1ПМ (1ПМ 220,2 кг), 12 пауэрлифтеров-мужчин",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 203,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 27
+ },
+ {
+  "exercise": "squat",
+  "condition": "присед на ящик до параллели, 50% 1ПМ (1ПМ 220,2 кг), 12 пауэрлифтеров-мужчин",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 233,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 27
+ },
+ {
+  "exercise": "squat",
+  "condition": "присед на ящик до параллели, 70% 1ПМ (1ПМ 220,2 кг), 12 пауэрлифтеров-мужчин",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 279,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 27
+ },
+ {
+  "exercise": "squat",
+  "condition": "полуприсед и четверть-присед со штангой 0,8–1,6 веса тела, нижняя точка",
+  "joint": "L5",
+  "level": "L3/L4",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "compression_range_N": [
+   3100,
+   7340
+  ],
+  "compression_bw": [
+   6,
+   10
+  ],
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 24,
+  "ref_secondary": 23
+ },
+ {
+  "exercise": "squat",
+  "condition": "параллельный присед 70–90% 1ПМ",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "compression_N": 9983,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 25,
+  "ref_secondary": 23
+ },
+ {
+  "exercise": "standing",
+  "condition": "спокойное стояние (1 мужчина, 70 кг, датчик в ядре L4/L5)",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "intradiscal_MPa": 0.5,
+  "compression_N_est": 594,
+  "compression_note": "F = P × 18 см² × 0,66 (Dreischarf 2013)",
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 28,
+  "ref_secondary": 29
+ },
+ {
+  "exercise": "standing",
+  "condition": "стоя, наклон вперёд (1 мужчина, 70 кг, датчик в ядре L4/L5)",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "intradiscal_MPa": 1.1,
+  "compression_N_est": 1307,
+  "compression_note": "F = P × 18 см² × 0,66 (Dreischarf 2013)",
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 28,
+  "ref_secondary": 29
+ },
+ {
+  "exercise": "lifting",
+  "condition": "подъём 20 кг с круглой спиной (1 мужчина, 70 кг, датчик в ядре L4/L5)",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "intradiscal_MPa": 2.3,
+  "compression_N_est": 2732,
+  "compression_note": "F = P × 18 см² × 0,66 (Dreischarf 2013)",
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 28,
+  "ref_secondary": 29
+ },
+ {
+  "exercise": "lifting",
+  "condition": "подъём 20 кг с согнутыми коленями (1 мужчина, 70 кг, датчик в ядре L4/L5)",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "intradiscal_MPa": 1.7,
+  "compression_N_est": 2020,
+  "compression_note": "F = P × 18 см² × 0,66 (Dreischarf 2013)",
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 28,
+  "ref_secondary": 29
+ },
+ {
+  "exercise": "lifting",
+  "condition": "подъём 20 кг близко к телу (1 мужчина, 70 кг, датчик в ядре L4/L5)",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "intradiscal_MPa": 1.1,
+  "compression_N_est": 1307,
+  "compression_note": "F = P × 18 см² × 0,66 (Dreischarf 2013)",
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 28,
+  "ref_secondary": 29
+ },
+ {
+  "exercise": "standing",
+  "condition": "стояние, сила на L4/L5 по давлению и имплантатам",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "compression_range_N": [
+   430,
+   600
+  ],
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 29
+ },
+ {
+  "exercise": "standing",
+  "condition": "модель (93 человека): стояние / наклон 30° / 10 кг в 25 см / 10 кг в 55 см",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "compression_N": [
+   604.8,
+   1650.9,
+   964,
+   1677.1
+  ],
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 31
+ },
+ {
+  "exercise": "standing",
+  "condition": "модель на основе Christophy, σ=100: стояние / наклон 36° / ящик 190 Н в 25 см / в 55 см",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "compression_N": [
+   469,
+   813,
+   1432,
+   2571
+  ],
+  "compression_L4L5_N": [
+   529,
+   797,
+   1646,
+   2798
+  ],
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 30
+ },
+ {
+  "exercise": "isometric",
+  "condition": "максимальное произвольное разгибание корпуса стоя, мужчины (10 чел.)",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 236,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 35
+ },
+ {
+  "exercise": "isometric",
+  "condition": "максимальное разгибание стоя, мужчины 30,7 ± 7,9 лет (n = 124); женщины 162 Н·м",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 241,
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 36
+ },
+ {
+  "exercise": "isometric",
+  "condition": "модель LLSM: максимальный момент разгибания при сгибании 0–60° (сравнение с Hansen 2006: 171–480 Н·м)",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "range_Nm": [
+   175,
+   310
+  ],
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 37
+ },
+ {
+  "exercise": "isometric",
+  "condition": "вклад широчайшей в разгибание поясницы (на L5); максимум по разделу обсуждения ≤ 12 Н·м",
+  "joint": "L5",
+  "level": "L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": 3.1,
+  "per_kg_Nm": null,
+  "muscle_force_N": {
+   "ld_total": 304
+  },
+  "ref": 5
+ },
+ {
+  "exercise": "standing",
+  "condition": "доли разгибающего момента на L4–L5 стоя: грудные пучки ES 50%, многораздельная ~20%, поясничные пучки ES остальное",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": null,
+  "moment_share": {
+   "es_thoracic": 0.5,
+   "multifidus": 0.2,
+   "es_lumbar": 0.3
+  },
+  "per_kg_Nm": null,
+  "muscle_force_N": null,
+  "ref": 4
+ },
+ {
+  "exercise": "model_check",
+  "condition": "этот набор данных: максимальный момент обеих сторон при σ=46 Н/см², сгибание 0°/30°/60°",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": [
+   127,
+   141,
+   156
+  ],
+  "compare_to": "236–241 Н·м (MVC мужчин)",
+  "ref": null
+ },
+ {
+  "exercise": "model_check",
+  "condition": "этот набор данных: максимальный сгибающий момент мышц живота при σ=46 Н/см² (без большой поясничной), 0°/30°/60°",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_flex",
+  "net_moment_Nm": [
+   82,
+   80,
+   70
+  ],
+  "ref": null
+ },
+ {
+  "exercise": "model_check",
+  "condition": "этот набор данных: максимальный момент обеих сторон при σ=100 Н/см², сгибание 0°/30°/60°",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "net_moment_Nm": [
+   276,
+   306,
+   340
+  ],
+  "compare_to": "236–241 Н·м (MVC мужчин)",
+  "ref": null
+ },
+ {
+  "exercise": "model_check",
+  "condition": "этот набор данных: максимальный сгибающий момент мышц живота при σ=100 Н/см² (без большой поясничной), 0°/30°/60°",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_flex",
+  "net_moment_Nm": [
+   179,
+   173,
+   153
+  ],
+  "ref": null
+ },
+ {
+  "exercise": "anatomy",
+  "condition": "плечо разгибателей (ES + многораздельная, взвешено по PCSA) на L5/S1, нейтраль → 45°",
+  "joint": "L5",
+  "level": "L5/S1",
+  "motion": "lumbar_ext",
+  "moment_arm_cm_dataset": [
+   3.97,
+   3.92
+  ],
+  "change_pct_dataset": -1.3,
+  "change_pct_published": -9.7,
+  "ref": 13
+ },
+ {
+  "exercise": "anatomy",
+  "condition": "плечи на L4/L5 по КТ (центры площади мышц), активные мужчины",
+  "joint": "L5",
+  "level": "L4/L5",
+  "motion": "lumbar_ext",
+  "moment_arm_cm_published": {
+   "erector_spinae": 5.9,
+   "rectus_abdominis": 10.28,
+   "psoas": 0.58,
+   "ext_oblique_ant": 5.94,
+   "ext_oblique_post": 2.08,
+   "int_oblique_ant": 6.92,
+   "int_oblique_post": 3.85
+  },
+  "moment_arm_cm_dataset": {
+   "erector_spinae": 3.9,
+   "rectus_abdominis": 5.49,
+   "psoas_upper": 1.53,
+   "psoas_lower": 0.18,
+   "ext_oblique_lateral": 2.53,
+   "int_oblique_lateral": 0.92
+  },
+  "note": "Модель Christophy считает плечо по линии пучка, КТ — по центру площади; плечо прямой мышцы в модели занижено (прямая линия лобок–мечевидный отросток), см. extra.alt_path_ct у rectus_abdominis",
+  "ref": 11
+ },
+ {
+  "exercise": "anatomy",
+  "condition": "плечо апоневроза ES при полном сгибании короче, чем в лордозе",
+  "joint": "L5",
+  "level": "L1–L5",
+  "motion": "lumbar_ext",
+  "change_pct_published": [
+   -20,
+   -10
+  ],
+  "ref": 16
+ },
+ {
+  "exercise": "limit",
+  "condition": "критерий NIOSH для сжатия L5/S1 (выше 6,4 кН — опасно для большинства)",
+  "joint": "L5",
+  "level": "L5/S1",
+  "compression_N": 3400,
+  "compression_hazard_N": 6400,
+  "ref": 33
+ },
+ {
+  "exercise": "limit",
+  "condition": "сдвиг: редкие нагрузки (≤100 в день) / частые (100–1000 в день); предельная прочность в среднем 1,9 кН (мужчины)",
+  "joint": "L5",
+  "level": "L5/S1",
+  "shear_N": [
+   1000,
+   700
+  ],
+  "ref": 32
+ },
+ {
+  "exercise": "limit",
+  "condition": "прочность позвонка на сжатие, мужчины ≥20 лет 6,09 ± 2,69 кН; рекомендуемый предел 5,4 кН в 20 лет … 2,2 кН в 60+",
+  "joint": "L5",
+  "level": "L1–L5",
+  "compression_N": 6090,
+  "compression_limit_by_age_N": {
+   "20": 5400,
+   "60+": 2200
+  },
+  "ref": 34
+ }
+]
