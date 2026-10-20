@@ -169,6 +169,11 @@ input[type=range]{width:100%;accent-color:var(--ink);margin:2px 0;height:18px}
 .notes{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--ink-2);max-width:65ch}
 .notes b{color:var(--ink);font-weight:600}
 .small{font-size:12px;color:var(--muted);margin:0}
+.grow{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.grow li{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:13px;line-height:1.35}
+.grow .ev{flex:none;font-size:11px;line-height:1.2;padding:2px 7px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.ev.mri{color:#c8382f}.ev.sim{color:#c27d14}.ev.emg{color:var(--muted)}
+.grow-note{color:var(--ink-2)}.grow-src{font-size:11px}
 
 html{overflow-anchor:none}
 @media (max-width:1180px){
@@ -255,6 +260,8 @@ html{overflow-anchor:none}
         <button class="chip" data-show="arcs" aria-pressed="true">Моменты</button>
         <button class="chip" data-show="labels" aria-pressed="true">Подписи</button>
         <button class="chip" data-show="musc" aria-pressed="true">Нагрузка мышц</button>
+        <button class="chip" data-show="target" aria-pressed="false">Только целевые</button>
+        <button class="chip" data-show="skel" aria-pressed="false">Скелет</button>
         <button class="chip" data-show="xray" aria-pressed="false">Рентген</button>
       </div>
     </div>
@@ -268,6 +275,15 @@ html{overflow-anchor:none}
     <section class="sec">
       <div class="sec-head"><h3>Моменты в суставах</h3><span class="small" id="sideNote"></span></div>
       <div class="jrows" id="jrows"></div>
+    </section>
+    <section class="sec">
+      <h3>Мышцы, которые растут</h3>
+      <label class="check"><input type="checkbox" id="targetOnly"><span>Показать на модели только их — на скелете</span></label>
+      <ul class="grow" id="growList"></ul>
+      <p class="small" id="growNo" hidden></p>
+      <p class="small"><b>Рост доказан</b> — МРТ или УЗИ в тренировочных исследованиях этим упражнением. <b>По близкому</b> — измерено на похожем упражнении. <b>По ЭМГ</b> — мышца сильно работает, но её рост от этого упражнения не измеряли.</p>
+      <p class="small grow-note" id="growNote"></p>
+      <p class="small grow-src" id="growSrc"></p>
     </section>
     <section class="sec">
       <div class="chart-head"><h3>По амплитуде</h3><div class="seg" id="chartMode" role="group" aria-label="Что показывать"><button data-v="moment" aria-pressed="true">Момент, Н·м</button><button data-v="muscle" aria-pressed="false">Усилие мышц, кг</button></div></div>
@@ -286,7 +302,7 @@ html{overflow-anchor:none}
         <li>В свободных весах корпус подбирается так, чтобы общий центр масс тела и снаряда оставался над серединой стопы.</li>
         <li><b>Трение.</b> В замкнутой цепи (гриф в двух руках, стопы на полу или платформе) опора передаёт не только нормальную силу, но и касательную — не больше μ × нормальная. В жиме лёжа режим «По данным» берёт боковую силу из измерений Larsen и соавт. (2021): широкий хват — кисти давят наружу, узкий — внутрь. В приседе «Авто» — «разведение пола», в жиме ногами — минимум суммарной нагрузки на суставы. Стрелка у кисти или стопы на 3D показывает, куда давит атлет; реакция опоры, от которой считаются плечи, направлена в обратную сторону. Гантели — открытая цепь, боковой силы у них нет. В статике горизонтальная сила под стопами вперёд-назад равна нулю, иначе тело бы ускорялось.</li>
         <li><b>Усилие мышц</b> = момент ÷ плечо мышцы, в кгс. Плечи мышц типичные: квадрицепс 3,6–4,9 см (зависит от угла колена), ягодичные 6,5 см, разгибатели спины 5,5 см, икроножные 5 см, трицепс 2,1 см, бицепс 1,8–4,5 см, грудные и широчайшие 5 см. У конкретного человека они отличаются.</li>
-        <li><b>Мышцы на модели.</b> Каждая мышца натянута между точками начала и прикрепления: при сгибании сустава она укорачивается и утолщается или растягивается и истончается. Цвет — нагрузка: чем краснее, тем большую долю момента в суставе мышца держит (момент ÷ типичный предел силы сустава). Кнопка «Нагрузка мышц» выключает подсветку.</li>
+        <li><b>Мышцы на модели.</b> Каждая мышца натянута между точками начала и прикрепления: при сгибании сустава она укорачивается и утолщается или растягивается и истончается. Цвет — нагрузка: чем краснее, тем большую долю момента в суставе мышца держит (момент ÷ типичный предел силы сустава). Кнопка «Нагрузка мышц» выключает подсветку. «Только целевые» оставляет на скелете мышцы, которые растут от упражнения по исследованиям (список и источники — в блоке «Мышцы, которые растут»); «Скелет» показывает только кости и суставы.</li>
         <li>В приседе колено и таз дополнительно считаются во фронтальной плоскости — по реакции опоры под каждой стопой с учётом ширины стойки и бокового трения.</li>
         <li>Модель статическая: без ускорений, трения и индивидуальной анатомии суставов. Значения — для сравнения вариантов, а не абсолютная истина.</li>
       </ul>
@@ -901,7 +917,7 @@ const EX={
 const GROUPS=['Свободные веса: ноги и спина','Жимы лёжа','Вертикальные тяги','Тренажёры для ног'];
 
 /* ================= Состояние ================= */
-const state={ex:'squat',t:.7,playing:false,chartMode:'moment',mass:80,body:false,loads:{},params:{},show:{force:true,arms:true,arcs:true,labels:true,musc:true,xray:false},compare:null};
+const state={ex:'squat',t:.7,playing:false,chartMode:'moment',mass:80,body:false,loads:{},params:{},show:{force:true,arms:true,arcs:true,labels:true,musc:true,target:false,skel:false,xray:false},compare:null};
 for(const id in EX){state.loads[id]=EX[id].def;state.params[id]={};for(const p of EX[id].params)state.params[id][p.id]=p.def;}
 const cur=()=>EX[state.ex];
 const buildNow=t=>cur().build(t,state.params[state.ex],state.loads[state.ex]);
@@ -1098,7 +1114,7 @@ function bodyFrames(pose,s){
   const seg={F:Fb,S:Sb,U:Ub,A:Ab,T:Tax};
   // точка «внутри» для заданной точки поверхности: ближайшая на оси кости или фиксированная точка
   const inner=(inn,p)=>{ if(typeof inn==='string'){const b=seg[inn];const t=clamp(p.clone().sub(b.o).dot(b.d),0,b.L);return b.o.clone().addScaledVector(b.d,t);} return pt(inn); };
-  return {pt,inner,pat,f};
+  return {pt,inner,pat,f,seg,foot:{heel,fd,fup,flat}};
 }
 const _v1=new THREE.Vector3(),_v2=new THREE.Vector3(),_v3=new THREE.Vector3();
 const bez=(a,c,b,t,o)=>o.copy(a).multiplyScalar((1-t)*(1-t)).addScaledVector(c,2*t*(1-t)).addScaledVector(b,t*t);
@@ -1178,12 +1194,174 @@ function fastNormals(M){
 }
 const MUSCLES=[];
 for(const def of MDEF)for(const s of ['L','R'])MUSCLES.push(new Muscle(def,s));
-// подложка: грудная клетка, живот, таз (в шортах), «кости» конечностей
+/* ---- скелет ---- */
+// Кости — жёсткие группы в системах координат сегментов: X — вперёд, Y — вверх по сегменту (к ближнему суставу),
+// Z — наружу (у таза и грудной клетки Z — влево, обе стороны в одной группе). Перестраиваются при смене пропорций.
+MAT.bone=std(0xe8dcc3,.55); MAT.bone.side=THREE.DoubleSide; MAT.cart=std(0xcfdcdc,.45); MAT.cart.side=THREE.DoubleSide;
+BODY.mats.push(MAT.bone,MAT.cart);
+const SKEL={g:{},key:''};
+function gTube(pts,rad,seg=10){ // трубка по точкам с переменным радиусом
+  const n=pts.length,pos=[],idx=[]; let pn=null;
+  for(let i=0;i<n;i++){
+    const t=pts[Math.min(i+1,n-1)].clone().sub(pts[Math.max(i-1,0)]).normalize();
+    let nn=pn?pn.clone().addScaledVector(t,-pn.dot(t)):(Math.abs(t.y)<.9?V(0,1,0):V(1,0,0)).cross(t);
+    nn.normalize(); pn=nn; const bb=t.clone().cross(nn), r=Array.isArray(rad)?rad[i]:rad;
+    for(let j=0;j<=seg;j++){const a=j/seg*2*Math.PI;pos.push(pts[i].x+(nn.x*Math.cos(a)+bb.x*Math.sin(a))*r,pts[i].y+(nn.y*Math.cos(a)+bb.y*Math.sin(a))*r,pts[i].z+(nn.z*Math.cos(a)+bb.z*Math.sin(a))*r);}
+  }
+  for(let i=0;i<n-1;i++)for(let j=0;j<seg;j++){const a=i*(seg+1)+j,b=a+1,c=a+seg+1,d=c+1;idx.push(a,c,b,b,c,d);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g;
+}
+const gPath=(pts,rad,n=12,seg=10)=>{const c=new THREE.CatmullRomCurve3(pts).getPoints(n); const r=Array.isArray(rad)?c.map((_,i)=>{const x=i/n*(rad.length-1),k=Math.min(Math.floor(x),rad.length-2);return lerp(rad[k],rad[k+1],x-k);}):rad; return gTube(c,r,seg);};
+function gBlob(c,r,dir){const g=new THREE.SphereGeometry(1,16,12);g.scale(r[0],r[1],r[2]);if(dir)g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(Y,dir.clone().normalize())));g.translate(c.x,c.y,c.z);return g;}
+function gSheet(rows){ // поверхность по сетке точек rows[i][j]
+  const R=rows.length,Cn=rows[0].length,pos=[],idx=[];
+  for(const r of rows)for(const p of r)pos.push(p.x,p.y,p.z);
+  for(let i=0;i<R-1;i++)for(let j=0;j<Cn-1;j++){const a=i*Cn+j,b=a+1,c=a+Cn,d=c+1;idx.push(a,c,b,b,c,d);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g;
+}
+function gMerge(list){
+  let nv=0;for(const g of list)nv+=g.attributes.position.count;
+  const pos=new Float32Array(nv*3),nrm=new Float32Array(nv*3),idx=[];let o=0;
+  for(const g of list){const p=g.attributes.position,n=g.attributes.normal;pos.set(p.array,o*3);nrm.set(n.array,o*3);
+    const ix=g.index?g.index.array:[...Array(p.count).keys()];for(const k of ix)idx.push(k+o);o+=p.count;g.dispose();}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nrm,3));g.setIndex(idx);return g;
+}
+function skelGroup(name,bone,cart,both){ // both — две копии (левая и правая) с общей геометрией
+  const gb=gMerge(bone), gc=cart&&cart.length?gMerge(cart):null;
+  for(const nm of both?[name+'L',name+'R']:[name]){
+    const gr=new THREE.Group(); gr.matrixAutoUpdate=false;
+    const mb=new THREE.Mesh(gb,MAT.bone); mb.castShadow=true; gr.add(mb); // тонкие кости сами себя не затеняют (без полос)
+    if(gc){const mc=new THREE.Mesh(gc,MAT.cart); mc.castShadow=true; gr.add(mc);}
+    bodyG.add(gr); SKEL.g[nm]=gr;
+  }
+}
+function buildSkeleton(){
+  for(const k in SKEL.g){SKEL.g[k].traverse(o=>{if(o.geometry)o.geometry.dispose();}); bodyG.remove(SKEL.g[k]);} SKEL.g={};
+  const T=A.trunk, ys=T/.52, xs=A.sw/.378, zs=A.sw/2, tp=(x,y,z)=>V(x*xs,y*ys,z*xs);
+  // туловище: позвоночник, таз, рёбра, грудина, ключицы, лопатки
+  const B=[],Cg=[],PB=[],RB=[]; // PB — таз, RB — рёбра: со всеми мышцами они прячутся (иначе проступают в щелях между мышцами)
+  const vert=(c,r,h)=>{B.push(gBlob(c,[r,h,r*.85])); B.push(gTube([c.clone().add(V(-r*.6,0,0)),c.clone().add(V(-r-.022,-h*.9,0))],[r*.32,r*.2],6)); B.push(gTube([c.clone().add(V(-r*.4,0,-r-.018)),c.clone().add(V(-r*.4,0,r+.018))],r*.22,6));};
+  for(let i=0;i<5;i++){const y=.095+i*.042;vert(tp(-.058+.012*Math.sin(Math.PI*(i+.5)/5),y,0),.019,.016*ys);}           // поясничные
+  for(let i=0;i<12;i++){const y=.31+i*.0175;vert(tp(-.06-.012*Math.sin(Math.PI*(i+.5)/12),y,0),.0145,.0075*ys);}        // грудные
+  for(let i=0;i<7;i++){const y=T+.025+i*.019;vert(V(-.045+.012*Math.sin(Math.PI*(i+.5)/7),y,0),.0105,.0065);}            // шейные
+  PB.push(gBlob(tp(-.085,.03,0),[.02*xs,.055*ys,.042*xs],V(.35,1,0))); PB.push(gPath([tp(-.095,-.025,0),tp(-.088,-.05,0),tp(-.075,-.065,0)],[.009,.004],6,6));
+  for(const s of [1,-1]){
+    const crest=[tp(.067,.105,.115*s),tp(.035,.142,.14*s),tp(0,.158,.146*s),tp(-.04,.15,.122*s),tp(-.072,.125,.062*s)];
+    const low=[tp(.06,.045,.1*s),tp(.03,.028,.096*s),tp(0,.02,.093*s),tp(-.035,.04,.08*s),tp(-.078,.07,.045*s)];
+    const wing=[0,.25,.5,.75,1].map(t=>crest.map((c,i)=>{const p=c.clone().lerp(low[i],t);const b=Math.sin(Math.PI*t)*Math.sin(Math.PI*(i+.5)/5);p.z+=s*.022*xs*b;p.x+=(i<2?.006:-.004)*b;return p;}));
+    PB.push(gSheet(wing));                                                                                                  // крыло подвздошной кости (чаша)
+    PB.push(gPath(crest,[.008,.007,.008,.007,.009],14,8));                                                                   // гребень
+    { const ac=V(0,0,s*A.hw/2), g=new THREE.TorusGeometry(.028,.006,8,24,Math.PI*1.5); g.rotateY(s>0?Math.PI/2:-Math.PI/2); g.rotateX(-Math.PI*.15); g.translate(ac.x,ac.y,ac.z+s*.006); PB.push(g); } // вертлужная впадина
+    PB.push(gPath([tp(.06,.025,.096*s),tp(.072,-.03,.06*s),tp(.076,-.06,.022*s),tp(.077,-.066,.004*s)],.011,10,8));          // лобковая
+    PB.push(gPath([tp(-.03,.0,.09*s),tp(-.05,-.06,.075*s),tp(-.052,-.088,.06*s),tp(-.02,-.093,.04*s),tp(.045,-.083,.018*s),tp(.074,-.068,.006*s)],[.013,.014,.012,.009],14,8)); // седалищная
+    PB.push(gBlob(tp(-.052,-.088,.06*s),[.015,.012,.013]));
+    // рёбра
+    const bw=[.06,.085,.105,.12,.13,.138,.142,.143,.14,.135,.125,.115], aw=[.05,.065,.075,.082,.087,.09,.092,.093,.093,.09,.08,.07];
+    for(let k=1;k<=12;k++){
+      const yb=.505-.0205*(k-1), b=bw[k-1]*.95, a=aw[k-1]*.95, cx=-.062+a, thf=k<=7?.32:k<=10?.55:k===11?1.5:1.9, drop=.035+.005*k, pts=[];
+      for(let q=0;q<=14;q++){const th=Math.PI-.15-(Math.PI-.15-thf)*q/14; pts.push(tp(cx+a*Math.cos(th),yb-drop*Math.pow((Math.PI-th)/(Math.PI-thf),1.3),s*b*Math.sin(th)));}
+      RB.push(gTube(pts,.0055*xs,7));
+      const e=pts[pts.length-1];
+      if(k<=7)Cg.push(gPath([e,tp(.088+.005*(k-1)+.01,.48-.018*(k-1)+.004,s*.035),tp(.088+.005*(k-1),.48-.018*(k-1),s*.012)],.005*xs,6,6));
+      else if(k<=10)Cg.push(gPath([e,tp(.112,.345-.008*(k-8),s*(.035+.012*(k-8)))],.005*xs,4,6));
+    }
+    // ключица
+    const acr=V(-.005,T+.032,s*zs);
+    B.push(gPath([tp(.085,.483,.02*s),tp(.083,.5,.07*s),V(.02,T+.03,s*(zs-.05)),acr],[.008,.007,.006,.007],12,8));
+    // лопатка
+    const sa=tp(-.075,.505,.07*s), ia=tp(-.077,.36,.085*s), gl=V(-.012,T-.012,s*(zs-.035)), rows=[];
+    for(let i=0;i<=4;i++){const r=[];for(let j=0;j<=4;j++){const u=i/4,v=j/4,p=sa.clone().multiplyScalar(1-u).add(ia.clone().multiplyScalar(u*(1-v))).add(gl.clone().multiplyScalar(u*v));p.x-=.008*Math.sin(Math.PI*u)*Math.sin(Math.PI*Math.max(v,.2));r.push(p);}rows.push(r);}
+    B.push(gSheet(rows));
+    B.push(gPath([tp(-.086,.47,.08*s),V(-.035,T+.02,s*(zs-.03)),V(-.012,T+.036,s*(zs-.012))],[.004,.008,.009],10,8));     // ость лопатки
+    B.push(gBlob(V(-.004,T+.034,s*(zs-.006)),[.016,.006,.013])); B.push(gBlob(V(.028,T+.002,s*(zs-.042)),[.006,.006,.01]));  // акромион, клювовидный
+  }
+  B.push(gBlob(tp(.104,.415,0),[.007,.075*ys,.017*xs],V(-.24,1,0)));                                                        // грудина
+  skelGroup('T',B); skelGroup('P',PB); skelGroup('R',RB,Cg);
+  // бедро
+  const Lt=A.thigh, Ls=A.shank, Lu=A.ua, Lf=A.fa, F=A.foot;
+  skelGroup('F',[gBlob(V(0,0,0),[.024,.024,.024]),gTube([V(0,0,.004),V(-.005,-.03,.045)],[.015,.014],10),gBlob(V(-.008,-.025,.058),[.016,.022,.014]),gBlob(V(-.01,-.06,.008),[.009,.009,.009]),
+    gPath([V(-.003,-.035,.045),V(.007,-Lt*.5,.022),V(-.004,-Lt+.06,.008)],[.015,.0125,.016],14,10),
+    gBlob(V(-.008,-Lt+.008,.022),[.026,.022,.02]),gBlob(V(-.008,-Lt+.008,-.022),[.026,.022,.02])],null,1);
+  // голень: большеберцовая и малоберцовая
+  skelGroup('S',[gBlob(V(-.004,-.018,0),[.03,.016,.04]),gBlob(V(.026,-.06,0),[.008,.01,.009]),
+    gPath([V(.002,-.03,-.004),V(.007,-Ls*.5,-.006),V(0,-Ls+.03,-.01)],[.016,.0115,.013],14,10),gBlob(V(0,-Ls+.012,-.006),[.017,.014,.02]),gBlob(V(.002,-Ls,-.022),[.009,.012,.009]),
+    gPath([V(-.016,-.03,.034),V(-.012,-Ls*.5,.03),V(-.01,-Ls+.01,.026)],.0055,12,8),gBlob(V(-.016,-.03,.036),[.009,.01,.009]),gBlob(V(-.012,-Ls-.004,.028),[.009,.013,.008])],null,1);
+  // стопа
+  const fb=[gBlob(V(.045,.028,0),[.04,.024,.02]),gBlob(V(.23*F,A.ah-.006,0),[.022,.016,.018]),gBlob(V(.36*F,.042,-.01),[.014,.012,.014]),gBlob(V(.36*F,.028,.02),[.013,.012,.012])];
+  for(let i=0;i<5;i++){const z=-.022+.013*i, z0=z*.65;
+    fb.push(gTube([V(.42*F,.034-.002*i,z0),V(.6*F,.022,z*.9),V(.74*F-.008*i,.013,z)],[i?.0055:.0075,i?.0045:.0065,i?.005:.007],8));
+    fb.push(gPath([V(.75*F-.008*i,.012,z),V(.85*F-.015*i,.01,z*1.02),V(.94*F-.03*i,.008,z*1.03)],i?.0042:.006,6,6));}
+  skelGroup('H',fb,null,1);
+  // плечевая кость
+  skelGroup('U',[gBlob(V(-.004,.003,-.006),[.024,.024,.024]),gBlob(V(0,-.005,.02),[.012,.013,.012]),gPath([V(0,-.03,.008),V(0,-Lu*.5,.002),V(.002,-Lu+.04,0)],[.0125,.011,.013],14,10),
+    gBlob(V(.004,-Lu+.002,0),[.012,.012,.026]),gBlob(V(0,-Lu+.012,-.03),[.009,.009,.009]),gBlob(V(0,-Lu+.012,.024),[.007,.008,.007])],null,1);
+  // предплечье и кисть: запястье ≈ 7,5 см до середины хвата
+  const W=-(Lf-.075), hb=[gBlob(V(-.02,.012,-.006),[.012,.016,.011]),gPath([V(-.012,0,-.008),V(-.006,(W)*.5,-.016),V(-.003,W+.004,-.02)],[.009,.0075,.0065],14,8),gBlob(V(-.003,W+.004,-.022),[.006,.006,.006]),
+    gBlob(V(0,-.012,.014),[.011,.006,.011]),gPath([V(0,-.02,.014),V(.004,W*.5,.018),V(.002,W+.006,.02)],[.007,.008,.011],14,8),gBlob(V(.002,W+.004,.016),[.012,.01,.016]),gBlob(V(0,W-.012,0),[.016,.014,.024])];
+  for(const z of [.021,.007,-.007,-.02]){const m0=V(.004,W-.02,z*.8),m1=V(.01,-Lf+.012,z);hb.push(gTube([m0,m1],[.0045,.004],6));
+    hb.push(gPath([m1,V(.03,-Lf,z),V(.02,-Lf-.022,z),V(-.004,-Lf-.02,z)],.0038,8,6));}
+  hb.push(gPath([V(.008,W-.01,.024),V(.03,-Lf+.02,.03),V(.04,-Lf+.004,.02)],.0045,6,6));
+  skelGroup('A',hb,null,1);
+}
+// матрица группы из базиса (X, Y, Z могут образовывать левую тройку — three.js сам развернёт грани)
+function setSkel(name,o,X,Yv,Zv){const g=SKEL.g[name];if(!g)return;g.matrix.makeBasis(X,Yv,Zv).setPosition(o);g.matrixWorldNeedsUpdate=true;}
+/* ---- мышцы, которые растут от упражнения (по исследованиям) ---- */
+// g: 'mri' — рост измерен (МРТ/УЗИ) в тренировочных исследованиях именно этим упражнением;
+//    'sim' — измерен на близком упражнении; 'emg' — рост не измеряли, мышца сильно работает (ЭМГ).
+const SRC={
+  kubo:'Kubo, Ikebukuro, Yata, 2019 — Eur J Appl Physiol: полный и половинный присед, 10 недель, МРТ',
+  plotkin:'Plotkin и др., 2023 — Front Physiol: ягодичный мост (хип-траст) и присед, 9 недель, МРТ',
+  ogas:'Ogasawara и др., 2013 — Eur J Appl Physiol: жим лёжа, 24 недели, МРТ',
+  kino:'Kinoshita, Maeo, Isaka и др. — Med Sci Sports Exerc: жим ногами и разгибания ног, 12 недель, МРТ',
+  bourne:'Bourne и др., 2017 — Br J Sports Med: разгибание бедра 45° и «нордические» сгибания, 10 недель, МРТ',
+  mf:'Martín-Fuentes, Oliva-Lozano, Muyor, 2020 — PLoS ONE: обзор ЭМГ становой тяги и её вариантов',
+  barnett:'Barnett, Kippers, Turner, 1995 — J Strength Cond Res: ЭМГ вариантов жима лёжа'
+};
+const QUADS=['Квадрицепс: латеральная и медиальная широкие',['vl','vm']];
+const GROW={
+  squat:{m:[[...QUADS,'mri'],['Большая ягодичная',['gmax'],'mri'],['Приводящие (большая приводящая)',['add'],'mri'],['Разгибатели спины',['ere'],'emg']],
+    no:'Задняя поверхность бедра от приседа почти не растёт.',
+    note:'В глубоком приседе (≈140° в колене) ягодичные и приводящие выросли втрое сильнее, чем в половинном (≈90°); квадрицепс — одинаково.',src:['kubo','plotkin']},
+  deadlift:{m:[['Разгибатели спины',['ere'],'emg'],[...QUADS,'emg'],['Большая ягодичная',['gmax'],'emg'],['Задняя поверхность бедра',['bf','st'],'emg'],['Большая приводящая',['add'],'emg'],['Трапециевидная (верх)',['trapU'],'emg'],['Сгибатели кисти (хват)',['ffl'],'emg']],
+    note:'Исследований роста мышц именно от становой нет. По ЭМГ сильнее всего работают разгибатели спины и квадрицепс, затем ягодичные и задняя поверхность бедра; трапеции и хват держат штангу.',src:['mf']},
+  rdl:{m:[['Задняя поверхность бедра (длинная головка двуглавой, полуперепончатая)',['bf','st'],'sim'],['Большая ягодичная',['gmax'],'sim'],['Большая приводящая',['add'],'sim'],['Разгибатели спины',['ere'],'emg'],['Сгибатели кисти (хват)',['ffl'],'emg']],
+    note:'Прямых МРТ-исследований румынской тяги нет. Близкое упражнение — разгибание бедра (гиперэкстензия 45°) — растит длинную головку двуглавой бедра сильнее, чем «нордические» сгибания.',src:['bourne','mf']},
+  bridge:{m:[['Большая ягодичная',['gmax'],'mri'],[...QUADS,'mri'],['Приводящие',['add'],'mri']],
+    no:'Средняя ягодичная и задняя поверхность бедра почти не растут.',
+    note:'Ягодичные растут так же, как от приседа; квадрицепс и приводящие тоже растут, но меньше, чем от приседа.',src:['plotkin']},
+  bench:{m:[['Большая грудная',['pec'],'mri'],['Трицепс',['triL','triLat'],'mri'],['Передняя дельта',['delA'],'emg']],
+    note:'Грудная и трицепс растут, грудная — раньше трицепса. Передняя дельта сильно работает, её рост в этих работах не измеряли.',src:['ogas']},
+  db:{m:[['Большая грудная',['pec'],'sim'],['Передняя дельта',['delA'],'emg'],['Трицепс',['triL','triLat'],'sim']],
+    note:'Данные — по жиму штанги. Если предплечья вертикальны («строго над локтями»), момента в локте почти нет: трицепс работает мало, нагрузка уходит на грудную и плечо.',src:['ogas']},
+  close:{m:[['Трицепс',['triL','triLat'],'emg'],['Большая грудная',['pec'],'sim'],['Передняя дельта',['delA'],'emg']],
+    note:'Узкий хват по ЭМГ нагружает трицепс сильнее, а грудинную часть грудной — слабее, чем средний.',src:['barnett','ogas']},
+  pdn:{m:[['Широчайшая',['lat'],'emg'],['Большая круглая и подостная',['infra'],'emg'],['Задняя дельта',['delP'],'emg'],['Трапециевидная (середина, низ)',['trapM'],'emg'],['Бицепс, плечевая, плечелучевая',['bic','brach','brad'],'emg']],
+    note:'Исследований роста мышц от тяги блока пока нет. По ЭМГ главная мышца — широчайшая при любом хвате; локоть сгибают бицепс, плечевая и плечелучевая.',src:[]},
+  pdw:{m:[['Широчайшая',['lat'],'emg'],['Большая круглая и подостная',['infra'],'emg'],['Задняя дельта',['delP'],'emg'],['Трапециевидная (середина, низ)',['trapM'],'emg'],['Бицепс, плечевая, плечелучевая',['bic','brach','brad'],'emg']],
+    note:'Исследований роста мышц от тяги блока пока нет. По ЭМГ главная мышца — широчайшая при любом хвате.',src:[]},
+  pendulum:{m:[[...QUADS,'sim'],['Большая ягодичная',['gmax'],'sim'],['Большая приводящая',['add'],'sim']],
+    no:'Прямая мышца бедра от многосуставных жимов ногами почти не растёт.',note:'Исследований именно этого тренажёра нет; данные — по жиму ногами.',src:['kino']},
+  hack:{m:[[...QUADS,'sim'],['Большая ягодичная',['gmax'],'sim'],['Большая приводящая',['add'],'sim']],
+    no:'Прямая мышца бедра от многосуставных жимов ногами почти не растёт.',note:'Исследований гак-приседа нет; данные — по жиму ногами.',src:['kino']},
+  legpress:{m:[[...QUADS,'mri'],['Большая ягодичная',['gmax'],'mri'],['Большая приводящая',['add'],'mri']],
+    no:'Прямая мышца бедра почти не выросла: +1% (от разгибаний ног +13%).',
+    note:'Квадрицепс в целом вырос так же, как от разгибаний ног, плюс большая ягодичная (+15%) и большая приводящая (+6%).',src:['kino']}
+};
+const EV={mri:'рост доказан',sim:'по близкому',emg:'по ЭМГ'};
+const growIds=()=>{const s=new Set();for(const [,ids] of GROW[state.ex].m)for(const i of ids)s.add(i);return s;};
+function renderGrow(){
+  const G=GROW[state.ex];
+  $('#growList').innerHTML=G.m.map(([nm,,g])=>`<li><span>${nm}</span><span class="ev ${g}">${EV[g]}</span></li>`).join('');
+  $('#growNo').hidden=!G.no; $('#growNo').textContent=G.no||'';
+  $('#growNote').textContent=G.note;
+  $('#growSrc').innerHTML=G.src.length?'Источники: '+G.src.map(k=>SRC[k]).join('; ')+'.':'';
+}
+// подложка: грудная клетка, живот, таз (плавки), «кости» конечностей
 BODY.ribs=blob(MAT.deep); BODY.belly=blob(MAT.deep); BODY.pelvis=blob(MAT.shorts);
 for(const s of ['L','R']){
   BODY['thigh'+s]=segM(taper(.055,.04),MAT.deep); BODY['shin'+s]=segM(taper(.042,.028),MAT.body); // большеберцовая кость прямо под кожей
   BODY['ua'+s]=segM(taper(.036,.028),MAT.deep); BODY['fa'+s]=segM(taper(.03,.02),MAT.deep);
-  BODY['foot'+s]=blob(MAT.body); BODY['patella'+s]=blob(MAT.body);
+  BODY['foot'+s]=blob(MAT.body); BODY['patella'+s]=blob(MAT.bone);
 }
 BODY.neck=segM(taper(.056,.066));
 BODY.head=blob(MAT.body); BODY.nose=blob(MAT.body);
@@ -1208,6 +1386,7 @@ function muscleDrive(){
 MAT.headScan=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.7,side:THREE.DoubleSide}); // снизу шея открыта — изнутри не просвечивает фон
 // низ шеи скана плавно переходит в цвет манекена (атрибут fade: 0 — скан, 1 — цвет тела)
 MAT.headScan.userData.body={value:new THREE.Color()};
+const headClip=new THREE.Plane(V(0,1,0),10); MAT.headScan.clippingPlanes=[headClip]; // в режимах со скелетом — без шеи
 MAT.headScan.onBeforeCompile=sh=>{
   sh.uniforms.uBody=MAT.headScan.userData.body;
   sh.vertexShader='attribute float fade;\nvarying float vFade;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvFade=fade;');
@@ -1242,7 +1421,11 @@ function updateBody(pose){
   const key=state.ex+'|'+JSON.stringify(state.params[state.ex])+'|'+JSON.stringify(A);
   if(key!==L0key){L0key=key; const p0=buildNow(0), F0={L:bodyFrames(p0,'L'),R:bodyFrames(p0,'R')}; for(const M of MUSCLES)M.L0=shapeMuscle(M,F0[M.s],true);}
   const Fr={L:bodyFrames(pose,'L'),R:bodyFrames(pose,'R')}, J=state.show.musc?muscleDrive():{};
+  // режим: все мышцы / только мышцы, которые растут (на скелете) / только скелет
+  const mode=state.show.skel?'skel':state.show.target?'target':'all', grow=mode==='target'?growIds():null;
+  const sk=JSON.stringify(A); if(SKEL.key!==sk){SKEL.key=sk; buildSkeleton();}
   for(const M of MUSCLES){
+    M.mesh.visible=mode==='all'||(mode==='target'&&grow.has(M.def.id)); if(!M.mesh.visible)continue;
     let a=0; for(const e of M.def.act){const [j,dm,w]=e.length===2?[e[0],'',e[1]]:e; a+=w*(J[j+':'+dm]||0);} M.a=clamp(a,0,1);
     shapeMuscle(M,Fr[M.s],false);
     const g=M.geo; fastNormals(M); g.attributes.position.needsUpdate=true; g.attributes.color.needsUpdate=true; g.attributes.normal.needsUpdate=true;
@@ -1268,7 +1451,18 @@ function updateBody(pose){
   BODY.nose.position.copy(P.head).addScaledVector(f,.096).addScaledVector(u,-.01); BODY.nose.quaternion.copy(BODY.head.quaternion); BODY.nose.scale.set(.02,.03,.016);
   // голова-скан чуть ниже P.head — только картинка, центр масс головы в расчётах остаётся в P.head
   if(BODY.scan){BODY.scan.position.copy(P.head).addScaledVector(u,-SCAN_DROP); BODY.scan.quaternion.copy(BODY.head.quaternion);}
+  if(state.show.skel||state.show.target)headClip.setFromNormalAndCoplanarPoint(u,P.head.clone().addScaledVector(u,-SCAN_DROP-.128)); else headClip.set(V(0,1,0),10);
   L5m.position.copy(P.L5);
+  // кости
+  setSkel('T',P.hipMid,f,u,z); setSkel('P',P.hipMid,f,u,z); setSkel('R',P.hipMid,f,u,z); for(const k of ['P','R'])if(SKEL.g[k])SKEL.g[k].visible=mode!=='all';
+  for(const s of ['L','R']){const sg=Fr[s].seg, ft=Fr[s].foot, up=b=>b.d.clone().negate();
+    setSkel('F'+s,sg.F.o,sg.F.ant,up(sg.F),sg.F.lat); setSkel('S'+s,sg.S.o,sg.S.ant,up(sg.S),sg.S.lat);
+    setSkel('U'+s,sg.U.o,sg.U.ant,up(sg.U),sg.U.lat); setSkel('A'+s,sg.A.o,sg.A.ant,up(sg.A),sg.A.lat);
+    setSkel('H'+s,ft.heel,ft.fd,ft.fup,ft.flat);}
+  // подложка и кожа видны только со всеми мышцами
+  const under=mode==='all';
+  for(const m of [BODY.ribs,BODY.belly,BODY.pelvis,L5m])m.visible=under;
+  for(const s of ['L','R']){for(const k of ['thigh','shin','ua','fa','foot'])BODY[k+s].visible=under; for(const [k] of jointList)JS[k+s].visible=under;}
 }
 
 /* ---- снаряды и тренажёры ---- */
@@ -1556,7 +1750,7 @@ function renderRows(){
 function selectEx(id){
   state.ex=id; state.compare=null; $('#clearCmp').disabled=true; $('#cmpNote').hidden=true;
   document.querySelectorAll('.exbtn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ex===id));
-  renderParams(); renderLoad(); renderRows(); buildEquip();
+  renderParams(); renderLoad(); renderRows(); renderGrow(); buildEquip();
   $('#exTitle').textContent=cur().name; $('#exMeta').textContent=cur().desc;
   invalidate(); fitView(currentView,false);
 }
@@ -1614,7 +1808,8 @@ tIn.addEventListener('input',()=>{state.t=tIn.value/1000;state.playing=false;upd
 let phase=Math.acos(1-2*state.t);
 function updatePlayIcon(){$('#playIcon').innerHTML=state.playing?'<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/>':'<path d="M4 2.5v11l9-5.5z" fill="currentColor"/>';$('#play').setAttribute('aria-label',state.playing?'Пауза':'Воспроизвести');}
 $('#play').onclick=()=>{state.playing=!state.playing;phase=Math.acos(clamp(1-2*state.t,-1,1));updatePlayIcon();};
-document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{const k=b.dataset.show;state.show[k]=!state.show[k];b.setAttribute('aria-pressed',state.show[k]);dirty=true;});
+document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{const k=b.dataset.show;state.show[k]=!state.show[k];b.setAttribute('aria-pressed',state.show[k]);if(k==='target')$('#targetOnly').checked=state.show.target;dirty=true;});
+$('#targetOnly').onchange=e=>{state.show.target=e.target.checked;document.querySelector('[data-show="target"]').setAttribute('aria-pressed',state.show.target);dirty=true;};
 
 /* ---- выборка по амплитуде ---- */
 const NS=41;
