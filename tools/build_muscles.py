@@ -73,16 +73,36 @@ def r4(x):
     return round(float(x), 4)
 
 
-# кисть в приложении — шар без пальцев: сухожилия сгибателей и разгибателей пальцев заканчиваются в нём, а не торчат на 10 см дальше.
-# На расчёт не влияет: эти мышцы пересекают лучезапястный сустав и в распределение момента не входят
-HAND_T = 1.08
+# Кисть в приложении держит гриф: запястье разогнуто, пальцы согнуты (tools/build_skeleton.py, anatomy/hand_grip.json).
+# Точки на кисти из данных рук (прямое запястье) поворачиваются вместе с ней; сухожилия пальцев заканчиваются у головки
+# III пястной кости: сгибатели с ладони, разгибатель с тыла, а не торчат прямо на 10 см дальше.
+# На расчёт не влияет: эти мышцы пересекают лучезапястный сустав и в распределение момента не входят.
+FA_REF = .19 * 1.8
+HAND_TENDON = {'flex_digitorum_superficialis': 'mc3_palmar', 'flex_digitorum_profundus': 'mc3_palmar', 'ext_digitorum': 'mc3_dorsal'}
+HAND_T = 1.08          # если anatomy/hand_grip.json нет: обрезать по кисти
+GRIP = ROOT / 'anatomy' / 'hand_grip.json'
+GRIP = json.loads(GRIP.read_text()) if GRIP.exists() else None
+
+
+def hand_point(p, m):
+    if GRIP is None:
+        return min(p['t'], HAND_T), p['a'], p['l']
+    if m['id'] in HAND_TENDON:
+        x, a, l = GRIP[HAND_TENDON[m['id']]]
+    else:
+        w, R = GRIP['wrist'], GRIP['R']
+        d = [p['t'] * FA_REF - w[0], p['a'] - w[1], p['l'] - w[2]]
+        x, a, l = (w[i] + sum(R[i][j] * d[j] for j in range(3)) for i in range(3))
+    return x / FA_REF, a, l
 
 
 def point(p, m):
     f = flags_of(p, m)
     a = p['a'] - ANKLE_H if f & F_ANKLE else p['a']
-    t = min(p['t'], HAND_T) if p['seg'] == 'fa' else p['t']
-    return [seg_of(p), r4(t), r4(a), r4(p['lh'] if 'lh' in p else p['l'])] + ([f] if f else [])
+    t, l = p['t'], p['lh'] if 'lh' in p else p['l']
+    if p['seg'] == 'fa' and body_of(p) == 'hand':
+        t, a, l = hand_point(p, m)
+    return [seg_of(p), r4(t), r4(a), r4(l)] + ([f] if f else [])
 
 
 def convert(m, region, cfg):
