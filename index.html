@@ -16,7 +16,7 @@
 :root{
   --bg:#E9ECEA; --panel:#FAFBF9; --panel-2:#F1F3F0; --ink:#14181A; --ink-2:#394146; --muted:#626C71;
   --line:#D6DBD8; --line-2:#C2C9C5; --scene:#E3E7E4; --floor:#D3D9D5; --grid:#B9C1BD;
-  --body:#C29478; --shorts:#353D42; --shirt:#6E7B83; --equip:#4B555A; --pad:#2A3034; --metal:#9AA3A7;
+  --body:#C29478; --shorts:#353D42; --equip:#4B555A; --pad:#2A3034; --metal:#9AA3A7;
   --j-ankle:#1baf7a; --j-knee:#eda100; --j-hip:#2a78d6; --j-lumbar:#eb6834; --j-shoulder:#2a78d6; --j-elbow:#1baf7a;
   --force:#14181A; --hud:rgba(250,251,249,.86); --shadow:0 1px 2px rgba(20,24,26,.06),0 6px 20px rgba(20,24,26,.07);
   --ui:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -28,7 +28,7 @@
     color-scheme:dark;
     --bg:#0E1113; --panel:#161A1C; --panel-2:#1C2124; --ink:#ECEFEE; --ink-2:#C6CDCB; --muted:#939CA0;
     --line:#282E32; --line-2:#363E43; --scene:#121517; --floor:#1A1F22; --grid:#2C3438;
-    --body:#C29478; --shorts:#23292C; --shirt:#56626A; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
+    --body:#C29478; --shorts:#23292C; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
     --j-ankle:#199e70; --j-knee:#c98500; --j-hip:#3987e5; --j-lumbar:#d95926; --j-shoulder:#3987e5; --j-elbow:#199e70;
     --force:#F2F4F3; --hud:rgba(22,26,28,.84); --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
   }
@@ -37,7 +37,7 @@
   color-scheme:dark;
   --bg:#0E1113; --panel:#161A1C; --panel-2:#1C2124; --ink:#ECEFEE; --ink-2:#C6CDCB; --muted:#939CA0;
   --line:#282E32; --line-2:#363E43; --scene:#121517; --floor:#1A1F22; --grid:#2C3438;
-  --body:#C29478; --shorts:#23292C; --shirt:#56626A; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
+  --body:#C29478; --shorts:#23292C; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
   --j-ankle:#199e70; --j-knee:#c98500; --j-hip:#3987e5; --j-lumbar:#d95926; --j-shoulder:#3987e5; --j-elbow:#199e70;
   --force:#F2F4F3; --hud:rgba(22,26,28,.84); --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
 }
@@ -254,6 +254,7 @@ html{overflow-anchor:none}
         <button class="chip" data-show="arms" aria-pressed="true">Плечи</button>
         <button class="chip" data-show="arcs" aria-pressed="true">Моменты</button>
         <button class="chip" data-show="labels" aria-pressed="true">Подписи</button>
+        <button class="chip" data-show="musc" aria-pressed="true">Нагрузка мышц</button>
         <button class="chip" data-show="xray" aria-pressed="false">Рентген</button>
       </div>
     </div>
@@ -285,6 +286,7 @@ html{overflow-anchor:none}
         <li>В свободных весах корпус подбирается так, чтобы общий центр масс тела и снаряда оставался над серединой стопы.</li>
         <li><b>Трение.</b> В замкнутой цепи (гриф в двух руках, стопы на полу или платформе) опора передаёт не только нормальную силу, но и касательную — не больше μ × нормальная. В жиме лёжа режим «По данным» берёт боковую силу из измерений Larsen и соавт. (2021): широкий хват — кисти давят наружу, узкий — внутрь. В приседе «Авто» — «разведение пола», в жиме ногами — минимум суммарной нагрузки на суставы. Стрелка у кисти или стопы на 3D показывает, куда давит атлет; реакция опоры, от которой считаются плечи, направлена в обратную сторону. Гантели — открытая цепь, боковой силы у них нет. В статике горизонтальная сила под стопами вперёд-назад равна нулю, иначе тело бы ускорялось.</li>
         <li><b>Усилие мышц</b> = момент ÷ плечо мышцы, в кгс. Плечи мышц типичные: квадрицепс 3,6–4,9 см (зависит от угла колена), ягодичные 6,5 см, разгибатели спины 5,5 см, икроножные 5 см, трицепс 2,1 см, бицепс 1,8–4,5 см, грудные и широчайшие 5 см. У конкретного человека они отличаются.</li>
+        <li><b>Мышцы на модели.</b> Каждая мышца натянута между точками начала и прикрепления: при сгибании сустава она укорачивается и утолщается или растягивается и истончается. Цвет — нагрузка: чем краснее, тем большую долю момента в суставе мышца держит (момент ÷ типичный предел силы сустава). Кнопка «Нагрузка мышц» выключает подсветку.</li>
         <li>В приседе колено и таз дополнительно считаются во фронтальной плоскости — по реакции опоры под каждой стопой с учётом ширины стойки и бокового трения.</li>
         <li>Модель статическая: без ускорений, трения и индивидуальной анатомии суставов. Значения — для сравнения вариантов, а не абсолютная истина.</li>
       </ul>
@@ -899,7 +901,7 @@ const EX={
 const GROUPS=['Свободные веса: ноги и спина','Жимы лёжа','Вертикальные тяги','Тренажёры для ног'];
 
 /* ================= Состояние ================= */
-const state={ex:'squat',t:.7,playing:false,chartMode:'moment',mass:80,body:false,loads:{},params:{},show:{force:true,arms:true,arcs:true,labels:true,xray:false},compare:null};
+const state={ex:'squat',t:.7,playing:false,chartMode:'moment',mass:80,body:false,loads:{},params:{},show:{force:true,arms:true,arcs:true,labels:true,musc:true,xray:false},compare:null};
 for(const id in EX){state.loads[id]=EX[id].def;state.params[id]={};for(const p of EX[id].params)state.params[id][p.id]=p.def;}
 const cur=()=>EX[state.ex];
 const buildNow=t=>cur().build(t,state.params[state.ex],state.loads[state.ex]);
@@ -978,86 +980,226 @@ function boxBetween(m,a,b,w,h){ // box from a to b, width along Z(w), thickness 
 }
 
 /* ---- тело ---- */
-// Фигура собрана из эллипсоидов-мышц, каждая привязана к локальной системе своего сегмента:
-// x — передняя сторона сегмента, y — вдоль сегмента от проксимального сустава, z — наружу.
-// Спецификация мышцы: [t — доля длины сегмента, a — сдвиг вперёд, l — сдвиг наружу, ra, ry, rl — полуоси (м), roll — наклон (°)].
+// Анатомическая фигура. Каждая мышца — отдельная форма между точками начала и прикрепления на «костях»:
+// таз/грудная клетка (T), бедро (F), голень (S), плечо (U), предплечье (A), стопа (H), надколенник (K), сустав (J).
+// Сустав сгибается — мышца между точками укорачивается и утолщается (объём сохраняется) или растягивается и истончается.
+// Цвет — нагрузка: доля момента в суставе, который эта мышца уравновешивает (тот же расчёт, что в панели справа).
 renderer.localClippingEnabled=true;
 const bodyG=new THREE.Group(); scene.add(bodyG);
 MAT.body.roughness=.62;
-MAT.shorts=std(0x30373b,.88);
-const SHORTS_T=.4; // шорты закрывают бедро на эту долю длины
-MAT.shortsCut={L:MAT.shorts.clone(),R:MAT.shorts.clone()};
-MAT.shirt=std(0x6e7b83,.9);                       // майка
-MAT.shirtCut=MAT.shirt.clone(); const neckPlane=new THREE.Plane(), neckSideA=new THREE.Plane(), neckSideB=new THREE.Plane();
-MAT.shirtCut.clippingPlanes=[neckPlane,neckSideA,neckSideB]; MAT.shirtCut.clipIntersection=true; // грудь майки с U-образным вырезом между лямками
-const cutPlane={L:new THREE.Plane(),R:new THREE.Plane()};
-for(const s of ['L','R'])MAT.shortsCut[s].clippingPlanes=[cutPlane[s]];
+MAT.shorts=std(0x30373b,.88); // плавки под мышцами таза
+MAT.deep=std(0x7b4a3e,.8); // подложка под мышцами: щели между мышцами выглядят как бороздки
 const BLOB=new THREE.SphereGeometry(1,30,20);
-// Грудная клетка с вылепленными грудными мышцами — одна гладкая поверхность, без стыков.
-// x — вперёд, y — вверх, z — вбок (единичная сфера, потом масштаб полуосями грудной клетки).
-// Грудная: от грудины до подмышки; сверху плавно сходит на нет к ключице,
-// снизу — чёткий край, который поднимается к подмышке.
-const CHEST_GEO=(()=>{const g=new THREE.SphereGeometry(1,160,128),p=g.attributes.position,ss=THREE.MathUtils.smoothstep;
-  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),az=Math.abs(z);
-    if(x<=0)continue;
-    const yl=.03+.75*az*az*az;                              // нижний край: почти горизонтальный, у подмышки уходит вверх
-    const h=.24*ss(az,.04,.22)*(1-ss(az,.8,1))              // грудина … подмышка
-             *ss(y-yl,0,.085)*Math.pow(1-ss(y,yl+.1,1),1.1)   // чёткий низ, мягкий верх
-             *ss(x,.15,.6);                                 // только спереди
-    p.setX(i,x+h);}
-  g.computeVertexNormals(); return g;})();
 function taper(rt,rb){return new THREE.CylinderGeometry(rt,rb,1,22,1);}
 function segM(geo,mat){const m=new THREE.Mesh(geo,mat||MAT.body);m.castShadow=true;m.receiveShadow=true;bodyG.add(m);return m;}
 function placeTaper(m,a,b){const d=b.clone().sub(a),L=d.length()||1e-4;m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(Y,d.clone().divideScalar(-L));m.scale.set(1,L,1);}
-const MUS={
-  torso:[ // от середины таза к середине плеч
-    ['pelvis',.02,-.005,0,.1,.115,.158,0,'shorts'],
-    ['glute',-.04,-.072,.07,.078,.1,.08,0,'shorts',1],
-    ['waist',.3,.02,0,.098,.17,.132,0,'shirt'],
-    ['oblique',.33,.03,.085,.075,.13,.06,-8,'shirt',1],
-    ['ribs',.66,.025,0,.112,.2,.155,0,'shirtCut',0,'chest'],
-    ['abs',.26,.098,.031,.02,.038,.027,0,'shirt',1],['abs',.36,.1,.032,.02,.038,.028,0,'shirt',1],['abs',.46,.1,.033,.02,.038,.029,0,'shirt',1],
-    ['lat',.62,-.03,.125,.068,.18,.07,18,'shirt',1],
-    ['erector',.3,-.07,.035,.035,.2,.032,0,'shirt',1],
-    ['trap',1.0,-.034,0,.055,.085,.13]
-  ],
-  ua:[['delt',.1,0,.012,.06,.09,.062],['biceps',.52,.022,0,.037,.105,.036],['triceps',.45,-.023,-.003,.04,.12,.04]],
-  fa:[['flexors',.22,.006,.006,.038,.095,.039]],
-  thigh:[['rectus',.45,.034,0,.06,.19,.058],['vlat',.52,.006,.036,.053,.18,.05],['vmed',.8,.024,-.028,.045,.075,.042],['hams',.5,-.032,0,.06,.18,.058],['add',.25,0,-.032,.058,.13,.048]],
-  shin:[['gastM',.3,-.036,-.012,.045,.11,.036],['gastL',.28,-.033,.015,.04,.1,.032],['tib',.33,.015,.017,.025,.12,.025]]
-};
-function blob(mat,spec){const m=new THREE.Mesh(spec&&spec[10]==='chest'?CHEST_GEO:BLOB,mat);m.castShadow=true;m.receiveShadow=true;m.userData.spec=spec;bodyG.add(m);return m;}
-const BODY={musc:{}}, _m4=new THREE.Matrix4();
-// мышцы сегмента; для бедра — копии чуть крупнее в материале шорт, обрезанные по краю шорт
-function buildMuscles(key,side){
-  const list=[];
-  for(const sp of MUS[key]){
-    const pair=sp[9], mat=sp[8]?MAT[sp[8]]:MAT.body;
-    for(const sg of pair?[1,-1]:[1])list.push({m:blob(mat,sp),sg,k:1});
-    if(sp[8]==='shirtCut')list.push({m:blob(MAT.body,sp),sg:1,k:.99}); // кожа в вырезе майки
-    if(key==='thigh'&&sp[1]-sp[5]/.44<SHORTS_T)list.push({m:blob(MAT.shortsCut[side],sp),sg:1,k:1.045});
-  }
-  return list;
+function blob(mat){const m=new THREE.Mesh(BLOB,mat);m.castShadow=true;m.receiveShadow=true;bodyG.add(m);return m;}
+const BODY={}, _m4=new THREE.Matrix4();
+const perp=(v,ax)=>v.clone().addScaledVector(ax,-v.dot(ax));
+
+/* ---- мышцы ---- */
+// tube — веретено (бицепс, квадрицепс…), sheet — пласт между линией начала и линией прикрепления (широчайшая, грудная…).
+// o, i — точки (tube) или линии из 2–3 точек (sheet); via — точка, через которую проходит середина мышцы;
+// w, h — ширина и толщина брюшка (м); tend — доля сухожилия у начала и у прикрепления; peak — где брюшко толще всего;
+// inn — что внутри (кость или точка): от него мышца выпирает наружу; wrap — сферы, которые мышца огибает.
+const MDEF=[
+  // туловище
+  {id:'rect',nm:'Прямая мышца живота',k:'sheet',o:[['T',.085,-.03,.007],['T',.083,-.03,.05]],i:[['T',.128,.36,.007],['T',.117,.37,.085]],via:['T',.113,.17,.035],h:.02,tend:[.02,.02],grooves:[.45,.66,.86],nt:40,inn:'T',act:[['L5','ext',1],['L5','flex',.15]]},
+  {id:'obl',nm:'Наружная косая',k:'sheet',o:[['T',.095,.40,.115],['T',.025,.385,.152],['T',-.05,.30,.14]],i:[['T',.103,.20,.082],['T',.06,.115,.125],['T',-.03,.12,.135]],h:.015,tend:[0,.1],inn:'T',act:[['L5','ext',.8],['L5','flex',.25]]},
+  {id:'ql',nm:'Квадратная мышца поясницы',k:'sheet',o:[['T',-.06,.13,.06],['T',-.045,.13,.105]],i:[['T',-.068,.27,.05],['T',-.058,.26,.09]],h:.012,tend:[.05,.05],inn:'T',act:[['L5','flex',.6]]},
+  {id:'ere',nm:'Разгибатели спины',k:'tube',o:['T',-.085,-.02,.03],i:['T',-.078,.47,.035],via:['T',-.103,.2,.035],w:.055,h:.04,tend:[.05,.18],peak:.35,inn:'T',act:[['L5','flex',1]]},
+  {id:'lat',nm:'Широчайшая',k:'sheet',o:[['T',-.095,.40,.006],['T',-.1,.18,.01],['T',-.065,.13,.09]],i:[['U',.07,.018,-.012],['U',.13,.018,-.012]],via:['T',-.07,.33,.15],h:.02,tend:[0,.12],peak:.65,pw:1,inn:'T',act:[['shoulder','pull',1],['hang',.25]]},
+  {id:'pec',nm:'Большая грудная',k:'sheet',o:[['T',.075,.505,.09],['T',.098,.48,.012],['T',.13,.35,.012]],i:[['U',.17,.025,0],['U',.09,.025,0]],via:['T',.111,.42,.1],h:.022,tend:[0,.1],peak:.55,pw:.8,edge:.5,skew:.72,inn:'T',act:[['shoulder','push',1]]},
+  {id:'trapU',nm:'Трапециевидная (верх)',k:'sheet',o:[['T',-.06,.66,.015],['T',-.065,.565,.006]],i:[['T',.02,.535,.125],['T',-.015,.54,.17]],h:.025,tend:[.05,.05],peak:.55,inn:['T',0,.45,0],act:[['hang',.9],['shoulder','pull',.2]]},
+  {id:'trapM',nm:'Трапециевидная (середина, низ)',k:'sheet',o:[['T',-.07,.56,.006],['T',-.09,.30,.006]],i:[['T',-.04,.535,.15],['T',-.085,.45,.085]],h:.012,tend:[.08,.03],inn:'T',act:[['shoulder','pull',.6],['hang',.3]]},
+  {id:'serr',nm:'Передняя зубчатая',k:'sheet',ns:24,o:[['T',.085,.44,.125],['T',.07,.37,.14],['T',.04,.31,.15]],i:[['T',-.03,.47,.14],['T',-.045,.37,.14]],h:.012,tend:[.02,.02],teeth:4,inn:'T',act:[['shoulder','push',.4]]},
+  {id:'infra',nm:'Подостная и большая круглая',k:'sheet',o:[['T',-.085,.47,.085],['T',-.085,.36,.075]],i:[['U',.03,-.02,.01],['U',.08,-.02,0]],h:.02,tend:[.02,.12],inn:'T',act:[['shoulder','pull',.5],['shoulder','push',.2]]},
+  // таз и бедро
+  {id:'gmax',nm:'Большая ягодичная',k:'sheet',o:[['T',-.075,.11,.055],['T',-.105,.02,.02],['T',-.085,-.065,.012]],i:[['F',.03,-.015,.06],['F',.24,-.02,.038]],via:['T',-.1,-.01,.078],h:.036,ns:14,nt:22,edge:.35,tend:[0,.15],peak:.45,pw:.6,inn:['J','hip',.03,.02,-.03],wrap:[[['J','hip',0,0,0],.085]],act:[['hip','flex',1]]},
+  {id:'gmed',nm:'Средняя ягодичная',k:'sheet',o:[['T',.06,.105,.12],['T',0,.155,.145],['T',-.06,.125,.07]],i:[['F',0,.02,.07],['F',.03,-.02,.07]],h:.02,tend:[0,.1],inn:['J','hip',0,.04,-.03],act:[['hip','flex',.35]]},
+  {id:'rf',nm:'Прямая мышца бедра',k:'tube',o:['T',.06,.04,.095],i:['K',0],via:['F',.5,.07,0],w:.072,h:.06,tend:[.08,.2],peak:.45,inn:'F',act:[['knee','flex',.8],['hip','ext',1]]},
+  {id:'vl',nm:'Латеральная широкая',k:'tube',o:['F',.08,0,.055],i:['K',.025],via:['F',.5,.02,.074],w:.09,h:.066,tend:[.04,.15],peak:.55,inn:'F',act:[['knee','flex',1]]},
+  {id:'vm',nm:'Медиальная широкая',k:'tube',o:['F',.35,0,-.035],i:['K',-.025],via:['F',.78,.035,-.06],w:.075,h:.06,tend:[.05,.08],peak:.75,inn:'F',act:[['knee','flex',1]]},
+  {id:'add',nm:'Приводящие',k:'sheet',o:[['T',.055,-.065,.025],['T',-.035,-.095,.05]],i:[['F',.18,-.01,-.025],['F',.9,-.015,-.035]],via:['F',.32,-.005,-.07],h:.05,tend:[.03,.1],peak:.35,pw:.6,inn:'F',act:[['hip','flex',.6]]},
+  {id:'bf',nm:'Двуглавая бедра',k:'tube',o:['T',-.06,-.085,.055],i:['S',.05,-.015,.045],via:['F',.55,-.065,.03],w:.066,h:.06,tend:[.06,.18],peak:.5,inn:'F',act:[['hip','flex',.6],['knee','ext',1]]},
+  {id:'st',nm:'Полусухожильная и полуперепончатая',k:'tube',o:['T',-.06,-.085,.05],i:['S',.07,-.01,-.035],via:['F',.55,-.065,-.022],w:.07,h:.06,tend:[.06,.2],peak:.55,inn:'F',act:[['hip','flex',.6],['knee','ext',1]]},
+  // голень
+  {id:'gasM',nm:'Икроножная (медиальная головка)',k:'tube',o:['F',.97,-.035,-.025],i:['H',0,.05,0],via:['S',.28,-.07,-.022],w:.06,h:.05,tend:[.03,.5],peak:.45,inn:'S',act:[['ankle','flex',.9],['knee','ext',.4]]},
+  {id:'gasL',nm:'Икроножная (латеральная головка)',k:'tube',o:['F',.97,-.035,.025],i:['H',0,.05,.005],via:['S',.25,-.065,.02],w:.05,h:.042,tend:[.03,.55],peak:.45,inn:'S',act:[['ankle','flex',.9],['knee','ext',.4]]},
+  {id:'sol',nm:'Камбаловидная',k:'tube',o:['S',.12,-.025,0],i:['H',0,.045,0],via:['S',.5,-.05,0],w:.085,h:.03,tend:[.05,.25],peak:.5,inn:'S',act:[['ankle','flex',1]]},
+  {id:'tib',nm:'Передняя большеберцовая',k:'tube',o:['S',.1,.025,.025],i:['H',.5,.03,-.02],via:['S',.45,.04,.022],w:.035,h:.03,tend:[.04,.45],peak:.4,inn:'S',act:[['ankle','ext',1]]},
+  {id:'patT',nm:'Связка надколенника',k:'tube',o:['K',0],i:['S',.09,.035,0],w:.03,h:.012,rt:.009,tendon:1,inn:'S',act:[]},
+  // плечо и рука
+  {id:'delA',nm:'Дельтовидная (передняя)',k:'sheet',o:[['J','sh',.03,.035,-.055],['J','sh',.04,.042,-.012]],i:[['U',.42,.012,.016],['U',.4,.004,.022]],h:.03,tend:[0,.12],peak:.35,edge:.35,inn:['J','sh',0,0,0],wrap:[[['J','sh',0,0,0],.05]],act:[['shoulder','push',.8]]},
+  {id:'delL',nm:'Дельтовидная (средняя)',k:'sheet',o:[['J','sh',.04,.042,-.012],['J','sh',0,.045,.008],['J','sh',-.035,.04,-.01]],i:[['U',.4,.004,.022],['U',.4,-.004,.022]],h:.034,tend:[0,.12],peak:.35,edge:.35,inn:['J','sh',0,0,0],wrap:[[['J','sh',0,0,0],.05]],act:[['shoulder','push',.25],['shoulder','pull',.25]]},
+  {id:'delP',nm:'Дельтовидная (задняя)',k:'sheet',o:[['J','sh',-.035,.04,-.01],['J','sh',-.06,.03,-.045],['J','sh',-.075,.02,-.08]],i:[['U',.4,-.004,.022],['U',.42,-.012,.016]],h:.03,tend:[0,.12],peak:.35,edge:.35,inn:['J','sh',0,0,0],wrap:[[['J','sh',0,0,0],.05]],act:[['shoulder','pull',.7]]},
+  {id:'bic',nm:'Бицепс',k:'tube',o:['J','sh',.025,0,-.012],i:['A',.1,.012,0],via:['U',.55,.045,0],w:.052,h:.052,tend:[.12,.15],peak:.55,inn:'U',wrap:[[['J','sh',0,0,0],.045]],act:[['elbow','ext',1]]},
+  {id:'brach',nm:'Плечевая',k:'tube',o:['U',.45,.015,0],i:['A',.08,.008,-.005],via:['U',.75,.03,0],w:.062,h:.032,tend:[.05,.15],peak:.5,inn:'U',act:[['elbow','ext',.9]]},
+  {id:'triL',nm:'Трицепс (длинная головка)',k:'tube',o:['J','sh',-.02,-.025,-.02],i:['A',-.03,-.028,0],via:['U',.5,-.052,-.01],w:.056,h:.052,tend:[.05,.25],peak:.45,inn:'U',act:[['elbow','flex',1]]},
+  {id:'triLat',nm:'Трицепс (латеральная головка)',k:'tube',o:['U',.15,-.02,.02],i:['A',-.03,-.028,.005],via:['U',.45,-.047,.03],w:.05,h:.046,tend:[.03,.25],peak:.45,inn:'U',act:[['elbow','flex',1]]},
+  {id:'brad',nm:'Плечелучевая',k:'tube',o:['U',.7,.01,.03],i:['A',.95,.01,.022],via:['A',.22,.027,.03],w:.052,h:.044,tend:[.03,.45],peak:.3,inn:'A',act:[['elbow','ext',.7],['grip',.2]]},
+  {id:'ffl',nm:'Сгибатели кисти и пальцев',k:'tube',o:['U',.99,0,-.035],i:['A',.88,.012,-.008],via:['A',.3,.026,-.022],w:.06,h:.045,tend:[.03,.4],peak:.35,inn:'A',act:[['grip',1]]},
+  {id:'fex',nm:'Разгибатели кисти и пальцев',k:'tube',o:['U',.98,-.005,.033],i:['A',.88,-.012,.012],via:['A',.3,-.022,.03],w:.055,h:.04,tend:[.04,.4],peak:.35,inn:'A',act:[['grip',.5]]}
+];
+// волокна: еле заметные продольные полоски
+const FIBRE_TEX=(()=>{const c=document.createElement('canvas');c.width=128;c.height=4;const x=c.getContext('2d');let v=240;
+  for(let i=0;i<128;i++){v=clamp(v+(Math.random()-.5)*26,214,255);x.fillStyle=`rgb(${v|0},${v|0},${v|0})`;x.fillRect(i,0,1,4);}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;})();
+// маска сухожилия (атрибут color.r: 1 — брюшко, 0 — сухожилие): сухожилия светлые и не подсвечиваются
+function muscleOBC(sh){
+  sh.fragmentShader=sh.fragmentShader
+    .replace('#include <color_fragment>','diffuseColor.rgb=mix(vec3(.86,.76,.68),diffuseColor.rgb,vColor.r);')
+    .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance*=vColor.r;');
 }
-function placeMuscles(list,O,ant,ax,L,out){
-  const lat=ant.clone().cross(ax).normalize(), sgn=out&&lat.dot(out)<0?-1:1;
-  for(const {m,sg,k} of list){
-    const [,t,a,l,ra,ry,rl,roll]=m.userData.spec, side=sgn*sg;
-    const r=(roll||0)*D*side, y=ax.clone().multiplyScalar(Math.cos(r)).addScaledVector(lat,Math.sin(r)), z=ant.clone().cross(y);
-    m.position.copy(O).addScaledVector(ax,t*L).addScaledVector(ant,a).addScaledVector(lat,l*side);
-    m.quaternion.setFromRotationMatrix(_m4.makeBasis(ant,y,z)); m.scale.set(ra*k,ry*k,rl*k);
+const MUSC_ACTIVE=new THREE.Color(0xd8322a), MUSC_GLOW=new THREE.Color(0xff2a12);
+BODY.mats=[MAT.body,MAT.deep,MAT.shorts];
+class Muscle{
+  constructor(def,s){
+    this.def=def; this.s=s; this.a=0; this.L0=null;
+    const tube=def.k==='tube'; this.NT=def.nt||(tube?18:16); this.NS=def.ns||(tube?14:10);
+    const nv=tube?(this.NT+1)*(this.NS+1):2*(this.NT+1)*(this.NS+1);
+    const g=new THREE.BufferGeometry(); this.pos=new Float32Array(nv*3); this.msk=new Float32Array(nv*3);
+    g.setAttribute('position',new THREE.BufferAttribute(this.pos,3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('color',new THREE.BufferAttribute(this.msk,3).setUsage(THREE.DynamicDrawUsage));
+    const uv=new Float32Array(nv*2), idx=[], NS=this.NS, NT=this.NT, W=NS+1;
+    const rep=tube?6:Math.max(3,Math.round((def.h||.02)*120+3));
+    for(let p=0;p<(tube?1:2);p++)for(let j=0;j<=NT;j++)for(let i=0;i<=NS;i++){const v=p*(NT+1)*W+j*W+i;uv[v*2]=i/NS*rep;uv[v*2+1]=j/NT;}
+    for(let p=0;p<(tube?1:2);p++){const o=p*(NT+1)*W;for(let j=0;j<NT;j++)for(let i=0;i<NS;i++){const a=o+j*W+i,b=a+1,c=a+W,d=c+1;if(p)idx.push(a,b,c,b,d,c);else idx.push(a,c,b,b,c,d);}}
+    g.setAttribute('uv',new THREE.BufferAttribute(uv,2)); g.setIndex(idx); this.geo=g;
+    this.idx=new Uint16Array(idx); this.nrm=new Float32Array(nv*3); g.setAttribute('normal',new THREE.BufferAttribute(this.nrm,3).setUsage(THREE.DynamicDrawUsage));
+    this.mat=new THREE.MeshStandardMaterial({color:0xc29478,roughness:.5,map:FIBRE_TEX,vertexColors:true,side:THREE.DoubleSide});
+    this.mat.onBeforeCompile=muscleOBC; BODY.mats.push(this.mat);
+    this.mesh=new THREE.Mesh(g,this.mat); this.mesh.castShadow=true; this.mesh.receiveShadow=true; this.mesh.frustumCulled=false; bodyG.add(this.mesh);
   }
 }
+// точки на «костях»
+function bodyFrames(pose,s){
+  const P=pose.P,f=pose.front,u=pose.u,k=s==='L'?1:-1, zT=f.clone().cross(u).normalize().multiplyScalar(k);
+  const T=P.shMid.distanceTo(P.hipMid), ys=T/.52, xs=A.sw/.378;
+  const bone=(a,b,ant,out)=>{const d=b.clone().sub(a),L=d.length();d.divideScalar(L);
+    let an=ant(d); if(an.lengthSq()<1e-8)an=perp(f,d); an.normalize(); const lat=an.clone().cross(d).normalize(); if(lat.dot(out)<0)lat.negate(); return {o:a,d,L,ant:an,lat};};
+  const outL=P['hip'+s].clone().sub(P.hipMid), outA=P['sh'+s].clone().sub(P.shMid);
+  const legAnt=d=>Z.clone().cross(d);
+  const Fb=bone(P['hip'+s],P['knee'+s],legAnt,outL), Sb=bone(P['knee'+s],P['ankle'+s],legAnt,outL);
+  const sh=P['sh'+s],el=P['el'+s],ha=P['ha'+s], Lu=sh.distanceTo(el), Lf=el.distanceTo(ha);
+  const Ub=bone(sh,el,d=>perp(ha.clone().sub(el),d).addScaledVector(perp(f,d),.25*Lf),outA);
+  const Ab=bone(el,ha,d=>perp(sh.clone().sub(el),d).addScaledVector(perp(f,d),.25*Lu),outA);
+  const pat=P['knee'+s].clone().addScaledVector(Fb.ant.clone().add(Sb.ant).normalize(),.048).addScaledVector(Fb.d,-.012);
+  const heel=P['heel'+s],toe=P['toe'+s],fd=toe.clone().sub(heel),fl=fd.length();fd.divideScalar(fl);
+  const fup=P['ankle'+s].clone().sub(heel);fup.addScaledVector(fd,-fup.dot(fd)).normalize(); const flat=fd.clone().cross(fup); if(flat.dot(outL)<0)flat.negate();
+  const Tax={o:P.hipMid,d:u,L:T};
+  const pt=sp=>{switch(sp[0]){
+    case 'T': return P.hipMid.clone().addScaledVector(f,sp[1]*xs).addScaledVector(u,sp[2]*ys).addScaledVector(zT,sp[3]*xs);
+    case 'J': {const p=P[sp[1]+s]||P[sp[1]]; return p.clone().addScaledVector(f,sp[2]).addScaledVector(u,sp[3]).addScaledVector(zT,sp[4]);}
+    case 'K': return pat.clone().addScaledVector(Fb.lat,sp[1]);
+    case 'H': return heel.clone().addScaledVector(fd,sp[1]*fl).addScaledVector(fup,sp[2]).addScaledVector(flat,sp[3]);
+    default: {const b={F:Fb,S:Sb,U:Ub,A:Ab}[sp[0]]; return b.o.clone().addScaledVector(b.d,sp[1]*b.L).addScaledVector(b.ant,sp[2]).addScaledVector(b.lat,sp[3]);}
+  }};
+  const seg={F:Fb,S:Sb,U:Ub,A:Ab,T:Tax};
+  // точка «внутри» для заданной точки поверхности: ближайшая на оси кости или фиксированная точка
+  const inner=(inn,p)=>{ if(typeof inn==='string'){const b=seg[inn];const t=clamp(p.clone().sub(b.o).dot(b.d),0,b.L);return b.o.clone().addScaledVector(b.d,t);} return pt(inn); };
+  return {pt,inner,pat,f};
+}
+const _v1=new THREE.Vector3(),_v2=new THREE.Vector3(),_v3=new THREE.Vector3();
+const bez=(a,c,b,t,o)=>o.copy(a).multiplyScalar((1-t)*(1-t)).addScaledVector(c,2*t*(1-t)).addScaledVector(b,t*t);
+function curve3(pts){ // кривая через 2–3 точки
+  if(pts.length===2)return (s,o)=>o.copy(pts[0]).lerp(pts[1],s);
+  const c=pts[1].clone().multiplyScalar(2).sub(pts[0].clone().add(pts[2]).multiplyScalar(.5));
+  return (s,o)=>bez(pts[0],c,pts[2],s,o);
+}
+function belly(def,t){
+  const tO=def.tend?def.tend[0]:.08, tI=def.tend?def.tend[1]:.08; let x=(t-tO)/(1-tO-tI);
+  if(def.tendon||x<=0||x>=1)return 0;
+  if(def.peak)x=Math.pow(x,Math.log(.5)/Math.log(def.peak));
+  let b=Math.pow(Math.sin(Math.PI*x),def.pw||.7);
+  if(def.grooves)for(const g of def.grooves)b*=1-.6*Math.exp(-(((t-g)/.028)**2));
+  return b;
+}
+function wrapOut(p,wr){for(const [c,R] of wr){_v3.copy(p).sub(c);const d=_v3.length();if(d<R&&d>1e-6)p.copy(c).addScaledVector(_v3,R/d);}}
+// форма мышцы для текущей позы; measure — только длина (для длины покоя)
+function shapeMuscle(M,Fr,measure){
+  const d=M.def, pt=Fr.pt, wr=(d.wrap||[]).map(([sp,R])=>[pt(sp),R]);
+  if(d.k==='tube'){
+    const O=pt(d.o), I=pt(d.i), via=d.via?pt(d.via):O.clone().lerp(I,.5);
+    const ctrl=via.clone().multiplyScalar(2).sub(O.clone().add(I).multiplyScalar(.5));
+    const NT=M.NT, C=[]; let L=0;
+    for(let j=0;j<=NT;j++){const c=bez(O,ctrl,I,j/NT,new THREE.Vector3());wrapOut(c,wr);if(j)L+=c.distanceTo(C[j-1]);C.push(c);}
+    if(measure)return L;
+    const fac=clamp(Math.sqrt((M.L0||L)/L),.72,1.4)*(1+.1*M.a);
+    const NS=M.NS, W=NS+1, pos=M.pos, msk=M.msk, rt=d.rt||.005;
+    for(let j=0;j<=NT;j++){
+      const c=C[j], tan=C[Math.min(j+1,NT)].clone().sub(C[Math.max(j-1,0)]).normalize();
+      let n=perp(c.clone().sub(Fr.inner(d.inn,c)),tan); if(n.lengthSq()<1e-8)n=perp(Fr.f,tan); n.normalize();
+      const bv=tan.clone().cross(n), b=belly(d,j/NT);
+      const cap=(j===0||j===NT)?0:1; // торцы закрыты
+      const rw=cap*Math.max(rt,d.w/2*b*fac), ro=cap*Math.max(rt,d.h/2*b*fac), ri=Math.max(cap*rt,ro*.6), m=THREE.MathUtils.smoothstep(b,.08,.3);
+      for(let i=0;i<=NS;i++){const th=i/NS*2*Math.PI,cs=Math.cos(th),sn=Math.sin(th);
+        _v1.copy(c).addScaledVector(n,(cs>0?ro:ri)*cs).addScaledVector(bv,rw*sn); wrapOut(_v1,wr);
+        const v=(j*W+i)*3; pos[v]=_v1.x;pos[v+1]=_v1.y;pos[v+2]=_v1.z; msk[v]=msk[v+1]=msk[v+2]=m;}
+    }
+    return L;
+  }
+  // пласт
+  const Oc=curve3(d.o.map(pt)), Ic=curve3(d.i.map(pt)), NS=M.NS, NT=M.NT, W=NS+1;
+  const om=Oc(.5,new THREE.Vector3()), im=Ic(.5,new THREE.Vector3());
+  const delta=d.via?pt(d.via).sub(om.clone().add(im).multiplyScalar(.5)):new THREE.Vector3();
+  const Os=[],Is=[],Cs=[];
+  for(let i=0;i<=NS;i++){const o=Oc(i/NS,new THREE.Vector3()),e=Ic(i/NS,new THREE.Vector3());Os.push(o);Is.push(e);Cs.push(o.clone().add(e).multiplyScalar(.5).addScaledVector(delta,2));}
+  const Bp=M.base||(M.base=new Float32Array((NT+1)*W*3));
+  for(let j=0;j<=NT;j++)for(let i=0;i<=NS;i++){bez(Os[i],Cs[i],Is[i],j/NT,_v1); wrapOut(_v1,wr); const v=(j*W+i)*3; Bp[v]=_v1.x;Bp[v+1]=_v1.y;Bp[v+2]=_v1.z;}
+  let L=0; const ic=NS>>1; for(let j=1;j<=NT;j++){const a=(j*W+ic)*3,b=a-W*3;L+=Math.hypot(Bp[a]-Bp[b],Bp[a+1]-Bp[b+1],Bp[a+2]-Bp[b+2]);}
+  if(measure)return L;
+  const fac=clamp(Math.sqrt((M.L0||L)/L),.85,1.3)*(1+.1*M.a);
+  // нормаль пласта в узле (i, j) — по соседним узлам
+  const nAt=(i,j,o)=>{const a=(j*W+Math.min(i+1,NS))*3,b=(j*W+Math.max(i-1,0))*3,c=(Math.min(j+1,NT)*W+i)*3,e=(Math.max(j-1,0)*W+i)*3;
+    const sx=Bp[a]-Bp[b],sy=Bp[a+1]-Bp[b+1],sz=Bp[a+2]-Bp[b+2],tx=Bp[c]-Bp[e],ty=Bp[c+1]-Bp[e+1],tz=Bp[c+2]-Bp[e+2];
+    return o.set(sy*tz-sz*ty,sz*tx-sx*tz,sx*ty-sy*tx).normalize();};
+  const cv=((NT>>1)*W+ic)*3; _v2.set(Bp[cv],Bp[cv+1],Bp[cv+2]); const cIn=Fr.inner(d.inn,_v2.clone());
+  const sgn=nAt(ic,NT>>1,_v3).dot(_v2.sub(cIn))<0?-1:1;
+  const pos=M.pos, msk=M.msk, off=(NT+1)*W*3, sk=d.skew?Math.log(.5)/Math.log(d.skew):1, nn=new THREE.Vector3();
+  const E=[]; for(let i=0;i<=NS;i++)E.push(Math.pow(Math.sin(Math.PI*Math.pow(i/NS,sk)),d.edge||.5)*(d.teeth?.45+.55*Math.abs(Math.sin(Math.PI*d.teeth*i/NS)):1));
+  for(let j=0;j<=NT;j++){const b=belly(d,j/NT), m=d.tendon?0:THREE.MathUtils.smoothstep(b,.08,.3), hb=d.h*Math.max(b,.12)*fac;
+    for(let i=0;i<=NS;i++){const v=(j*W+i)*3; nAt(i,j,nn).multiplyScalar(sgn); const h=hb*E[i];
+      _v1.set(Bp[v]+nn.x*h,Bp[v+1]+nn.y*h,Bp[v+2]+nn.z*h); wrapOut(_v1,wr);
+      pos[v]=_v1.x;pos[v+1]=_v1.y;pos[v+2]=_v1.z; pos[off+v]=Bp[v]-nn.x*h*.15;pos[off+v+1]=Bp[v+1]-nn.y*h*.15;pos[off+v+2]=Bp[v+2]-nn.z*h*.15;
+      msk[v]=msk[v+1]=msk[v+2]=msk[off+v]=msk[off+v+1]=msk[off+v+2]=m;}
+  }
+  return L;
+}
+// нормали без лишних объектов (computeVertexNormals из three.js на 66 мышцах — самое дорогое место кадра)
+function fastNormals(M){
+  const p=M.pos, n=M.nrm, ix=M.idx; n.fill(0);
+  for(let k=0;k<ix.length;k+=3){const a=ix[k]*3,b=ix[k+1]*3,c=ix[k+2]*3;
+    const ux=p[b]-p[a],uy=p[b+1]-p[a+1],uz=p[b+2]-p[a+2], vx=p[c]-p[a],vy=p[c+1]-p[a+1],vz=p[c+2]-p[a+2];
+    const x=uy*vz-uz*vy,y=uz*vx-ux*vz,z=ux*vy-uy*vx;
+    n[a]+=x;n[a+1]+=y;n[a+2]+=z;n[b]+=x;n[b+1]+=y;n[b+2]+=z;n[c]+=x;n[c+1]+=y;n[c+2]+=z;}
+  if(M.def.k==='tube'){const W=M.NS+1; for(let j=0;j<=M.NT;j++){const a=j*W*3,b=(j*W+M.NS)*3; for(let q=0;q<3;q++){const v=n[a+q]+n[b+q];n[a+q]=n[b+q]=v;}}} // шов веретена
+  for(let i=0;i<n.length;i+=3){const l=Math.hypot(n[i],n[i+1],n[i+2])||1;n[i]/=l;n[i+1]/=l;n[i+2]/=l;}
+}
+const MUSCLES=[];
+for(const def of MDEF)for(const s of ['L','R'])MUSCLES.push(new Muscle(def,s));
+// подложка: грудная клетка, живот, таз (в шортах), «кости» конечностей
+BODY.ribs=blob(MAT.deep); BODY.belly=blob(MAT.deep); BODY.pelvis=blob(MAT.shorts);
 for(const s of ['L','R']){
-  BODY['thigh'+s]=segM(taper(.08,.052)); BODY['shin'+s]=segM(taper(.05,.032));
-  BODY['ua'+s]=segM(taper(.045,.035)); BODY['fa'+s]=segM(taper(.034,.024));
-  BODY['thighS'+s]=segM(taper(.08*1.05,.052*1.05),MAT.shortsCut[s]);
-  BODY['foot'+s]=blob(MAT.body);
-  for(const k of ['ua','fa','thigh','shin'])BODY.musc[k+s]=buildMuscles(k,s);
+  BODY['thigh'+s]=segM(taper(.055,.04),MAT.deep); BODY['shin'+s]=segM(taper(.042,.028),MAT.body); // большеберцовая кость прямо под кожей
+  BODY['ua'+s]=segM(taper(.036,.028),MAT.deep); BODY['fa'+s]=segM(taper(.03,.02),MAT.deep);
+  BODY['foot'+s]=blob(MAT.body); BODY['patella'+s]=blob(MAT.body);
 }
-BODY.musc.torso=buildMuscles('torso');
 BODY.neck=segM(taper(.056,.066));
 BODY.head=blob(MAT.body); BODY.nose=blob(MAT.body);
+// нагрузка на мышцу: сумма долей от моментов в суставах (момент / типичный предел силы сустава)
+const MREF={ankle:170,knee:220,hip:280,L5:450,L5e:220,shoulder:110,elbow:70};
+function muscleDrive(){
+  const ex=state.ex, grp=cur().group, load=state.loads[ex], J={};
+  if(res)for(const r of res){
+    if(r.key==='shoulder'){J['shoulder:'+(grp===1?'push':grp===2?'pull':'-')]=r.abs/MREF.shoulder;continue;}
+    if(r.dem)J[r.key+':'+r.dem]=r.abs/(r.key==='L5'&&r.dem==='ext'?MREF.L5e:MREF[r.key]);
+  }
+  const hang=(ex==='deadlift'||ex==='rdl')?clamp(load/220,0,1):0;
+  J['hang:']=hang;
+  J['grip:']=hang||(grp===2?clamp(load/140,0,1):ex==='db'?clamp(load/45,0,1):grp===1?.2*(J['shoulder:push']||0):ex==='squat'?.1:0);
+  return J;
+}
 // Голова из 3D-скана: assets/head2.bin (сетка) + assets/head2.jpg (фототекстура).
 // Пока файлы грузятся или если они недоступны — голова манекена.
 // Формат: nv, nt (uint32); min, max (float32×3); вершины int16×3 (квантованы в min…max); UV uint16×2;
@@ -1090,47 +1232,38 @@ Promise.all([
   BODY.scan=m; BODY.head.visible=BODY.nose.visible=BODY.neck.visible=false; // шея — часть скана, продлена до плеч dirty=true;
 }).catch(()=>{});
 const JS={}; // шарниры
-const jointList=[['ankle',.042],['knee',.055],['hip',.05],['sh',.045],['el',.042],['ha',.036]];
+const jointList=[['ankle',.034],['knee',.044],['hip',.04],['sh',.04],['el',.034],['ha',.034]];
 for(const s of ['L','R'])for(const [k,r] of jointList){const m=new THREE.Mesh(UNIT_SPH,MAT.joint.clone());m.scale.setScalar(r);m.castShadow=true;bodyG.add(m);JS[k+s]=m;}
 const L5m=new THREE.Mesh(UNIT_SPH,MAT.joint.clone()); L5m.scale.setScalar(.03); bodyG.add(L5m);
-const perp=(v,ax)=>v.clone().addScaledVector(ax,-v.dot(ax));
-
+let L0key='';
 function updateBody(pose){
-  const P=pose.P,u=pose.u,f=pose.front;
+  const P=pose.P,u=pose.u,f=pose.front,z=f.clone().cross(u);
+  // длина покоя каждой мышцы — в начальной точке амплитуды (t = 0) текущего упражнения
+  const key=state.ex+'|'+JSON.stringify(state.params[state.ex])+'|'+JSON.stringify(A);
+  if(key!==L0key){L0key=key; const p0=buildNow(0), F0={L:bodyFrames(p0,'L'),R:bodyFrames(p0,'R')}; for(const M of MUSCLES)M.L0=shapeMuscle(M,F0[M.s],true);}
+  const Fr={L:bodyFrames(pose,'L'),R:bodyFrames(pose,'R')}, J=state.show.musc?muscleDrive():{};
+  for(const M of MUSCLES){
+    let a=0; for(const e of M.def.act){const [j,dm,w]=e.length===2?[e[0],'',e[1]]:e; a+=w*(J[j+':'+dm]||0);} M.a=clamp(a,0,1);
+    shapeMuscle(M,Fr[M.s],false);
+    const g=M.geo; fastNormals(M); g.attributes.position.needsUpdate=true; g.attributes.color.needsUpdate=true; g.attributes.normal.needsUpdate=true;
+    const e=Math.pow(clamp((M.a-.06)/.74,0,1),.9); // слабая нагрузка почти не видна, сильная — ярко-красная
+    M.mat.color.set(C.body).lerp(MUSC_ACTIVE,e); M.mat.emissive.copy(MUSC_GLOW).multiplyScalar(.45*e);
+  }
+  // подложка
+  const T=P.shMid.distanceTo(P.hipMid), ys=T/.52, xs=A.sw/.378, B=(m,x,y,sx,sy,sz)=>{m.position.copy(P.hipMid).addScaledVector(f,x*xs).addScaledVector(u,y*ys);m.quaternion.setFromRotationMatrix(_m4.makeBasis(f,u,z));m.scale.set(sx*xs,sy*ys,sz*xs);};
+  B(BODY.ribs,.02,.333,.105,.19,.145); B(BODY.belly,.015,.17,.09,.15,.12); B(BODY.pelvis,-.005,.035,.092,.1,.135);
   for(const s of ['L','R']){
     placeTaper(BODY['thigh'+s],P['hip'+s],P['knee'+s]); placeTaper(BODY['shin'+s],P['knee'+s],P['ankle'+s]);
     placeTaper(BODY['ua'+s],P['sh'+s],P['el'+s]); placeTaper(BODY['fa'+s],P['el'+s],P['ha'+s]);
-    placeTaper(BODY['thighS'+s],P['hip'+s],P['knee'+s]);
     const heel=P['heel'+s],toe=P['toe'+s],fd=toe.clone().sub(heel),fl=fd.length();fd.divideScalar(fl);
     const up=P['ankle'+s].clone().sub(heel);up.addScaledVector(fd,-up.dot(fd)).normalize();const zz=fd.clone().cross(up);
     placeBox(BODY['foot'+s],heel.clone().addScaledVector(fd,fl*.52).addScaledVector(up,.036),fd,up,zz,fl*.54,.04,.048);
+    BODY['patella'+s].position.copy(Fr[s].pat); BODY['patella'+s].scale.setScalar(.022);
     for(const [k] of jointList) JS[k+s].position.copy(P[k+s]);
-    // ноги сгибаются в сагиттальной плоскости: перед сегмента = Z × ось
-    const outL=P['hip'+s].clone().sub(P.hipMid);
-    for(const [k,a,b] of [['thigh','hip','knee'],['shin','knee','ankle']]){
-      const d=P[b+s].clone().sub(P[a+s]),L=d.length();d.divideScalar(L);
-      let ant=Z.clone().cross(d); if(ant.lengthSq()<1e-6)ant=perp(f,d); ant.normalize();
-      placeMuscles(BODY.musc[k+s],P[a+s],ant,d,L,outL);
-      if(k==='thigh')cutPlane[s].setFromNormalAndCoplanarPoint(d.clone().negate(),P[a+s].clone().addScaledVector(d,SHORTS_T*L));
-    }
-    // руки: перед плеча смотрит в сторону предплечья, перед предплечья — в сторону плеча; у прямой руки — вперёд по корпусу
-    const outA=P['sh'+s].clone().sub(P.shMid), sh=P['sh'+s], el=P['el'+s], ha=P['ha'+s];
-    const du=el.clone().sub(sh), Lu=du.length(); du.divideScalar(Lu);
-    const df=ha.clone().sub(el), Lf=df.length(); df.divideScalar(Lf);
-    const antU=perp(df.clone().multiplyScalar(Lf),du).addScaledVector(perp(f,du),.25*Lf).normalize();
-    const antF=perp(du.clone().multiplyScalar(-Lu),df).addScaledVector(perp(f,df),.25*Lu).normalize();
-    placeMuscles(BODY.musc['ua'+s],sh,antU,du,Lu,outA);
-    placeMuscles(BODY.musc['fa'+s],el,antF,df,Lf,outA);
+    { const df=P['ha'+s].clone().sub(P['el'+s]).normalize(), lt=f.clone().cross(df); if(lt.lengthSq()<1e-6)lt.copy(z); lt.normalize(); const th=df.clone().cross(lt);
+      JS['ha'+s].quaternion.setFromRotationMatrix(_m4.makeBasis(lt,df,th)); JS['ha'+s].scale.set(.04,.046,.028); JS['ha'+s].position.addScaledVector(df,.02); }
   }
-  const T=P.shMid.distanceTo(P.hipMid);
-  placeMuscles(BODY.musc.torso,P.hipMid,f,u,T,null);
-  { // вырез майки: спереди-сверху (≈7 см ниже линии плеч, спину не задевает) и уже книзу; по бокам остаются лямки
-    const zd=f.clone().cross(u).normalize();
-    neckPlane.setFromNormalAndCoplanarPoint(f.clone().multiplyScalar(-.57).addScaledVector(u,-.82),P.shMid.clone().addScaledVector(f,.012));
-    neckSideA.setFromNormalAndCoplanarPoint(zd.clone().addScaledVector(u,-.55).normalize(),P.shMid.clone().addScaledVector(zd,.085));
-    neckSideB.setFromNormalAndCoplanarPoint(zd.clone().negate().addScaledVector(u,-.55).normalize(),P.shMid.clone().addScaledVector(zd,-.085));}
   placeTaper(BODY.neck,P.shMid.clone().addScaledVector(u,.02),P.head.clone().addScaledVector(u,-.07));
-  const z=f.clone().cross(u);
   BODY.head.position.copy(P.head); BODY.head.quaternion.setFromRotationMatrix(_m4.makeBasis(f,u,z)); BODY.head.scale.set(.1,.118,.088);
   BODY.nose.position.copy(P.head).addScaledVector(f,.096).addScaledVector(u,-.01); BODY.nose.quaternion.copy(BODY.head.quaternion); BODY.nose.scale.set(.02,.03,.016);
   // голова-скан чуть ниже P.head — только картинка, центр масс головы в расчётах остаётся в P.head
@@ -1334,9 +1467,9 @@ function applyTags(list){
 let C={};
 function readTheme(){
   const cs=getComputedStyle(document.documentElement);const g=k=>cs.getPropertyValue(k).trim();
-  C={scene:g('--scene'),floor:g('--floor'),grid:g('--grid'),body:g('--body'),shorts:g('--shorts'),shirt:g('--shirt'),equip:g('--equip'),pad:g('--pad'),metal:g('--metal'),force:g('--force'),ink:g('--ink'),muted:g('--muted'),line:g('--line'),line2:g('--line-2'),panel:g('--panel')};
+  C={scene:g('--scene'),floor:g('--floor'),grid:g('--grid'),body:g('--body'),shorts:g('--shorts'),equip:g('--equip'),pad:g('--pad'),metal:g('--metal'),force:g('--force'),ink:g('--ink'),muted:g('--muted'),line:g('--line'),line2:g('--line-2'),panel:g('--panel')};
   for(const k in JVAR)C[k]=g(JVAR[k]);
-  scene.background=new THREE.Color(C.scene); MAT.floor.color.set(C.floor); MAT.body.color.set(C.body); MAT.headScan.userData.body.value.set(C.body); for(const mt of [MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R])mt.color.set(C.shorts); MAT.shirt.color.set(C.shirt); MAT.shirtCut.color.set(C.shirt); MAT.frame.color.set(C.equip); MAT.pad.color.set(C.pad); MAT.metal.color.set(C.metal);
+  scene.background=new THREE.Color(C.scene); MAT.floor.color.set(C.floor); MAT.body.color.set(C.body); MAT.headScan.userData.body.value.set(C.body); MAT.shorts.color.set(C.shorts); MAT.deep.color.set(C.body).multiplyScalar(.55); MAT.frame.color.set(C.equip); MAT.pad.color.set(C.pad); MAT.metal.color.set(C.metal);
   grid.material.color.set(C.grid);
   for(const k in JS) JS[k].material.color.set(C.body); L5m.material.color.set(C.body);
   dirty=true; chartDirty=true;
@@ -1582,7 +1715,7 @@ function frame(){
   pose=buildNow(state.t); res=analyze(pose,state.body);
   if(equipDirty){buildEquip();equipDirty=false;}
   updateBody(pose); equip.update(pose);
-  for(const mt of [MAT.body,MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R,MAT.shirt,MAT.shirtCut,MAT.headScan,MAT.frame,MAT.pad,MAT.metal,MAT.iron,...Object.values(plateMats)]){const sk=mt===MAT.body||mt===MAT.shorts||mt===MAT.shortsCut.L||mt===MAT.shortsCut.R||mt===MAT.shirt||mt===MAT.shirtCut;mt.transparent=state.show.xray;mt.opacity=state.show.xray?(sk?.15:mt===MAT.headScan?.28:.22):1;mt.depthWrite=!state.show.xray;}
+  for(const mt of [...BODY.mats,MAT.headScan,MAT.frame,MAT.pad,MAT.metal,MAT.iron,...Object.values(plateMats)]){const sk=BODY.mats.includes(mt);mt.transparent=state.show.xray;mt.opacity=state.show.xray?(sk?.12:mt===MAT.headScan?.28:.22):1;mt.depthWrite=!state.show.xray;}
   if(state.ex==='bridge'&&!state.show.xray)for(const mt of Object.values(plateMats)){mt.transparent=true;mt.opacity=.3;mt.depthWrite=false;} // блины у таза не закрывают сустав
   const upper=!!pose.lineL;
   // линии силы
