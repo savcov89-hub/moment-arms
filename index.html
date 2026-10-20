@@ -1214,12 +1214,52 @@ fetch('assets/skeleton.bin').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then
     g.setIndex(new THREE.BufferAttribute(p.i32?new Uint32Array(buf,b0+p.f,p.nf*3):new Uint16Array(buf,b0+p.f,p.nf*3),1)); g.computeVertexNormals();
     for(const s of p.side?['L','R']:['L']){const m=new THREE.Mesh(g,MAT.bone);m.matrixAutoUpdate=false;m.castShadow=m.receiveShadow=true;m.frustumCulled=false;m.userData={p,s};skelG.add(m);SKEL.meshes.push(m);}
   }
-  SKEL.spl=meta.patellaSpline; dirty=true;
+  SKEL.spl=meta.patellaSpline;
+  // ось пронации в системе предплечья: центр головки лучевой кости → центр головки локтевой
+  const end=(nm,far)=>{const m=SKEL.meshes.find(k=>k.userData.p.name===nm);if(!m)return null;const a=m.geometry.attributes.position.array;
+    let lim=far?-1e9:1e9;for(let i=0;i<a.length;i+=3)lim=far?Math.max(lim,a[i]):Math.min(lim,a[i]);
+    const c=V(0,0,0);let n=0;for(let i=0;i<a.length;i+=3)if(Math.abs(a[i]-lim)<.012){c.x+=a[i];c.y+=a[i+1];c.z+=a[i+2];n++;}return c.divideScalar(n);};
+  SKEL.pro={h:end('radius',false),u:end('ulna',true)}; dirty=true;
 }).catch(()=>{});
 const _skA=new THREE.Matrix4(), _skB=new THREE.Matrix4();
 // (вдоль оси, вперёд, наружу) → мир: столбцы — ось × длина/эталон, вперёд × sa, наружу × sl; dA — сдвиг вперёд (высота голеностопа у стопы)
 function segMatrix(F,ref,out,dA){const kx=F.L/ref,O=F.O,a=F.ant,x=F.ax,l=F.lat;
   return out.set(x.x*kx,a.x*F.sa,l.x*F.sl,O.x+a.x*dA, x.y*kx,a.y*F.sa,l.y*F.sl,O.y+a.y*dA, x.z*kx,a.z*F.sa,l.z*F.sl,O.z+a.z*dA, 0,0,0,1);}
+// Кисть держит рукоять: в данных рук и в сетке кости предплечья в полной пронации, и большой палец смотрит вдоль оси «наружу»
+// системы предплечья, а эта ось — ось локтя. Рукоять идёт по-другому (в приседе — почти наоборот), поэтому лучевая кость с кистью
+// поворачиваются вокруг оси пронации (головка лучевой → головка локтевой), пока большой палец не ляжет вдоль рукояти: у штанги
+// и гантелей — к середине грифа, на параллельных рукоятях тяги — назад, на тренажёрах — вверх по рукояти или вперёд.
+// Центр хвата при этом уходит с оси предплечья, и всё предплечье чуть наклоняется вокруг локтя, чтобы он вернулся на рукоять.
+// Только картинка: расчёт ведётся по данным рук в пронации.
+function gripThumb(pose,s,out){
+  const P=pose.P, e=EX[state.ex].equip, X=V(1,0,0);
+  if(e==='pendulum'||e==='hack')return out.copy(pose.u);
+  if(e==='legpress')return out.copy(X).multiplyScalar(Math.sign(pose.front.x)||1);
+  if(e==='pulldown'&&pose.eq.kind!=='wide')return out.copy(X).multiplyScalar(-(Math.sign(pose.front.x)||1));
+  return out.copy(P['ha'+(s==='L'?'R':'L')]).sub(P['ha'+s]);
+}
+const GRIP_W={L:{rh:new THREE.Matrix4(),u:new THREE.Matrix4(),on:false},R:{rh:new THREE.Matrix4(),u:new THREE.Matrix4(),on:false}};
+const _gq=new THREE.Quaternion(), _gq2=new THREE.Quaternion(), _gM=new THREE.Matrix4(), _gA=V(0,0,0), _gH=V(0,0,0), _gG=V(0,0,0), _gT=V(0,0,0), _gD=V(0,0,0), _gC=V(0,0,0);
+function gripTwist(pose,s,F){
+  const w=GRIP_W[s]; w.on=false; if(!SKEL.pro||!SKEL.pro.h||!SKEL.pro.u)return w;
+  segMatrix(F,MREF.fa,_gM,0);
+  _gH.copy(SKEL.pro.h).applyMatrix4(_gM); _gA.copy(SKEL.pro.u).applyMatrix4(_gM).sub(_gH).normalize();
+  gripThumb(pose,s,_gD); _gD.addScaledVector(_gA,-_gD.dot(_gA)); if(_gD.lengthSq()<1e-8)return w; _gD.normalize();
+  _gG.copy(F.O).addScaledVector(F.ax,F.L);                      // центр хвата — на рукояти
+  let psi=0;
+  for(let it=0;it<3;it++){
+    // большой палец модели — против оси «наружу»; после поворота на psi и наклона — сравнить с рукоятью вокруг оси пронации
+    _gq.setFromAxisAngle(_gA,psi);
+    _gC.copy(_gG).sub(_gH).applyQuaternion(_gq).add(_gH).sub(F.O); _gq2.setFromUnitVectors(_gC.normalize(),F.ax);
+    _gT.copy(F.lat).negate().applyQuaternion(_gq).applyQuaternion(_gq2); _gT.addScaledVector(_gA,-_gT.dot(_gA)).normalize();
+    psi+=Math.atan2(_gC.copy(_gT).cross(_gD).dot(_gA),_gT.dot(_gD));
+  }
+  // лучевая и кисть: поворот вокруг оси пронации, затем наклон вокруг локтя; локтевая — только наклон
+  _gq.setFromAxisAngle(_gA,psi); _gC.copy(_gG).sub(_gH).applyQuaternion(_gq).add(_gH).sub(F.O); _gq2.setFromUnitVectors(_gC.normalize(),F.ax);
+  const rot=(q,c,m)=>m.makeTranslation(c.x,c.y,c.z).multiply(_skA.makeRotationFromQuaternion(q)).multiply(_skB.makeTranslation(-c.x,-c.y,-c.z));
+  rot(_gq2,F.O,w.u); w.rh.copy(w.u).multiply(rot(_gq,_gH,_gM));
+  w.psi=psi; w.tilt=2*Math.acos(Math.min(1,Math.abs(_gq2.w))); w.on=true; return w;
+}
 const splineAt=([x,y],q)=>{if(q<=x[0])return y[0];for(let i=1;i<x.length;i++)if(q<=x[i])return y[i-1]+(y[i]-y[i-1])*(q-x[i-1])/(x[i]-x[i-1]);return y[y.length-1];};
 function placeSkeleton(pose){
   skelG.visible=!!state.show.anat; const on=skelG.visible&&SKEL.meshes.length>0;
@@ -1227,6 +1267,7 @@ function placeSkeleton(pose){
   if(!on)return;
   SKREF=SKREF||{trunk:MREF.trunk,spine:MREF.trunk,pelvis:MREF.trunk,hipj:MREF.trunk,thigh:MREF.thigh,shank:MREF.shank,foot:MREF.foot,ua:MREF.ua,fa:MREF.fa};
   const fr={L:segFrames(pose,'L'),R:segFrames(pose,'R')};
+  for(const s of ['L','R'])gripTwist(pose,s,fr[s].fa);
   for(const m of SKEL.meshes){const {p,s}=m.userData,F=fr[s];
     if(p.seg==='patella'){
       // надколенник скользит по бедру: положение и наклон в системе бедра модели — сплайны OpenSim по углу колена
@@ -1236,6 +1277,7 @@ function placeSkeleton(pose){
       _skB.makeRotationZ(splineAt(sp.rotation1,q)).setPosition(fm.p0[0]+splineAt(sp.translation1,q),fm.p0[1]+splineAt(sp.translation2,q),fm.p0[2]);
       m.matrix.multiply(_skA).multiply(_skB);
     } else segMatrix(F[p.seg],SKREF[p.seg],m.matrix,p.ankle?A.ah:0);
+    if(p.seg==='fa'){const w=GRIP_W[s];if(w.on)m.matrix.premultiply(p.name==='ulna'?w.u:w.rh);}
     m.matrixWorldNeedsUpdate=true;
   }
 }
@@ -1379,12 +1421,12 @@ function mPoint(fr,p,out){const F=fr[p[0]],h=p[4]&2?A.H/MREF.H:0;out=(out||V(0,0
 function mPath(fr,m){const dm=m.ms?state.mass-MREF.mass:0;
   const pts=m.path.map(p=>{const v=mPoint(fr,p);if(dm&&p[4]&1){const F=fr[p[0]];v.addScaledVector(F.ant,m.ms[0]*dm).addScaledVector(F.lat,m.ms[1]*dm);}return v;});
   if(!m.wp)return pts;
-  const out=[pts[0]], sg=[m.path[0][0]];
+  const out=[pts[0]], sg=[m.path[0][0]], pi=[0];
   for(let i=0;i+1<pts.length;i++){
-    for(const w of m.wp)if(w[0]===i){const arc=wrapSeg(fr,pts[i],pts[i+1],w);if(arc)for(const q of arc){out.push(q);sg.push(w[2]);}}
-    out.push(pts[i+1]); sg.push(m.path[i+1][0]);
+    for(const w of m.wp)if(w[0]===i){const arc=wrapSeg(fr,pts[i],pts[i+1],w);if(arc)for(const q of arc){out.push(q);sg.push(w[2]);pi.push(-1);}}
+    out.push(pts[i+1]); sg.push(m.path[i+1][0]); pi.push(i+1);
   }
-  out.sg=sg; return out;
+  out.sg=sg; out.pi=pi; return out;
 }
 // Обходы — порт anatomy/legs/wrap_reference.js (им подгонялись пути ног). Окружность с центром в начале координат, 2D:
 // точки касания и дуга [T1, …, T2] или null, если отрезок P→Q проходит мимо. hand = +1 — центр слева от движения P→Q
@@ -1699,6 +1741,14 @@ function drawMuscle(mesh,pts,st,rest,cores,shank){
   g.attributes.position.needsUpdate=g.attributes.normal.needsUpdate=g.attributes.act.needsUpdate=g.attributes.tend.needsUpdate=true;
 }
 let MS=null;
+// точки на лучевой кости и кисти поворачиваются на картинке вместе с ними (gripTwist), на локтевой — только наклон предплечья
+const _gp=[]; for(let i=0;i<24;i++)_gp.push(V(0,0,0));
+function gripPts(m,pts,s){
+  const w=GRIP_W[s]; if(!w.on||!m.path.some(p=>p[0]==='fa'))return pts;
+  const out=pts.map((q,j)=>{const k=pts.pi?pts.pi[j]:j, p=k>=0?m.path[k]:null; if(!p||p[0]!=='fa')return q;
+    return (_gp[j]||V(0,0,0)).copy(q).applyMatrix4((p[4]|0)&24?w.rh:w.u);});
+  return out;
+}
 function updateMuscles(pose,res){
   MS=muscleState(pose,res);
   const rest=restLengths();
@@ -1707,7 +1757,7 @@ function updateMuscles(pose,res){
     MDEF.forEach((m,i)=>{
       const st=MS.out[i], sm=s==='L'?st:{...st,L:mLen(m,i,MS.pts.R[i],pose,'R',rest)};
       if(s==='R'){sm.lf=Math.max(st.lf0*.35,st.lf0+sm.L-rest[i].L);sm.stretch=sm.lf/st.lf0;}
-      drawMuscle(MMESH[s][i],MS.pts[s][i],sm,rest[i],cores.forMuscle[i],shank);
+      drawMuscle(MMESH[s][i],gripPts(m,MS.pts[s][i],s),sm,rest[i],cores.forMuscle[i],shank);
     });
   }
 }
@@ -2316,7 +2366,7 @@ function loop(now){
 readTheme(); renderExList(); renderPresets(); renderAnthro();
 resize(); selectEx('squat'); fitView('q34',false);
 samples=computeSamples(); samplesDirty=false; started=true;
-window.__pm={buildNow,analyze,state,EX,BODY,ANAT_CORE,mPoint,mPathOf:mPath,mArmFD,solveMuscles,MMESH,coreHit,coresFor,get A(){return A;},camera,controls,MDEF,segFrames,muscleState,restLengths,get MS(){return MS;},get res(){return res;},get pose(){return pose;},redraw(){dirty=true;samplesDirty=true;},mArmVec,freeSide,hideEquip(){if(equip)for(const o of equip.objs)o.visible=false;},hideRings(){for(const o of ARMS)o.ring.visible=false;},updateMuscles};
+window.__pm={buildNow,analyze,state,GRIP_W,EX,BODY,ANAT_CORE,mPoint,mPathOf:mPath,mArmFD,solveMuscles,MMESH,coreHit,coresFor,get A(){return A;},camera,controls,MDEF,segFrames,muscleState,restLengths,get MS(){return MS;},get res(){return res;},get pose(){return pose;},redraw(){dirty=true;samplesDirty=true;},mArmVec,freeSide,hideEquip(){if(equip)for(const o of equip.objs)o.visible=false;},hideRings(){for(const o of ARMS)o.ring.visible=false;},updateMuscles};
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(!userMoved)fitView(currentView,false);});
 requestAnimationFrame(loop);
 })();

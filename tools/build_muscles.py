@@ -30,7 +30,8 @@ REGIONS = {
 SPINE_BODIES = {'L1', 'L2', 'L3', 'L4', 'L5', 'thorax', 'abdominal_wall'}
 # флаги точки (5-й элемент): 1 — сдвиг с массой тела (живот), 2 — поперечные смещения × рост/1,80 (у локтя и головки плеча, Murray 2002),
 # 4 — точка стопы считается от высоты голеностопа: a − 0,072 (эталонная высота) × длина стопы, плюс высота голеностопа приложения (README ног)
-F_MASS, F_HEIGHT, F_ANKLE = 1, 2, 4
+# 8, 16 — точка предплечья на лучевой кости или на кисти: на картинке поворачивается вместе с ними по рукояти (index.html, gripTwist)
+F_MASS, F_HEIGHT, F_ANKLE, F_RADIUS, F_HAND = 1, 2, 4, 8, 16
 ANKLE_H = .072
 
 
@@ -66,6 +67,8 @@ def flags_of(p, m):
         f |= F_HEIGHT
     if p['seg'] == 'foot':
         f |= F_ANKLE
+    if p['seg'] == 'fa' and body_of(p) in ('radius', 'hand'):
+        f |= F_RADIUS if body_of(p) == 'radius' else F_HAND
     return f
 
 
