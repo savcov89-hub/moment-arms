@@ -2223,7 +2223,8 @@ function frame(){
   // плечи и дуги
   const maxAbs=samples?samples.maxAbs:1;
   ARMS.forEach((o,i)=>{const r=res[i];const show=!!r&&state.show.arms;o.seg.visible=o.dot.visible=show;o.ring.visible=!!r;
-    if(r){const col=C[r.key];o.ring.position.copy(r.j.pos);o.ring.scale.setScalar(r.key==='L5'?.034:.05);o.ring.material.color.set(col);o.ring.material.opacity=.95;}
+    // с мышцами сустав виден по костям: большой шар поверх всего закрывал ягодицу, оставляем точку в центре сустава
+    if(r){const col=C[r.key],sc=state.show.anat?.014:(r.key==='L5'?.034:.05);o.ring.position.copy(r.j.pos);o.ring.scale.setScalar(sc);o.ring.material.color.set(col);o.ring.material.opacity=.95;}
     if(!show)return; const col=C[r.key];
     if(r.arm>.002){setCyl(o.seg,r.j.pos,r.Q,.0055);}else o.seg.visible=false;
     o.dot.position.copy(r.Q);o.dot.scale.setScalar(.013);o.seg.material.color.set(col);o.dot.material.color.set(col);
