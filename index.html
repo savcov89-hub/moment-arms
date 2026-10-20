@@ -1650,16 +1650,27 @@ const MLAYER={multifidus_sacral:-1,multifidus_lumbar:-1,ql_iliolumbar:-1,ql_ilio
   quads_rectus_femoris:.6,quads_vastus_lateralis:.3,quads_vastus_medialis:.3,quads_vastus_intermedius:-1,hamstrings_biceps_long:.5,hamstrings_biceps_short:-.5,
   hamstrings_semitendinosus:.5,hamstrings_semimembranosus:-.2,calf_gastrocnemius_med:.6,calf_gastrocnemius_lat:.6,calf_soleus:-.4,shin_tibialis_anterior:.3,
   shin_extensor_hallucis_longus:-.4,deep_tibialis_posterior:-1,deep_flexor_digitorum_longus:-.8,deep_flexor_hallucis_longus:-.8,peroneus_longus:.2,peroneus_brevis:-.3,lat_i:.6,lat_t:.6,lat_s:.6,trap_u:.8,trap_m:.8,trap_l:.8,delt_a:.8,delt_m:.8,delt_p:.8,pec_c:.6,pec_s:.6,pec_a:.6,sart:1,grac:.5,rf:.5,gasm:.5,gasl:.5,bflh:.3,st:.5};
+// задняя группа голени: линии действия этих мышц идут у самой кости, внутри опорной капсулы голени, и ближайшая её поверхность
+// выталкивала брюшко вбок или вперёд (задняя большеберцовая оказывалась снаружи голени). Здесь брюшко лежит позади своей линии
+// в направлении (вперёд, вбок) системы голени: глубокий слой на кости и межкостной перепонке, над ним камбаловидная, снаружи икроножная
+const MBED={deep_tibialis_posterior:[-1,0],deep_flexor_digitorum_longus:[-1,-.35],deep_flexor_hallucis_longus:[-1,.3],calf_soleus:[-1,0],
+  calf_gastrocnemius_med:[-1,-.25],calf_gastrocnemius_lat:[-1,.25]};
+const _bw=new Float32Array(MNL+1), _bd=V(0,0,0);
 const _hit={d:0,s:V(0,0,0),n:V(0,0,0),f:V(0,0,0),k:null}, _o=[], _ro=[], _hd=new Float32Array(MNL+1), _hs=[], _hk=[[]], _t=V(0,0,0), _ou=V(0,0,0), _sd=V(0,0,0), _ct=V(0,0,0);
 for(let j=0;j<=MNL;j++){_o.push(V(0,0,0));_ro.push(V(0,0,0));_hs.push(V(0,0,0));_hk.push([null]);}
 const _cos=[],_sin=[]; for(let i=0;i<=MNR;i++){_cos.push(Math.cos(i/MNR*Math.PI*2));_sin.push(Math.sin(i/MNR*Math.PI*2));}
-function drawMuscle(mesh,pts,st,rest,cores){
+function drawMuscle(mesh,pts,st,rest,cores,shank){
   const m=st.m, g=mesh.geometry, pos=g.attributes.position.array, nor=g.attributes.normal.array, act=g.attributes.act.array, tend=g.attributes.tend.array;
   const {pts:cs,L}=resample(smoothPath(pts),MNL);
   // брюшко: сухожилия постоянной длины, брюшко укорачивается и утолщается (объём постоянен)
   const b0=clamp(rest.tp/L,0,.45), b1=clamp(1-rest.td/L,b0+.1,1), k=clamp(Math.sqrt(1/st.stretch),.72,1.4)*(1+.06*st.act);
   const layer=.003*(MLAYER[m.id]||0)+.002, fan=Array.isArray(m.w);
-  for(let j=0;j<=MNL;j++){coreHit(cs[j],cores,_hit);_ro[j].copy(fan?_hit.f:_hit.n);_hd[j]=_hit.d;_hs[j].copy(_hit.s);_hk[j][0]=_hit.k;}
+  const bed=shank&&MBED[m.id];
+  if(bed)_bd.copy(shank.ant).multiplyScalar(bed[0]).addScaledVector(shank.lat,bed[1]).normalize();
+  for(let j=0;j<=MNL;j++){coreHit(cs[j],cores,_hit);_ro[j].copy(fan?_hit.f:_hit.n);_hd[j]=_hit.d;_hs[j].copy(_hit.s);_hk[j][0]=_hit.k;
+    // вдоль голени (от колена до 0,9 её длины) — направление слоя вместо ближайшей поверхности капсулы, к голеностопу плавно обратно
+    const tq=bed?_t.copy(cs[j]).sub(shank.O).dot(shank.ax)/shank.L:-1; _bw[j]=bed?smooth(-.06,.02,tq)*(1-smooth(.82,.9,tq)):0;
+    if(_bw[j]>0){_ro[j].lerp(_bd,_bw[j]).normalize();if(_hd[j]<0){_hd[j]=1e-4;_hs[j].copy(cs[j]);}}}
   for(let j=0;j<=MNL;j++){const o=_o[j].set(0,0,0);for(let q=-3;q<=3;q++)o.add(_ro[clamp(j+q,0,MNL)]);o.normalize();}
   for(let j=0;j<=MNL;j++){
     const s=j/MNL, tng=_t.copy(cs[Math.min(MNL,j+1)]).sub(cs[Math.max(0,j-1)]).normalize();
@@ -1671,14 +1682,14 @@ function drawMuscle(mesh,pts,st,rest,cores){
     if(fan){const [w0,wm,w1]=m.w,wc=2*wm-(w0+w1)/2,fw=Math.max(.004,((1-s)*(1-s)*w0+2*s*(1-s)*wc+s*s*w1)/2);hw=lerp(m.apo?fw*m.apo:Math.min(fw,.006),fw*k,smooth(0,.35,inB)+(s<=b0&&b0<.02||s>=b1&&b1>.98?1:0));} // веер: ширина от начала к прикреплению
     else hw=lerp(m.apo?m.w/2*m.apo:Math.min(m.w*.3,.012)/2,m.w/2*k,inB);
     const ht=lerp(tt,m.th/2*k,inB);
-    const ctr=_ct.copy(_hd[j]>0?cs[j]:_hs[j]).addScaledVector(out,(_hd[j]>0?ht*.45:ht)+layer);
+    const ctr=_ct.copy(_hd[j]>0?cs[j]:_hs[j]).addScaledVector(out,(_hd[j]>0?ht*lerp(.45,1,_bw[j]):ht)+layer);
     const td=1-smooth(0,.25,inB), wide=hw>.018;
     for(let i=0;i<=MNR;i++){
       const co=_cos[i], si=_sin[i], v=j*(MNR+1)+i;
       _v.copy(ctr).addScaledVector(out,ht*co).addScaledVector(side,hw*si);
       // внутренняя сторона прилегает к глубокому слою; у веера (грудные, широчайшая, ягодичные) и наружная ложится по выпуклой поверхности,
       // иначе плоский край уходит внутрь купола грудной клетки
-      if(wide&&(co<0||fan)){coreHit(_v,_hk[j],_hit);if(_hit.d<.001)_v.copy(_hit.s).addScaledVector(_hit.n,.001+layer*.5+(co>0?2*ht*co:0));}
+      if(wide&&(co<0||fan)&&!_bw[j]){coreHit(_v,_hk[j],_hit);if(_hit.d<.001)_v.copy(_hit.s).addScaledVector(_hit.n,.001+layer*.5+(co>0?2*ht*co:0));}
       pos[v*3]=_v.x; pos[v*3+1]=_v.y; pos[v*3+2]=_v.z;
       const nx=out.x*co/ht+side.x*si/hw, ny=out.y*co/ht+side.y*si/hw, nz=out.z*co/ht+side.z*si/hw, nl=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
       nor[v*3]=nx/nl; nor[v*3+1]=ny/nl; nor[v*3+2]=nz/nl;
@@ -1692,11 +1703,11 @@ function updateMuscles(pose,res){
   MS=muscleState(pose,res);
   const rest=restLengths();
   for(const s of ['L','R']){
-    const cores=coresFor(s,pose.P);
+    const cores=coresFor(s,pose.P), shank=segFrames(pose,s).shank;
     MDEF.forEach((m,i)=>{
       const st=MS.out[i], sm=s==='L'?st:{...st,L:mLen(m,i,MS.pts.R[i],pose,'R',rest)};
       if(s==='R'){sm.lf=Math.max(st.lf0*.35,st.lf0+sm.L-rest[i].L);sm.stretch=sm.lf/st.lf0;}
-      drawMuscle(MMESH[s][i],MS.pts[s][i],sm,rest[i],cores.forMuscle[i]);
+      drawMuscle(MMESH[s][i],MS.pts[s][i],sm,rest[i],cores.forMuscle[i],shank);
     });
   }
 }
