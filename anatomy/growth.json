@@ -1,0 +1,120 @@
+{
+  "_about": "Какие мышцы растут от упражнения — по тренировочным исследованиям. level: mri — рост измерен (МРТ/УЗИ) в исследованиях этим упражнением; sim — измерен на близком упражнении; emg — рост не измеряли, мышца сильно работает (ЭМГ). ids — мышцы из assets/muscles.js.",
+  "levels": {"mri": "рост доказан", "sim": "по близкому упражнению", "emg": "по ЭМГ, рост не измеряли"},
+  "sources": {
+    "kubo2019": "Kubo, Ikebukuro, Yata, 2019, Eur J Appl Physiol — полный (≈140°) и половинный (≈90°) присед, 10 недель, МРТ",
+    "plotkin2023": "Plotkin и др., 2023, Front Physiol — хип-траст и присед, 9 недель, МРТ",
+    "ogasawara2013": "Ogasawara и др., 2013, Eur J Appl Physiol — жим лёжа, 24 недели, МРТ",
+    "kinoshita": "Kinoshita, Maeo, Isaka и др., Med Sci Sports Exerc — жим ногами и разгибания ног, 12 недель, МРТ",
+    "bourne2017": "Bourne и др., 2017, Br J Sports Med — разгибание бедра 45° и «нордические» сгибания, 10 недель, МРТ",
+    "martinfuentes2020": "Martín-Fuentes, Oliva-Lozano, Muyor, 2020, PLoS ONE — обзор ЭМГ становой тяги и её вариантов",
+    "barnett1995": "Barnett, Kippers, Turner, 1995, J Strength Cond Res — ЭМГ вариантов жима лёжа"
+  },
+  "exercises": {
+    "squat": {
+      "grow": [
+        {"label": "Квадрицепс: широкие мышцы", "level": "mri", "ids": ["quads_vastus_lateralis", "quads_vastus_medialis", "quads_vastus_intermedius"]},
+        {"label": "Большая ягодичная", "level": "mri", "ids": ["glute_max_sup", "glute_max_mid", "glute_max_inf"]},
+        {"label": "Приводящие (в основном большая приводящая)", "level": "mri", "ids": ["adductor_magnus_prox", "adductor_magnus_mid", "adductor_magnus_dist", "adductor_magnus_isch", "adductor_longus", "adductor_brevis"]},
+        {"label": "Мышца, выпрямляющая позвоночник", "level": "emg", "ids": ["es_iliocostalis_lumborum", "es_iliocostalis_thoracis", "es_longissimus_lumborum", "es_longissimus_thoracis", "es_longissimus_thoracis_upper"]}
+      ],
+      "no": "Задняя поверхность бедра от приседа почти не растёт; прямая мышца бедра — слабо.",
+      "note": "В глубоком приседе ягодичные и приводящие выросли втрое сильнее, чем в половинном; квадрицепс — одинаково.",
+      "sources": ["kubo2019", "plotkin2023"]
+    },
+    "deadlift": {
+      "grow": [
+        {"label": "Мышца, выпрямляющая позвоночник", "level": "emg", "ids": ["es_iliocostalis_lumborum", "es_iliocostalis_thoracis", "es_longissimus_lumborum", "es_longissimus_thoracis", "es_longissimus_thoracis_upper"]},
+        {"label": "Квадрицепс: широкие мышцы", "level": "emg", "ids": ["quads_vastus_lateralis", "quads_vastus_medialis", "quads_vastus_intermedius"]},
+        {"label": "Большая ягодичная", "level": "emg", "ids": ["glute_max_sup", "glute_max_mid", "glute_max_inf"]},
+        {"label": "Задняя поверхность бедра", "level": "emg", "ids": ["hamstrings_biceps_long", "hamstrings_semitendinosus", "hamstrings_semimembranosus"]},
+        {"label": "Большая приводящая", "level": "emg", "ids": ["adductor_magnus_prox", "adductor_magnus_mid", "adductor_magnus_dist", "adductor_magnus_isch"]},
+        {"label": "Трапециевидная (верх)", "level": "emg", "ids": ["trap_upper", "trap_middle"]},
+        {"label": "Сгибатели пальцев (хват)", "level": "emg", "ids": ["flex_digitorum_superficialis", "flex_digitorum_profundus"]}
+      ],
+      "note": "Исследований роста мышц именно от становой нет. По ЭМГ сильнее всего работают разгибатели спины и квадрицепс, затем ягодичные и задняя поверхность бедра.",
+      "sources": ["martinfuentes2020"]
+    },
+    "rdl": {
+      "grow": [
+        {"label": "Задняя поверхность бедра (длинная головка двуглавой, полуперепончатая)", "level": "sim", "ids": ["hamstrings_biceps_long", "hamstrings_semimembranosus", "hamstrings_semitendinosus"]},
+        {"label": "Большая ягодичная", "level": "sim", "ids": ["glute_max_sup", "glute_max_mid", "glute_max_inf"]},
+        {"label": "Большая приводящая", "level": "sim", "ids": ["adductor_magnus_prox", "adductor_magnus_mid", "adductor_magnus_dist", "adductor_magnus_isch"]},
+        {"label": "Мышца, выпрямляющая позвоночник", "level": "emg", "ids": ["es_iliocostalis_lumborum", "es_longissimus_lumborum", "es_longissimus_thoracis"]},
+        {"label": "Сгибатели пальцев (хват)", "level": "emg", "ids": ["flex_digitorum_superficialis", "flex_digitorum_profundus"]}
+      ],
+      "note": "Прямых МРТ-исследований румынской тяги нет. Близкое упражнение — разгибание бедра (гиперэкстензия 45°) — растит длинную головку двуглавой бедра сильнее, чем «нордические» сгибания.",
+      "sources": ["bourne2017", "martinfuentes2020"]
+    },
+    "bridge": {
+      "grow": [
+        {"label": "Большая ягодичная", "level": "mri", "ids": ["glute_max_sup", "glute_max_mid", "glute_max_inf"]},
+        {"label": "Квадрицепс: широкие мышцы", "level": "mri", "ids": ["quads_vastus_lateralis", "quads_vastus_medialis", "quads_vastus_intermedius"]},
+        {"label": "Приводящие", "level": "mri", "ids": ["adductor_magnus_prox", "adductor_magnus_mid", "adductor_magnus_dist", "adductor_magnus_isch", "adductor_longus", "adductor_brevis"]}
+      ],
+      "no": "Средняя и малая ягодичные, задняя поверхность бедра почти не растут.",
+      "note": "Ягодичные растут так же, как от приседа; квадрицепс и приводящие — меньше, чем от приседа.",
+      "sources": ["plotkin2023"]
+    },
+    "bench": {
+      "grow": [
+        {"label": "Большая грудная", "level": "mri", "ids": ["pec_major_clavicular", "pec_major_sternal", "pec_major_abdominal"]},
+        {"label": "Трёхглавая мышца плеча", "level": "mri", "ids": ["triceps_long", "triceps_lateral", "triceps_medial"]},
+        {"label": "Передняя дельта", "level": "emg", "ids": ["deltoid_anterior"]}
+      ],
+      "note": "Грудная и трицепс растут, грудная — раньше трицепса. Рост передней дельты в этих работах не измеряли.",
+      "sources": ["ogasawara2013"]
+    },
+    "db": {
+      "grow": [
+        {"label": "Большая грудная", "level": "sim", "ids": ["pec_major_clavicular", "pec_major_sternal", "pec_major_abdominal"]},
+        {"label": "Передняя дельта", "level": "emg", "ids": ["deltoid_anterior"]},
+        {"label": "Трёхглавая мышца плеча", "level": "sim", "ids": ["triceps_long", "triceps_lateral", "triceps_medial"]}
+      ],
+      "note": "Данные — по жиму штанги. Если предплечья вертикальны, момента в локте почти нет: трицепс работает мало.",
+      "sources": ["ogasawara2013"]
+    },
+    "close": {
+      "grow": [
+        {"label": "Трёхглавая мышца плеча", "level": "emg", "ids": ["triceps_long", "triceps_lateral", "triceps_medial"]},
+        {"label": "Большая грудная", "level": "sim", "ids": ["pec_major_clavicular", "pec_major_sternal", "pec_major_abdominal"]},
+        {"label": "Передняя дельта", "level": "emg", "ids": ["deltoid_anterior"]}
+      ],
+      "note": "Узкий хват по ЭМГ нагружает трицепс сильнее, а грудинную часть грудной — слабее, чем средний.",
+      "sources": ["barnett1995", "ogasawara2013"]
+    },
+    "pdn": {
+      "grow": [
+        {"label": "Широчайшая мышца спины", "level": "emg", "ids": ["lat_dorsi_thoracic", "lat_dorsi_lumbar", "lat_dorsi_iliac"]},
+        {"label": "Большая круглая", "level": "emg", "ids": ["teres_major"]},
+        {"label": "Задняя дельта", "level": "emg", "ids": ["deltoid_posterior"]},
+        {"label": "Трапециевидная (середина, низ) и ромбовидные", "level": "emg", "ids": ["trap_middle", "trap_lower", "rhomboid_minor", "rhomboid_major"]},
+        {"label": "Сгибатели локтя: бицепс, плечевая, плечелучевая", "level": "emg", "ids": ["biceps_long", "biceps_short", "brachialis", "brachioradialis"]}
+      ],
+      "note": "Исследований роста мышц от тяги блока пока нет. По ЭМГ главная мышца — широчайшая при любом хвате.",
+      "sources": []
+    },
+    "pdw": {"same_as": "pdn"},
+    "pendulum": {
+      "grow": [
+        {"label": "Квадрицепс: широкие мышцы", "level": "sim", "ids": ["quads_vastus_lateralis", "quads_vastus_medialis", "quads_vastus_intermedius"]},
+        {"label": "Большая ягодичная", "level": "sim", "ids": ["glute_max_sup", "glute_max_mid", "glute_max_inf"]},
+        {"label": "Большая приводящая", "level": "sim", "ids": ["adductor_magnus_prox", "adductor_magnus_mid", "adductor_magnus_dist", "adductor_magnus_isch"]}
+      ],
+      "no": "Прямая мышца бедра от многосуставных жимов ногами почти не растёт.",
+      "note": "Исследований этого тренажёра нет; данные — по жиму ногами.",
+      "sources": ["kinoshita"]
+    },
+    "hack": {"same_as": "pendulum", "note": "Исследований гак-приседа нет; данные — по жиму ногами."},
+    "legpress": {
+      "grow": [
+        {"label": "Квадрицепс: широкие мышцы", "level": "mri", "ids": ["quads_vastus_lateralis", "quads_vastus_medialis", "quads_vastus_intermedius"]},
+        {"label": "Большая ягодичная", "level": "mri", "ids": ["glute_max_sup", "glute_max_mid", "glute_max_inf"]},
+        {"label": "Большая приводящая", "level": "mri", "ids": ["adductor_magnus_prox", "adductor_magnus_mid", "adductor_magnus_dist", "adductor_magnus_isch"]}
+      ],
+      "no": "Прямая мышца бедра почти не выросла: +1% (от разгибаний ног +13%).",
+      "note": "Квадрицепс в целом вырос так же, как от разгибаний ног, плюс большая ягодичная (+15%) и большая приводящая (+6%).",
+      "sources": ["kinoshita"]
+    }
+  }
+}
