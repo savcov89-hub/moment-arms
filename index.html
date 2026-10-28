@@ -1004,6 +1004,99 @@ const EQUIP_X={};
 /* ===== Раздел: плечи и руки стоя (жим штанги стоя, махи гантелями, подъём на бицепс) ===== */
 
 /* ===== Раздел: жимы гантелей сидя и на наклонной скамье ===== */
+// Регулируемая скамья: сиденье горизонтально на высоте yb, спинка под углом al к полу. Как в жиме лёжа, центр тазобедренного
+// сустава на 9 см от опоры, плечевого — на 7 см, поэтому корпус чуть положе спинки. +x — к стопам, корпус уходит назад-вверх.
+const DBI_SEAT=.44, DBI_BACK=.82;
+function inclineBody(al){
+  const H=v2(0,DBI_SEAT+.09), at=al-Math.asin(.02/A.trunk), S=add(H,mul(v2(-Math.cos(at),Math.sin(at)),A.trunk));
+  // бедро на сиденье почти горизонтально; при короткой голени опускается к колену, чтобы стопа стояла на полу
+  const dl=Math.max(3*D,Math.asin(clamp((H.y-A.ah-.97*A.shank)/A.thigh,-1,1)));
+  const knee=add(H,v2(A.thigh*Math.cos(dl),-A.thigh*Math.sin(dl)));
+  const th=Math.acos(clamp((knee.y-A.ah)/A.shank,-1,1)), ankle=add(knee,v2(A.shank*Math.sin(th),-A.shank*Math.cos(th)));
+  return {H,pose:basePose({ankle,knee,hip:H,S,footDir:v2(1,0),sole:v2(0,-1)})};
+}
+// Плечо задаётся в осях зала, как в жиме гантелей лёжа: b — подъём локтя над горизонталью через плечевой сустав,
+// ps — направление локтя на виде сверху от оси к стопам. Скамья 0° — жим лёжа, 90° — жим сидя: формулы одни.
+function buildDbIncline(t,p,load,kind){
+  const seat=kind==='seat', al=p.angle*D, {H,pose}=inclineBody(al), P=pose.P, arm=A.ua+A.fa;
+  const ps=(seat?90-p.fwd:p.flare)*D, b=lerp(86*D,-p.elb*D,t), Ed=V(Math.cos(b)*Math.cos(ps),Math.sin(b),Math.cos(b)*Math.sin(ps));
+  let hL=P.shL.clone().addScaledVector(Ed,A.ua).add(V(0,A.fa,0)), pole=Ed;   // гантель строго над локтем
+  if(p.fore==='conv'){
+    // гантели сходятся вверху: кисть уходит внутрь от локтя тем сильнее, чем ближе к верхней точке; локоть — по разведению
+    hL.z=lerp(p.top/200,hL.z,t);
+    const r=hL.clone().sub(P.shL), lim=.985*arm; if(r.length()>lim)hL.y=P.shL.y+Math.sqrt(Math.max(.01,lim*lim-r.x*r.x-r.z*r.z));
+    pole=elbowByFlare(P.shL,hL,ps);
+  }
+  const hR=hL.clone(); hR.z*=-1;
+  setArms(pose,hL,hR,pole);
+  dbForces(pose,load); addBody(pose);
+  // точки опоры корпуса: спинка (не сидя без спинки) — от сиденья вверх
+  const back=!seat||p.back==='pad', ub=V(-Math.cos(al),Math.sin(al),0), nb=V(Math.sin(al),Math.cos(al),0);
+  const s0=(DBI_SEAT-H.y+.09*nb.y)/Math.max(.05,ub.y), B0=V(H.x,H.y,0).addScaledVector(nb,-.09).addScaledVector(ub,s0);
+  pose.eq={H,al,back,B0,ub,nb,fit:[B0.clone().addScaledVector(ub,DBI_BACK),V(Math.min(-.45,B0.x+ub.x*DBI_BACK+.1),0,0),V(.45,0,0)]};
+  const shText=seat?'Передняя и средняя дельта, ключичная часть большой грудной':'Большая грудная, передняя дельта';
+  if(!seat){
+    // корпус лежит на скамье: она держит и вес корпуса, и давление рук на плечевой пояс, поэтому поясница не нагружена
+    pose.eq.yb=DBI_SEAT; pose.support=['L5'];
+    pose.joints=armJoints(pose,shText);
+    pose.fric={kind:'open',text:'Открытая цепь: каждая гантель держится одной кистью, поэтому сила строго вертикальна — боковой составляющей нет. Корпус лежит на скамье, она держит и его вес, и давление рук на плечевой пояс — поясница не нагружена.'};
+    return pose;
+  }
+  // Сидя: момент в пояснице считается. Спинка давит на лопатки только вперёд — держит корпус, когда тот заваливается назад;
+  // если гантели и корпус тянут вперёд, спинка не помогает и момент держат разгибатели спины
+  const fL5=[...FREE_TOP.L5,'loadPad'];
+  let txt='Открытая цепь: каждая гантель держится одной кистью, поэтому сила строго вертикальна — боковой составляющей нет. ';
+  if(back){
+    const n=pose.front, C=P.hipMid.clone().addScaledVector(pose.u,.75*A.trunk).addScaledVector(n,-.075);
+    let M=0; for(const f of pose.forces)if(fL5.includes(f.seg)&&(state.body||f.seg.startsWith('load')))M+=(f.p.x-P.L5.x)*f.F.y-(f.p.y-P.L5.y)*f.F.x;
+    const m1=(C.x-P.L5.x)*n.y-(C.y-P.L5.y)*n.x, N=M*m1<0?-M/m1:0;   // M > 0 — корпус заваливается назад
+    if(N>.5){pose.forces.push({seg:'loadPad',p:C,F:n.clone().multiplyScalar(N)}); pose.contacts=[{p:C,push:n.clone().negate(),need:0}];
+      txt+=`Корпус заваливается назад${state.body?'':' под весом гантелей'}, и спинка давит на лопатки с силой <b>${fmt0(N)} Н</b>: она держит момент в пояснице, разгибателям спины работать не нужно.`;}
+    else txt+=`Гантели${state.body?' и корпус':''} тянут вперёд, а спинка может только толкать спину вперёд — помочь ей нечем. Момент в пояснице держат разгибатели спины.`;
+  } else txt+='Спинки нет: момент в пояснице целиком держат мышцы корпуса.';
+  pose.fric={kind:'open',text:txt};
+  pose.joints=[...armJoints(pose,shText),{key:'L5',mode:'2d',line:'main',pos:P.L5,free:fL5,flexSign:-1,bil:false,primary:'flex'}];
+  return pose;
+}
+const DBI_FORE=(where)=>({id:'fore',label:'Траектория гантелей',type:'seg',opts:[['vert','Строго над локтями'],['conv','Сводятся вверху']],def:'vert',
+  hint:p=>p.fore==='vert'?'Предплечья вертикальны во всей амплитуде: линия силы проходит через локоть, момент в локте ≈ 0, нагрузка уходит на плечевой сустав.':`Вверху гантели сходятся ${where}: кисть уходит внутрь от локтя, предплечье наклоняется, и в локте появляется момент.`});
+const DBI_TOP={id:'top',label:'Расстояние между кистями вверху',type:'range',min:26,max:60,step:1,unit:' см',def:30,hint:'Около 26 см — гантели касаются друг друга',show:p=>p.fore==='conv'};
+Object.assign(EX,{
+  dbinc:{name:'Жим гантелей на наклонной скамье',eq:'гантели',group:2,loadLabel:'Вес одной гантели',def:26,min:2,max:60,step:1,equip:'incline',build:(t,p,l)=>buildDbIncline(t,p,l,'inc'),
+    params:[{id:'angle',label:'Наклон спинки к полу',type:'range',min:15,max:60,step:1,unit:'°',def:30,hint:'0° — жим лёжа, 90° — жим сидя'},
+            DBI_FORE('над грудью'),
+            {id:'elb',label:'Глубина: локти ниже линии плеч',type:'range',min:0,max:50,step:1,unit:'°',def:30,hint:'Линия плеч — горизонталь через плечевые суставы. При ~30° гантели опускаются примерно до уровня груди'},
+            {id:'flare',label:'Разведение локтей от корпуса',type:'range',min:20,max:85,step:1,unit:'°',def:55,hint:'Угол плеча к корпусу, вид сверху'},DBI_TOP],
+    fdesc:(p,L)=>`Вес одной гантели ${fmtKg(L)}, вертикально вниз через кисть. Значения на одну руку.`,
+    desc:'Корпус лежит на наклонной спинке, сила каждой гантели вертикальна. Чем круче спинка, тем ближе линия силы к голове.'},
+  dbseat:{name:'Жим гантелей сидя',eq:'гантели',group:4,loadLabel:'Вес одной гантели',def:20,min:2,max:50,step:1,equip:'incline',build:(t,p,l)=>buildDbIncline(t,p,l,'seat'),
+    params:[{id:'back',label:'Опора спины',type:'seg',opts:[['pad','Спинка скамьи'],['none','Без спинки']],def:'pad',
+              hint:p=>p.back==='pad'?'Спинка держит корпус, только когда он заваливается назад. Если гантели впереди поясницы, момент в ней держат разгибатели спины.':'Сидя на горизонтальной скамье: момент в пояснице держат мышцы корпуса.'},
+            {id:'angle',label:'Наклон корпуса к полу',type:'range',min:70,max:90,step:1,unit:'°',def:85,hint:'90° — корпус вертикален. Спинку обычно ставят на 80–90°'},
+            DBI_FORE('над головой'),
+            {id:'elb',label:'Глубина: локти ниже линии плеч',type:'range',min:0,max:35,step:1,unit:'°',def:15,hint:'При 0° плечо горизонтально, гантели на уровне ушей; при 20–30° гантели опускаются к плечам'},
+            {id:'fwd',label:'Локти впереди фронтальной плоскости',type:'range',min:0,max:60,step:1,unit:'°',def:30,hint:'0° — локти строго в стороны, около 30° — в плоскости лопатки'},DBI_TOP],
+    fdesc:(p,L)=>`Вес одной гантели ${fmtKg(L)}, вертикально вниз через кисть. Плечевой и локтевой — на одну руку, поясница — от обеих гантелей.`,
+    desc:'Таз на сиденье, сила каждой гантели вертикальна. Поясница нагружается, когда гантели впереди неё: спинка может только подпирать корпус сзади.'}
+});
+EQUIP_X.incline=function(load){
+  const objs=[],M=m=>(objs.push(m),m);
+  const seat=M(boxMesh(MAT.pad)),back=M(boxMesh(MAT.pad)),base=M(boxMesh(MAT.frame)),post=M(boxMesh(MAT.frame)),strut=M(boxMesh(MAT.frame)),feet=[M(boxMesh(MAT.frame)),M(boxMesh(MAT.frame))];
+  const dl=makeDumbbell(load),dr=makeDumbbell(load); objs.push(dl,dr);
+  return{objs,update(p){
+    const e=p.eq, X=V(1,0,0), y=DBI_SEAT, top=e.back?e.B0.clone().addScaledVector(e.ub,DBI_BACK):V(-.85,y,0);
+    placeBox(seat,V(.1,y-.035,0),X,Y,Z,.46,.07,.29);
+    if(e.back)placeBox(back,e.B0.clone().addScaledVector(e.ub,DBI_BACK/2).addScaledVector(e.nb,-.035),e.nb,e.ub,Z,.07,DBI_BACK,.27);
+    else placeBox(back,V(-.48,y-.035,0),Y,X.clone().negate(),Z,.07,.78,.29);   // без спинки — сидим на краю горизонтальной скамьи
+    const x0=Math.min(-.45,top.x+.1), x1=.42;
+    placeBox(base,V((x0+x1)/2,.025,0),X,Y,Z,x1-x0,.05,.08);
+    feet.forEach((f,i)=>placeBox(f,V(i?x1-.04:x0+.04,.02,0),X,Y,Z,.08,.04,.42));
+    placeBox(post,V(.1,(y-.07)/2,0),X,Y,Z,.06,y-.07,.07);
+    strut.visible=e.back&&e.al>.2;
+    if(strut.visible){const m=e.B0.clone().addScaledVector(e.ub,DBI_BACK*.55).addScaledVector(e.nb,-.07); boxBetween(strut,V(m.x,.05,0),m,.06,.05);}
+    dl.position.copy(p.P.haL); dr.position.copy(p.P.haR);
+  }};
+};
 
 /* ===== Раздел: тяга штанги в наклоне ===== */
 
