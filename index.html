@@ -1026,9 +1026,9 @@ const buildNow=t=>cur().build(t,state.params[state.ex],state.loads[state.ex]);
 // Плечи мышц (внутренние), м — типичные значения из литературы
 function inclAngle(a,b,c){return a.clone().sub(b).angleTo(c.clone().sub(b));}
 function muscleArm(r,pose){
-  const P=pose.P,k=r.key,d=r.dem;
-  if(k==='elbow'){ if(d!=='ext') return .021; const fl=Math.PI-inclAngle(P.shL,P.elL,P.haL); return .018+.027*Math.sin(clamp(fl,0,Math.PI)); }
-  if(k==='knee'){ if(d!=='ext'){const fl=(Math.PI-inclAngle(P.hipL,P.kneeL,P.ankleL))/D; return clamp(4.9-.013*Math.abs(fl-25),3.6,4.9)/100;} return .03; }
+  const P=pose.P,k=r.key,d=r.dem,s=r.j.side==='R'?'R':'L';
+  if(k==='elbow'){ if(d!=='ext') return .021; const fl=Math.PI-inclAngle(P['sh'+s],P['el'+s],P['ha'+s]); return .018+.027*Math.sin(clamp(fl,0,Math.PI)); }
+  if(k==='knee'){ if(d!=='ext'){const fl=(Math.PI-inclAngle(P['hip'+s],P['knee'+s],P['ankle'+s]))/D; return clamp(4.9-.013*Math.abs(fl-25),3.6,4.9)/100;} return .03; }
   if(k==='hip') return d==='ext'?.04:.065;
   if(k==='ankle') return d==='ext'?.04:.05;
   if(k==='L5') return d==='ext'?.09:.04; // разгибатели: 3,97 см по путям пучков (Christophy 2012, Bogduk 1992)
@@ -1038,8 +1038,8 @@ function analyze(pose,withBody){
   withBody=withBody||!!pose.bodyLoad;   // подтягивания: вес тела и есть нагрузка
   return pose.joints.map(j=>{
     const forces=pose.forces.filter(f=>j.free.includes(f.seg)&&(withBody||f.seg.startsWith('load')));
-    const ln=typeof j.line==='object'?j.line:j.line==='L'?pose.lineL:j.line==='B'?pose.lineB:pose.line;   // своя линия сустава — объект {p,d}
-    const r={key:j.key,j};
+    const ln=(typeof j.line==='object'?j.line:j.line==='L'?pose.lineL:j.line==='B'?pose.lineB:pose.line)||{p:j.pos,d:V(0,-1,0)};   // своя линия сустава — объект {p,d}
+    const r={key:j.key,id:j.id||j.key,j};   // id — строка, кривая и подпись сустава; key — его тип (две стороны: knee и kneeR)
     if(j.mode==='2d'){
       let M=0; for(const f of forces) M+=(f.p.x-j.pos.x)*f.F.y-(f.p.y-j.pos.y)*f.F.x;
       const d=nrm(v2(ln.d.x,ln.d.y)), rel=v2(j.pos.x-ln.p.x,j.pos.y-ln.p.y);
@@ -1057,11 +1057,15 @@ function analyze(pose,withBody){
       r.axis=r.abs>1e-9?Mv.clone().normalize():V(0,0,1);
       // сустав с одной осью (бедро в тренажёре для отведения): остальные составляющие держит опора
       if(j.axes&&j.axes.length===1){const e=j.axes[0], m=Mv.dot(e); r.Mv=e.clone().multiplyScalar(m); r.abs=Math.abs(m); r.axis=e.clone().multiplyScalar(Math.sign(m)||1);}
-      if(j.fixed) r.dem='fixed';
+      // j.main — показываемая составляющая (поясница в тяге одной рукой: сагиттальная), остальные — в строке j.info; мышцы считаются по всем осям
+      if(j.main){const m=Mv.dot(j.main); r.abs=Math.abs(m); r.axis=j.main.clone().multiplyScalar(Math.sign(m)||1); r.dem=r.abs>1e-6?(m*(j.mainSign||1)>0?'flex':'ext'):null;}
+      else if(j.fixed) r.dem='fixed';
       else if(r.abs>1e-6){const ax=r.axis, b2=j.b.clone().addScaledVector(ax.clone().cross(j.b),.02); r.dem=j.a.angleTo(b2)<j.a.angleTo(j.b)?'flex':'ext';}
       else r.dem=null;
     }
-    r.muscles=j.fixed||(r.dem?MUSC[j.key][r.dem]:'Момент близок к нулю');
+    // j.noArm — у момента нет одной линии силы (поясница с опорой на руку): плечо не показывается
+    if(j.noArm){r.arm=NaN;r.Q=j.pos.clone();}
+    r.muscles=j.fixed||(r.dem?(j.mus||MUSC[j.key])[r.dem]:'Момент близок к нулю');
     r.signed=(j.fixed||r.dem===j.primary||!r.dem)?r.abs:-r.abs;
     r.mArm=j.mArm||muscleArm(r,pose); r.mKg=r.abs/r.mArm/G; r.signedMus=(r.signed<0?-1:1)*r.mKg;
     return r;
@@ -1582,33 +1586,34 @@ function lerpTab(xs,ys,x){if(x<=xs[0])return ys[0];for(let i=1;i<xs.length;i++)i
 // подъём плеча относительно корпуса, градусы
 function elevation(pose,s){const P=pose.P,du=P['el'+s].clone().sub(P['sh'+s]).normalize();return Math.acos(clamp(-du.dot(pose.u),-1,1))/D;}
 // мышцы лопатки: эффективное плечо подъёма руки через ритм лопатки (README рук, виртуальная работа), вдоль оси подъёма
-function rhythmArm(m,pose){
-  const P=pose.P, du=P.elL.clone().sub(P.shL).normalize(), k=pose.u.clone().negate().cross(du);
+function rhythmArm(m,pose,s){
+  s=s||'L'; const P=pose.P, du=P['el'+s].clone().sub(P['sh'+s]).normalize(), k=pose.u.clone().negate().cross(du);
   if(k.lengthSq()<1e-6)k.copy(pose.front).negate();
-  return k.normalize().multiplyScalar(lerpTab(m.rh[0],m.rh[1],elevation(pose,'L')));
+  return k.normalize().multiplyScalar(lerpTab(m.rh[0],m.rh[1],elevation(pose,s)));
 }
 // длина мышцы: по пути, у мышц лопатки — по таблице длины от подъёма руки (лопатка в приложении неподвижна)
 function mLen(m,i,pts,pose,s,rest){return m.lrel?rest[i].L*lerpTab(m.lrel[0],m.lrel[1],elevation(pose,s)):pathLen(pts);}
-// уравнения равновесия суставов: строки A·F = τ с весами
-function muscleRows(pose,res,pts,fr){
-  const rows=[];
+// уравнения равновесия суставов: строки A·F = τ с весами. s — сторона мышц (pts, fr — её пути и системы сегментов);
+// full — момент 2D-сустава целиком на эту строку (у симметричных упражнений он на обе ноги или обе стороны поясницы и делится пополам)
+function muscleRows(pose,res,pts,fr,s,full){
+  const rows=[]; s=s||'L';
   for(const r of res){
     if(!r.j||r.j.fixed&&r.key!=='shoulder'&&!r.j.axes)continue;
-    const arms=MDEF.map((m,i)=>m.rh?(r.key==='shoulder'?rhythmArm(m,pose):null):mArmVec(m,pts[i],r));
+    const arms=MDEF.map((m,i)=>m.rh?(r.key==='shoulder'?rhythmArm(m,pose,s):null):mArmVec(m,pts[i],r));
     if(r.j.mode==='2d'){
-      // сгибание бедра — поворот бедра вокруг +Z относительно таза (левая нога); у m.hf плечо разгибания обнуляется
+      // сгибание бедра — поворот бедра вокруг +Z относительно таза (у обеих ног ось та же); у m.hf плечо разгибания обнуляется
       const fx=freeSide(r,'thigh')?1:-1;
-      rows.push({key:r.key,c:arms.map((v,i)=>{if(!v)return 0;const m=MDEF[i],c=m.wp?mArmFD(m,fr,r,Z):v.z;return m.hf&&r.key==='hip'?fx*Math.max(0,fx*c):c;}),tau:-(r.M||0)/2,w:1});
+      rows.push({key:r.key,c:arms.map((v,i)=>{if(!v)return 0;const m=MDEF[i],c=m.wp?mArmFD(m,fr,r,Z):v.z;return m.hf&&r.key==='hip'?fx*Math.max(0,fx*c):c;}),tau:-(r.M||0)/(full?1:2),w:1});
     } else if(r.j.axes){
       const Mv=r.Mv||V(0,0,0);
       for(const e of r.j.axes) rows.push({key:r.key,c:arms.map((v,i)=>{if(!v)return 0;const m=MDEF[i];return m.wp?mArmFD(m,fr,r,e):v.dot(e);}),tau:-Mv.dot(e),w:1,axis:e});
     } else if(r.key==='elbow'){
-      const P=pose.P; let n=P.elL.clone().sub(P.shL).cross(P.haL.clone().sub(P.elL));
-      if(n.lengthSq()<1e-6) n=segFrames(pose,'L').ua.lat.clone(); n.normalize();
+      const P=pose.P; let n=P['el'+s].clone().sub(P['sh'+s]).cross(P['ha'+s].clone().sub(P['el'+s]));
+      if(n.lengthSq()<1e-6) n=fr.ua.lat.clone(); n.normalize();
       const Mv=r.Mv||V(0,0,0);
       rows.push({key:'elbow',c:arms.map(v=>v?v.dot(n):0),tau:-Mv.dot(n),w:1,axis:n});
     } else if(r.key==='shoulder'){
-      const P=pose.P, du=P.elL.clone().sub(P.shL).normalize();
+      const P=pose.P, du=P['el'+s].clone().sub(P['sh'+s]).normalize();
       let e2=du.clone().cross(pose.front); if(e2.lengthSq()<1e-6)e2=du.clone().cross(Y); e2.normalize(); const e3=du.clone().cross(e2).normalize();
       const Mv=r.Mv||V(0,0,0);
       for(const [e,w] of [[e2,1],[e3,1],[du,1]]) rows.push({key:'shoulder',c:arms.map(v=>v?v.dot(e):0),tau:-Mv.dot(e),w,axis:e});
@@ -1667,6 +1672,7 @@ function muscleState(pose,res){
   // остальные растут с массой тела в степени 2/3
   const pk=Math.pow(state.mass/MREF.mass,2/3), vr0=MREF.H*MREF.mass;
   const pcsa=MDEF.map((m,i)=>m.pcsa*(m.vr?(m.vr[0]*A.H*state.mass+m.vr[1])/(m.vr[0]*vr0+m.vr[1])*ref[i]/rest[i].L:pk)), fmax=MDEF.map((m,i)=>pcsa[i]*m.sig);
+  if(res.some(r=>r.j.side))return muscleState2(pose,res,pts,fr,pcsa,fmax,ref,rest);
   const rows=muscleRows(pose,res,pts.L,fr.L), have=new Set(rows.map(r=>r.key));
   for(const k of pose.support||[])have.add(k);   // момент в этом суставе держит сиденье или тренажёр
   // мышца, которая пересекает сустав без расчёта в этом упражнении, не участвует: её вклад там нечем уравновесить
@@ -1679,6 +1685,28 @@ function muscleState(pose,res){
   const out=MDEF.map((m,i)=>{const L=mLen(m,i,pts.L[i],pose,'L',rest),lf0=m.lf?m.lf/100*rest[i].L/ref[i]:.5*rest[i].L,lf=Math.max(lf0*.35,lf0+L-rest[i].L);
     return {m,F:F[i],sig:F[i]/pcsa[i],act:clamp(F[i]/fmax[i],0,1),L,L0:rest[i].L,lf,lf0,stretch:lf/lf0};});
   return {pts,out,rows,F,pcsa,fmax};
+}
+// Разная поза сторон (у суставов есть side: 'L', 'R' или 'B' — поясница, общая для обеих сторон): одна задача на мышцы обеих сторон.
+// Столбцы — [мышцы левой | мышцы правой]. Сустав стороны держат только её мышцы, общий — мышцы обеих сторон; момент берётся целиком.
+// Мышца стороны участвует, только если все её суставы этой стороны посчитаны или держатся опорой (pose.support — список или {L,R})
+function muscleState2(pose,res,pts,fr,pcsa,fmax,ref,rest){
+  const N=MDEF.length, S=['L','R'], sup=s=>Array.isArray(pose.support)?pose.support:(pose.support&&pose.support[s])||[];
+  const per={}, have={L:new Set(sup('L')),R:new Set(sup('R'))};
+  const sd=r=>r.j.side||'L';   // сустав без стороны — левый, как в симметричных упражнениях
+  for(const r of res)per[r.id]={L:sd(r)==='R'?[]:muscleRows(pose,[r],pts.L,fr.L,'L',true),R:sd(r)==='L'?[]:muscleRows(pose,[r],pts.R,fr.R,'R',true)};
+  for(const r of res)for(const s of S)if(per[r.id][s].length)have[s].add(r.key);
+  const ok={L:MDEF.map(m=>m.joints.every(k=>have.L.has(k))),R:MDEF.map(m=>m.joints.every(k=>have.R.has(k)))};
+  const rows=[], zero=()=>new Array(N).fill(0), cut=(c,s)=>c.map((v,i)=>ok[s][i]?v:0);
+  for(const r of res){const a=per[r.id].L, b=per[r.id].R, n=Math.max(a.length,b.length);
+    for(let k=0;k<n;k++){const q=a[k]||b[k]; rows.push({...q,id:r.id,c:[...(a[k]?cut(a[k].c,'L'):zero()),...(b[k]?cut(b[k].c,'R'):zero())]});}}
+  const nm=2*N, cols=[...fmax,...fmax];
+  rows.forEach((r,k)=>{for(const sg of [1,-1]){cols.push(RESERVE);rows.forEach((q,j)=>q.c.push(j===k?sg:0));}});
+  const Fx=solveMuscles(rows,cols);
+  rows.forEach((r,k)=>{r.reserve=Fx[nm+2*k]-Fx[nm+2*k+1];r.c.length=nm;});
+  const side=s=>MDEF.map((m,i)=>{const F=Fx[(s==='L'?0:N)+i],L=mLen(m,i,pts[s][i],pose,s,rest),lf0=m.lf?m.lf/100*rest[i].L/ref[i]:.5*rest[i].L,lf=Math.max(lf0*.35,lf0+L-rest[i].L);
+    return {m,F,sig:F/pcsa[i],act:clamp(F/fmax[i],0,1),L,L0:rest[i].L,lf,lf0,stretch:lf/lf0};});
+  const out=side('L'), outR=side('R');
+  return {pts,out,outR,rows,F:Fx.slice(0,nm),pcsa,fmax};
 }
 
 /* ---- отрисовка мышц ---- */
@@ -1832,8 +1860,8 @@ function updateMuscles(pose,res){
   for(const s of ['L','R']){
     const cores=coresFor(s,pose.P), shank=segFrames(pose,s).shank;
     MDEF.forEach((m,i)=>{
-      const st=MS.out[i], sm=s==='L'?st:{...st,L:mLen(m,i,MS.pts.R[i],pose,'R',rest)};
-      if(s==='R'){sm.lf=Math.max(st.lf0*.35,st.lf0+sm.L-rest[i].L);sm.stretch=sm.lf/st.lf0;}
+      const st=MS.out[i], sm=s==='L'?st:MS.outR?MS.outR[i]:{...st,L:mLen(m,i,MS.pts.R[i],pose,'R',rest)};   // outR — своя задача правой стороны
+      if(s==='R'&&!MS.outR){sm.lf=Math.max(st.lf0*.35,st.lf0+sm.L-rest[i].L);sm.stretch=sm.lf/st.lf0;}
       drawMuscle(MMESH[s][i],gripPts(m,MS.pts[s][i],s),pose.restSide===s?{...sm,act:0}:sm,rest[i],cores.forMuscle[i],shank);   // restSide в расчёт не входит
     });
   }
@@ -2125,10 +2153,12 @@ $('#resetAnthro').onclick=()=>{A=anthroFromH(1.8);activePreset='std';renderPrese
 
 // суставы, которые показываем; скрытые (hide) считаются только ради мышц, переходящих через них
 const shown=res=>res.filter(r=>!r.j.hide);
+// подпись сустава (j.label — со стороной: «Колено, задняя нога»); у второй стороны (j.alt) цвет тот же, но бледнее
+const jLabel=j=>j.label||JNAME[j.key], jOp=j=>j.alt?.5:1, jDot=j=>`<i style="background:var(${JVAR[j.key]})${j.alt?';opacity:.5':''}"></i>`;
 function renderRows(){
   const js=buildNow(.5).joints.filter(j=>!j.hide);
-  $('#jrows').innerHTML=js.map(j=>`<div class="jrow" id="row-${j.key}"><div class="nm"><i style="background:var(${JVAR[j.key]})"></i>${JNAME[j.key]}</div><div class="tq"><span class="v">0</span><small>Н·м</small></div><div class="meta">плечо силы <span class="arm">—</span><span class="side"></span></div><div class="mus"></div><div class="mf"></div><div class="bar"><span style="background:var(${JVAR[j.key]})"></span></div><div class="fr" hidden></div></div>`).join('');
-  $('#legend').innerHTML=js.map(j=>`<span><i style="background:var(${JVAR[j.key]})"></i>${JNAME[j.key]}</span>`).join('')+`<span id="lgCmp" hidden><i class="dash"></i>сравнение</span>`;
+  $('#jrows').innerHTML=js.map(j=>`<div class="jrow" id="row-${j.id||j.key}"><div class="nm">${jDot(j)}${jLabel(j)}</div><div class="tq"><span class="v">0</span><small>Н·м</small></div><div class="meta">плечо силы <span class="arm">—</span><span class="side"></span></div><div class="mus"></div><div class="mf"></div><div class="bar"><span style="background:var(${JVAR[j.key]})${j.alt?';opacity:.5':''}"></span></div><div class="fr" hidden></div></div>`).join('');
+  $('#legend').innerHTML=js.map(j=>`<span>${jDot(j)}${jLabel(j)}</span>`).join('')+`<span id="lgCmp" hidden><i class="dash"></i>сравнение</span>`;
 }
 
 function selectEx(id){
@@ -2253,11 +2283,11 @@ document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{const k=b.dat
 /* ---- выборка по амплитуде ---- */
 const NS=41;
 function computeSamples(){
-  const out={keys:null,curves:{},mus:{},arms:{},maxAbs:1,F:[]};
+  const out={keys:null,curves:{},mus:{},arms:{},meta:{},maxAbs:1,F:[]};
   for(let i=0;i<NS;i++){
     const p=buildNow(i/(NS-1)), r=shown(analyze(p,state.body));
-    if(!out.keys){out.keys=r.map(x=>x.key);for(const k of out.keys){out.curves[k]=[];out.mus[k]=[];out.arms[k]=[];}}
-    for(const x of r){out.curves[x.key].push(x.signed);out.mus[x.key].push(x.signedMus);out.arms[x.key].push(x.arm);out.maxAbs=Math.max(out.maxAbs,x.abs);}
+    if(!out.keys){out.keys=r.map(x=>x.id);for(const x of r){const k=x.id;out.curves[k]=[];out.mus[k]=[];out.arms[k]=[];out.meta[k]={key:x.key,label:jLabel(x.j),op:jOp(x.j)};}}
+    for(const x of r){if(!out.curves[x.id])continue;out.curves[x.id].push(x.signed);out.mus[x.id].push(x.signedMus);out.arms[x.id].push(x.arm);out.maxAbs=Math.max(out.maxAbs,x.abs);}
     out.F.push(p.F);
   }
   return out;
@@ -2284,8 +2314,9 @@ function drawChart(){
   s+=`<text x="${m.l}" y="${H-0}" text-anchor="start" style="font-size:9.5px">${ends[0]}</text><text x="${W-m.r}" y="${H}" text-anchor="end" style="font-size:9.5px">${ends[1]}</text>`;
   s+=`<text x="${m.l-6}" y="9" text-anchor="end">${state.chartMode==='muscle'?'кг':'Н·м'}</text>`;
   const path=arr=>arr.map((v,i)=>`${i?'L':'M'}${X(i/(arr.length-1)).toFixed(1)},${Yp(v).toFixed(1)}`).join('');
-  if(cmp)for(const k in cmp)if(src[k])s+=`<path d="${path(cmp[k])}" fill="none" stroke="${C[k]}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".75"/>`;
-  for(const k of samples.keys)s+=`<path d="${path(src[k])}" fill="none" stroke="${C[k]}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const mt=samples.meta, col=k=>C[mt[k].key];
+  if(cmp)for(const k in cmp)if(src[k])s+=`<path d="${path(cmp[k])}" fill="none" stroke="${col(k)}" stroke-width="1.5" stroke-dasharray="4 3" opacity="${.75*mt[k].op}"/>`;
+  for(const k of samples.keys)s+=`<path d="${path(src[k])}" fill="none" stroke="${col(k)}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${mt[k].op<1?` stroke-opacity="${mt[k].op}"`:''}/>`;
   s+=`<g id="cMark"></g><line id="cHover" y1="${m.t}" y2="${H-m.b}" stroke="${C.muted}" stroke-dasharray="3 3" visibility="hidden"/><rect id="cHit" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${H}" fill="transparent"/>`;
   svg.innerHTML=s; chartGeom={X,Yp,m,W,H};
   const hit=svg.querySelector('#cHit');
@@ -2300,13 +2331,13 @@ function valAt(arr,t){const f=t*(arr.length-1),i=Math.floor(f),k=f-i;return i>=a
 function showTip(t){
   if(!chartGeom)return;const {X,m}=chartGeom;const hl=svg.querySelector('#cHover');hl.setAttribute('x1',X(t));hl.setAttribute('x2',X(t));hl.setAttribute('visibility','visible');
   const cmp=state.compare&&state.compare.ex===state.ex?srcOf(state.compare):null, src=srcOf(samples), u=state.chartMode==='muscle'?' кг':' Н·м';
-  tip.innerHTML=`<div class="h">Амплитуда ${Math.round(t*100)}%</div>`+samples.keys.map(k=>`<div class="r"><span><i style="background:${C[k]}"></i>${JNAME[k]}</span><b>${fmt0(valAt(src[k],t))}${cmp&&cmp[k]?` <span style="color:var(--muted)">/ ${fmt0(valAt(cmp[k],t))}</span>`:''}${u}</b></div>`).join('');
+  tip.innerHTML=`<div class="h">Амплитуда ${Math.round(t*100)}%</div>`+samples.keys.map(k=>`<div class="r"><span><i style="background:${C[samples.meta[k].key]};opacity:${samples.meta[k].op}"></i>${samples.meta[k].label}</span><b>${fmt0(valAt(src[k],t))}${cmp&&cmp[k]?` <span style="color:var(--muted)">/ ${fmt0(valAt(cmp[k],t))}</span>`:''}${u}</b></div>`).join('');
   tip.hidden=false;const wrap=svg.parentElement.clientWidth;let x=X(t)+12;if(x+170>wrap)x=X(t)-12-tip.offsetWidth;tip.style.left=Math.max(0,x)+'px';tip.style.top='6px';
 }
 function drawMarker(){
   if(!chartGeom||!samples)return;const g=svg.querySelector('#cMark');if(!g)return;const {X,Yp,m,H}=chartGeom;const x=X(state.t);
   let s=`<line x1="${x}" x2="${x}" y1="${m.t}" y2="${H-m.b}" stroke="${C.ink}" stroke-width="1"/>`;
-  const src=srcOf(samples);for(const k of samples.keys)s+=`<circle cx="${x}" cy="${Yp(valAt(src[k],state.t))}" r="4.5" fill="${C[k]}" stroke="${C.panel}" stroke-width="2"/>`;
+  const src=srcOf(samples);for(const k of samples.keys)s+=`<circle cx="${x}" cy="${Yp(valAt(src[k],state.t))}" r="4.5" fill="${C[samples.meta[k].key]}" fill-opacity="${samples.meta[k].op}" stroke="${C.panel}" stroke-width="2"/>`;
   g.innerHTML=s;
 }
 $('#saveCmp').onclick=()=>{if(!samples)return;state.compare={ex:state.ex,curves:JSON.parse(JSON.stringify(samples.curves)),mus:JSON.parse(JSON.stringify(samples.mus))};$('#clearCmp').disabled=false;
@@ -2376,16 +2407,16 @@ function frame(){
   const maxAbs=samples?samples.maxAbs:1;
   ARMS.forEach((o,i)=>{const r=vis[i];const show=!!r&&state.show.arms;o.seg.visible=o.dot.visible=show;o.ring.visible=!!r;
     // с мышцами сустав виден по костям: большой шар поверх всего закрывал ягодицу, оставляем точку в центре сустава
-    if(r){const col=C[r.key],sc=state.show.anat?.014:(r.key==='L5'?.034:.05);o.ring.position.copy(r.j.pos);o.ring.scale.setScalar(sc);o.ring.material.color.set(col);o.ring.material.opacity=.95;}
-    if(!show)return; const col=C[r.key];
-    if(r.arm>.002){setCyl(o.seg,r.j.pos,r.Q,.0055);}else o.seg.visible=false;
+    if(r){const col=C[r.key],sc=state.show.anat?.014:(r.key==='L5'?.034:.05);o.ring.position.copy(r.j.pos);o.ring.scale.setScalar(sc);o.ring.material.color.set(col);o.ring.material.opacity=.95*jOp(r.j);}
+    if(!show)return; const col=C[r.key]; o.seg.material.opacity=o.dot.material.opacity=jOp(r.j);
+    if(r.arm>.002){setCyl(o.seg,r.j.pos,r.Q,.0055);}else{o.seg.visible=false;if(!(r.arm>=0))o.dot.visible=false;}
     o.dot.position.copy(r.Q);o.dot.scale.setScalar(.013);o.seg.material.color.set(col);o.dot.material.color.set(col);
   });
   ARCS.forEach((g,i)=>{const r=vis[i];const show=!!r&&state.show.arcs&&r.abs>maxAbs*.01;g.visible=show;if(!show)return;
     const frac=clamp(r.abs/maxAbs,0,1), arc=.2*Math.PI+1.5*Math.PI*frac, R=r.key==='L5'?.075:.1;
     const ud=g.userData; if(Math.abs(ud.arc-arc)>.01||ud.R!==R){ud.torus.geometry.dispose();ud.torus.geometry=new THREE.TorusGeometry(R,.007,8,48,arc);ud.arc=arc;ud.R=R;
       ud.cone.position.set(R*Math.cos(arc),R*Math.sin(arc),0);ud.cone.rotation.set(0,0,arc);}
-    ud.torus.material.color.set(C[r.key]);ud.cone.material.color.set(C[r.key]);ud.torus.material.opacity=ud.cone.material.opacity=.85;
+    ud.torus.material.color.set(C[r.key]);ud.cone.material.color.set(C[r.key]);ud.torus.material.opacity=ud.cone.material.opacity=.85*jOp(r.j);
     g.position.copy(r.j.pos); g.quaternion.setFromUnitVectors(Z,r.axis); g.rotateZ(Math.PI*.35);
   });
   // суставы цветом
@@ -2396,15 +2427,16 @@ function frame(){
   const hasArm=vis.some(r=>r.key==='shoulder'||r.key==='elbow'), hasLeg=vis.some(r=>r.j.bil||r.key==='ankle'||r.key==='knee'||r.key==='hip');
   $('#sideNote').textContent=pose.sideNote||(hasArm&&hasLeg?'на одну руку и одну ногу':hasArm?'на одну руку':'на одну ногу');
   const shownMax=maxAbs;
-  for(const r of res){const row=document.getElementById('row-'+r.key);if(!row)continue;
-    row.querySelector('.v').textContent=fmt0(r.abs); row.querySelector('.arm').textContent=`${fmt1(r.arm*100)} см`;
+  for(const r of res){const row=document.getElementById('row-'+r.id);if(!row)continue;
+    row.querySelector('.v').textContent=fmt0(r.abs); row.querySelector('.arm').textContent=r.arm>=0?`${fmt1(r.arm*100)} см`:'—';
     row.querySelector('.side').textContent=r.key==='L5'?' · суммарно':'';
-    const dir=(r.dem&&r.dem!=='fixed')?`<span class="dir">${(r.key==='ankle'?DIR_ANKLE:DIRLBL)[r.dem]}</span>`:'';
+    const dir=(r.dem&&r.dem!=='fixed')?`<span class="dir">${(r.j.dirl||(r.key==='ankle'?DIR_ANKLE:DIRLBL))[r.dem]}</span>`:'';
     const html=`${dir}${r.dem?'работают: ':''}${r.muscles}`; const mu=row.querySelector('.mus'); if(mu._h!==html){mu.innerHTML=html;mu._h=html;}
     row.querySelector('.bar span').style.width=`${clamp(r.abs/shownMax*100,0,100)}%`;
     const arm=r.key==='shoulder'||r.key==='elbow', base=(pose.sideKg||0)*(r.key==='L5'?2:1), ratio=base>.01?r.mKg/base:0;
     row.querySelector('.mf').innerHTML=`Мышцы: ≈ <b>${fmt0(r.mKg)} кг</b> · плечо мышцы ${fmt1(r.mArm*100)} см${ratio>.05?` · <span title="во сколько раз больше нагрузки">×${fmt1(ratio)} к нагрузке на ${r.key==='L5'?'весь снаряд':arm?'руку':'ногу'}</span>`:''}`;
-    const frEl=row.querySelector('.fr'), fr=pose.frontal&&pose.frontal[r.key];
+    const frEl=row.querySelector('.fr'), fr=pose.frontal&&pose.frontal[r.id];
+    if(r.j.info){const h=r.j.info(r);frEl.hidden=!h;if(h&&frEl._h!==h){frEl.innerHTML=h;frEl._h=h;}continue;}   // своя строка сустава (составляющие момента и т. п.)
     if(r.key==='shoulder'){const P=pose.P,e=P.elL.clone().sub(P.shL),f=P.haL.clone().sub(P.elL);
       const flare=Math.round(Math.atan2(e.z,Math.abs(pose.lineL&&pose.eq.yb!=null?e.x:e.y))/D);
       const tilt=Math.round(Math.acos(clamp(Math.abs(f.dot(pose.lineL.d))/f.length(),-1,1))/D);
@@ -2424,7 +2456,7 @@ function updateTags(){
   for(const k in TAGS)TAGS[k].style.display=show?'':'none';
   if(!show)return;
   const used=new Set(), list=[];
-  for(const r of shown(res)){const el=tag(r.key);used.add(r.key);el.style.display='';setTagHTML(el,`<i style="background:${C[r.key]}"></i>${JNAME[r.key]} <b>${fmt1(r.arm*100)} см</b><span class="mk">${fmt0(r.mKg)} кг</span>`);list.push(placeTag(el,r.j.pos,TAG_OFF[r.key]||[14,0]));}
+  for(const r of shown(res)){const el=tag(r.id);used.add(r.id);el.style.display='';setTagHTML(el,`<i style="background:${C[r.key]};opacity:${jOp(r.j)}"></i>${r.j.tag||jLabel(r.j)} <b>${r.arm>=0?fmt1(r.arm*100)+' см':fmt0(r.abs)+' Н·м'}</b><span class="mk">${fmt0(r.mKg)} кг</span>`);list.push(placeTag(el,r.j.pos,r.j.tagOff||TAG_OFF[r.key]||[14,0]));}
   if(state.show.force){const el=tag('F');used.add('F');el.style.display='';const ln=pose.line;const p=ln.p.clone().addScaledVector(ln.d,-.3);setTagHTML(el,`<i></i>${pose.R!=null?'R':'F'} <b>${fmt0(pose.R!=null?pose.R:pose.F)} Н</b>`);list.push(placeTag(el,p,TAG_OFF.F));}
   const c0=state.show.force&&pose.contacts&&pose.contacts[0];
   if(c0&&c0.label){const el=tag('P');used.add('P');el.style.display='';setTagHTML(el,`<i style="background:${C.muted}"></i>${c0.label} <b>${Math.round(c0.need*100)}%</b>`);list.push(placeTag(el,c0.p.clone().addScaledVector(c0.push.clone().normalize(),.3),[12,8]));}
