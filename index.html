@@ -1985,11 +1985,15 @@ function mArmFD(m,fr,r,axis){
 function lerpTab(xs,ys,x){if(x<=xs[0])return ys[0];for(let i=1;i<xs.length;i++)if(x<=xs[i]){const k=(x-xs[i-1])/(xs[i]-xs[i-1]);return ys[i-1]+k*(ys[i]-ys[i-1]);}return ys[ys.length-1];}
 // подъём плеча относительно корпуса, градусы
 function elevation(pose,s){const P=pose.P,du=P['el'+s].clone().sub(P['sh'+s]).normalize();return Math.acos(clamp(-du.dot(pose.u),-1,1))/D;}
-// мышцы лопатки: эффективное плечо подъёма руки через ритм лопатки (README рук, виртуальная работа), вдоль оси подъёма
+// мышцы лопатки: эффективное плечо подъёма руки через ритм лопатки (README рук, виртуальная работа), вдоль оси подъёма.
+// Рука за корпусом (разгибание назад, конец тяги сидя): лопатка поворачивается вниз и наклоняется вперёд, а не вверх, поэтому
+// ритм идёт в обратную сторону — ромбовидные и малая грудная помогают увести руку назад, зубчатая мешает. До плоскости
+// подъёма в 30° за фронтальной всё как раньше (жим лёжа, тяга к лицу); дальше к чистому разгибанию знак плавно меняется
 function rhythmArm(m,pose,s){
   s=s||'L'; const P=pose.P, du=P['el'+s].clone().sub(P['sh'+s]).normalize(), k=pose.u.clone().negate().cross(du);
   if(k.lengthSq()<1e-6)k.copy(pose.front).negate();
-  return k.normalize().multiplyScalar(lerpTab(m.rh[0],m.rh[1],elevation(pose,s)));
+  const dh=du.clone().addScaledVector(pose.u,-du.dot(pose.u)), q=dh.lengthSq()>1e-8?dh.dot(pose.front)/dh.length():1, w=q>=-.5?1:1-4*(-.5-q);
+  return k.normalize().multiplyScalar(w*lerpTab(m.rh[0],m.rh[1],elevation(pose,s)));
 }
 // длина мышцы: по пути, у мышц лопатки — по таблице длины от подъёма руки (лопатка в приложении неподвижна)
 function mLen(m,i,pts,pose,s,rest){return m.lrel?rest[i].L*lerpTab(m.lrel[0],m.lrel[1],elevation(pose,s)):pathLen(pts);}
