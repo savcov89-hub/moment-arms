@@ -1008,6 +1008,172 @@ const EQUIP_X={};
 /* ===== Раздел: тяга штанги в наклоне ===== */
 
 /* ===== Раздел: разгибание и сгибание ног в тренажёрах ===== */
+// Рычаг тренажёра качается вокруг своей оси O. Валик на рычаге катится по голени, поэтому давит на неё только перпендикулярно голени.
+// Блок через эксцентрик даёт на оси постоянный момент: вес блока × g × LM_ARM. Сила валика = момент тренажёра ÷ плечо этой силы
+// относительно O. Если колено на оси, момент в колене равен моменту тренажёра, где бы ни стоял валик: ближе к колену — только
+// больше сила. Если колено не на оси, валик прокатывается по голени и момент в колене меняется по амплитуде.
+const LM_ARM=.4, LM_ROLL=.05;   // м: «плечо» эксцентрика (как вес блока на рычаге 40 см) и радиус валика
+// o: hip — центр тазобедренного (v2), th — направление бедра (от таза к колену), tr — направление корпуса, kap0 / kap — сгибание
+// колена в начале амплитуды и сейчас (°), side — валик спереди голени ('ant', разгибание) или сзади ('post', сгибание)
+function legMachine(o,p,load){
+  const k=A.H/1.8, {hip,th,side}=o, knee=add(hip,mul(th,A.thigh)), sgn=side==='ant'?1:-1;
+  const sAt=kap=>rot(th,-kap*D), nAt=s=>mul(perpL(s),sgn);   // голень (от колена к голеностопу) и нормаль к ней в сторону валика
+  const s=sAt(o.kap), n=nAt(s), ankle=add(knee,mul(s,A.shank));
+  const pose=basePose({ankle,knee,hip,S:add(hip,mul(o.tr,A.trunk)),footDir:perpL(s),sole:s});
+  const P=pose.P;
+  // центр валика — на расстоянии h от оси голени: кожа над костью (спереди большеберцовая, сзади ахиллово сухожилие) + радиус валика
+  const h=(side==='ant'?.025:.042)*k+LM_ROLL, O=sub(knee,mul(th,p.off/100));
+  const s0=sAt(o.kap0), C0=add(add(knee,mul(s0,A.shank-p.pad/100)),mul(nAt(s0),h)), RL=len(sub(C0,O));   // длина рычага: валик выставлен в начале
+  const w=sub(O,knee), c=clamp((h-dot(w,n))/RL,-1,1), sn=Math.sqrt(1-c*c);
+  const C=add(O,mul(add(mul(n,c),mul(s,sn)),RL)), dK=dot(sub(C,knee),s);        // валик и точка касания вдоль голени от колена
+  const tau=load*G*LM_ARM, armO=Math.max(RL*sn,.05), F=tau/armO, Pc=sub(C,mul(n,LM_ROLL));
+  const Fd=V(-n.x,-n.y,0), Pc3=V(Pc.x,Pc.y,0);
+  pose.forces.push({seg:'load',p:Pc3,F:Fd.clone().multiplyScalar(F)});
+  pose.line={p:Pc3,d:Fd,floor:false}; pose.F=F; pose.sideKg=F/G/2; pose.support=['hip'];
+  legMachineArms(pose,o,k);
+  addBody(pose);
+  const kj={key:'knee',mode:'2d',line:'main',pos:P.kneeL,a:P.hipL.clone().sub(P.kneeL),b:P.ankleL.clone().sub(P.kneeL),
+    free:['load','skL','skR','ftL','ftR'],bil:true,primary:side==='ant'?'flex':'ext',get mArm(){return kneeEffArm(pose,kj);}};
+  pose.joints=[kj];
+  // стопа: пятка в валик — голеностоп держит валик, икроножная сгибает колено свободно; стопа свободна — голеностоп в расчёте
+  // (только вес стопы), и момент икроножной в голеностопе уравновешивают передняя большеберцовая и другие тыльные сгибатели
+  if(p.foot==='free') pose.joints.push({key:'ankle',mode:'2d',line:'main',pos:P.ankleL,a:P.kneeL.clone().sub(P.ankleL),b:P.toeL.clone().sub(P.ankleL),free:['ftL','ftR'],bil:true,primary:'flex',hide:true});
+  else if(side==='post') pose.support.push('ankle');
+  const fromAnkle=A.shank-dK;
+  Object.assign(pose.eq,{kind:o.kind,O,C,RL,knee,hip,th,s,n,h,k,tau,armO,dK,fromAnkle,seatY:o.seatY,hands:o.hands,
+    fit:[V(O.x,O.y,.35),V(C.x,C.y,-.3),V(C.x,C.y,.3),V(O.x,0,-A.hw/2-.5),V(O.x,1.15,-A.hw/2-.5)]});
+  const slide=Math.abs(p.off)>=.5;
+  pose.fric={kind:'pad',text:`Валик вращается и давит на голень только перпендикулярно ей, трения вдоль голени нет. ${slide?`Колено ${p.off>0?'дальше':'ближе'} оси рычага на ${fmt1(Math.abs(p.off))} см: валик прокатывается по голени, сейчас он на <b>${fmt1(fromAnkle*100)} см</b> выше голеностопа (в начале — ${fmt1(p.pad)} см).`:`Колено на оси рычага: валик стоит на голени на месте, <b>${fmt1(fromAnkle*100)} см</b> выше голеностопа.`}`};
+  if(fromAnkle<-.01)pose.warn='Валик съехал с голени на стопу: колено слишком далеко от оси рычага.';
+  else if(dK<A.shank*.45)pose.warn='Валик ушёл к середине голени: колено слишком далеко от оси рычага.';
+  return pose;
+}
+// плечо мышц колена для оценки в кг: момент делится по формуле p = 3 из README ног (F ∝ √r·Fmax^1,5) между мышцами нужного знака,
+// которые пересекают только колено и суставы, держащиеся опорой. Тогда «Мышцы ≈ … кг» совпадает с суммой сил на вкладке мышц
+function kneeEffArm(pose,j){
+  let M=0; for(const f of pose.forces)if(j.free.includes(f.seg)&&(state.body||f.seg.startsWith('load')))M+=(f.p.x-j.pos.x)*f.F.y-(f.p.y-j.pos.y)*f.F.x;
+  if(Math.abs(M)<1e-6)return undefined;
+  const fr=segFrames(pose,'L'), r={key:'knee',j}, ok=new Set(['knee',...(pose.support||[])]);
+  let num=0,den=0;
+  for(const m of MDEF){
+    if(!m.joints.includes('knee')||!m.joints.every(q=>ok.has(q)))continue;
+    let c=0; if(m.wp)c=mArmFD(m,fr,r,Z); else{const v=mArmVec(m,mPath(fr,m),r);c=v?v.z:0;}
+    if(c*M>=0)continue; const a=Math.abs(c), q=Math.pow(m.pcsa*m.sig,1.5);
+    num+=Math.pow(a,1.5)*q; den+=Math.sqrt(a)*q;
+  }
+  return den>0?num/den:undefined;
+}
+function legMachineDesc(pose,L){
+  const e=pose.eq, al=Math.abs(state.params[state.ex].off)<.5;
+  return `Блок ${fmtKg(L)} через эксцентрик даёт на оси рычага постоянный момент ${fmt0(e.tau)} Н·м (вес × g × 0,4 м). Валик давит на голени перпендикулярно им: момент ÷ ${fmt1(e.armO*100)} см от оси до линии силы, на две ноги. `+
+    (al?'Колено на оси рычага, поэтому момент в колене равен моменту тренажёра, где бы ни стоял валик. ':'Колено не на оси рычага: валик прокатывается по голени, и момент в колене отличается от момента тренажёра. ')+'Значения на одну ногу.';
+}
+const LM_PAD=(lbl,def)=>({id:'pad',label:lbl,type:'range',min:2,max:15,step:.5,unit:' см',def,fmt:v=>`${fmt1(v)} см`,
+  hint:'Если колено на оси рычага, положение валика не меняет момент в колене: ближе к колену — больше сила валика на голень, но меньше её плечо'});
+const LM_OFF={id:'off',label:'Колено относительно оси рычага',type:'range',min:-6,max:6,step:.5,unit:' см',def:0,fmt:v=>`${v>0?'+':''}${fmt1(v)} см`,
+  hint:'0 — колено на оси, как требует инструкция тренажёра. Плюс — колено дальше от таза, чем ось, минус — ближе. Тогда валик прокатывается по голени'};
+const LM_FOOT={id:'foot',label:'Стопа',type:'seg',opts:[['brace','Пятка упирается в валик'],['free','Свободна']],def:'brace',
+  hint:p=>p.foot==='free'?'Голеностоп ничем не держится: икроножная, сгибая колено, тянет стопу от себя, и её уравновешивают мышцы передней поверхности голени. Поэтому икроножная помогает мало, нагрузка уходит на заднюю поверхность бедра.':'Пятка упирается в валик и держит голеностоп: икроножная помогает сгибать колено, не разгибая стопу.'};
+
+function buildLegExt(t,p,load){
+  const hip=v2(0,A.ah+A.shank+.15*A.H/1.8+.04), th=v2(1,0);
+  return legMachine({kind:'ext',hip,th,tr:rot(th,(180-p.hipf)*D),kap0:p.from,kap:lerp(p.from,p.to,t),side:'ant',seatY:hip.y-.1*A.H/1.8,
+    hands:'side'},p,load);
+}
+function buildLegCurlLying(t,p,load){
+  // скамья с изгибом у таза: бедро чуть вниз к коленям, корпус вниз к голове; сгибание бедра = сумма наклонов
+  const a=Math.min(10,p.hipf/3)*D, b=p.hipf*D-a, k=A.H/1.8;
+  const hip=v2(0,A.foot*.77+A.ah+(A.thigh+A.shank)*Math.sin(a)+.32*k), th=v2(-Math.cos(a),-Math.sin(a)), tr=v2(Math.cos(b),-Math.sin(b));
+  return legMachine({kind:'lying',hip,th,tr,kap0:p.from,kap:lerp(p.from,p.to,t),side:'post',bench:{a,b},hands:'front'},p,load);
+}
+function buildLegCurlSeated(t,p,load){
+  const a=5*D, hip=v2(0,A.ah+A.shank+.16*A.H/1.8), th=v2(Math.cos(a),Math.sin(a));
+  return legMachine({kind:'seated',hip,th,tr:rot(th,(180-p.hipf)*D),kap0:p.from,kap:lerp(p.from,p.to,t),side:'post',seatY:hip.y-.1*A.H/1.8,hands:'side'},p,load);
+}
+// руки: у сиденья — за рукояти по бокам у таза; лёжа — за рукояти под передним краем скамьи
+function legMachineArms(pose,o,k){
+  const P=pose.P, e=pose.eq;
+  if(o.hands==='side'){
+    const hL=V(o.hip.x+.1*k,o.hip.y-.06*k,A.hw/2+.2*k), hR=hL.clone(); hR.z*=-1;
+    setArms(pose,hL,hR,V(-1,-.3,.6)); e.thumb=[V(1,0,0),V(1,0,0)]; e.handles=[hL,hR];
+  } else {
+    const c=P.shMid.clone().addScaledVector(pose.u,.12*k).addScaledVector(pose.front,.3*k), hL=c.clone().setZ(A.sw/2+.06*k), hR=hL.clone(); hR.z*=-1;
+    setArms(pose,hL,hR,V(-.2,.3,1)); e.thumb=[V(0,0,-1),V(0,0,1)]; e.handles=[hL,hR];
+  }
+}
+Object.assign(EX,{
+  legext:{name:'Разгибание ног в тренажёре',eq:'тренажёр',group:1,loadLabel:'Вес в блоке',def:50,min:5,max:150,step:2.5,equip:'legmach',build:buildLegExt,
+    ends:['согнуто','разогнуто'],endsLong:['Колено согнуто','Колено разогнуто'],fdesc:legMachineDesc,
+    params:[{id:'from',label:'Сгибание колена в начале',type:'range',min:60,max:110,step:1,unit:'°',def:90},
+            {id:'to',label:'Сгибание колена в конце',type:'range',min:0,max:40,step:1,unit:'°',def:5,hint:'0° — колено прямое'},
+            {id:'hipf',label:'Сгибание бедра (наклон спинки)',type:'range',min:50,max:100,step:1,unit:'°',def:80,hint:'90° — спинка вертикальна. Чем сильнее откинута спинка, тем длиннее прямая мышца бедра: она идёт и через тазобедренный сустав'},
+            LM_PAD('Валик выше голеностопа',5),LM_OFF],
+    desc:'Бедро на сиденье, валик на голенях над стопами. Момент в тазобедренном держат сиденье и спинка, поэтому прямая мышца бедра работает на колено вместе с широкими.'},
+  lcurl:{name:'Сгибание ног лёжа',eq:'тренажёр',group:1,loadLabel:'Вес в блоке',def:30,min:5,max:120,step:2.5,equip:'legmach',build:buildLegCurlLying,
+    ends:['прямые','согнуты'],endsLong:['Колени прямые','Колени согнуты'],fdesc:legMachineDesc,
+    params:[{id:'from',label:'Сгибание колена в начале',type:'range',min:0,max:30,step:1,unit:'°',def:5},
+            {id:'to',label:'Сгибание колена в конце',type:'range',min:60,max:130,step:1,unit:'°',def:110},
+            {id:'hipf',label:'Сгибание бедра (изгиб скамьи)',type:'range',min:0,max:45,step:1,unit:'°',def:30,hint:'Таз выше плеч и коленей. Чем сильнее изгиб, тем длиннее задняя поверхность бедра'},
+            LM_PAD('Валик выше голеностопа',6),LM_FOOT,LM_OFF],
+    desc:'Лёжа на скамье с изгибом у таза, валик над пятками. Таз и бёдра лежат на скамье, она держит момент в тазобедренном, и задняя поверхность бедра работает на колено.'},
+  scurl:{name:'Сгибание ног сидя',eq:'тренажёр',group:1,loadLabel:'Вес в блоке',def:40,min:5,max:120,step:2.5,equip:'legmach',build:buildLegCurlSeated,
+    ends:['прямые','согнуты'],endsLong:['Колени прямые','Колени согнуты'],fdesc:legMachineDesc,
+    params:[{id:'from',label:'Сгибание колена в начале',type:'range',min:0,max:30,step:1,unit:'°',def:5},
+            {id:'to',label:'Сгибание колена в конце',type:'range',min:60,max:130,step:1,unit:'°',def:100},
+            {id:'hipf',label:'Сгибание бедра (наклон спинки)',type:'range',min:60,max:120,step:1,unit:'°',def:90,hint:'90° — корпус вертикален. Больше — наклон вперёд: задняя поверхность бедра длиннее (Maeo 2021: сидя мышцы росли сильнее, чем лёжа)'},
+            LM_PAD('Валик выше голеностопа',6),LM_FOOT,LM_OFF],
+    desc:'Бедро прижато к сиденью валиком сверху, голени лежат на валике снизу. Бедро согнуто, поэтому двусуставные мышцы задней поверхности бедра длиннее, чем в сгибании лёжа.'}
+});
+// тренажёр: рама с осью рычага сбоку (дальняя сторона), рычаг с валиком поперёк голеней, блок с грузами, сиденье или скамья
+EQUIP_X.legmach=function(load){
+  const objs=[],M=m=>(objs.push(m),m), zh=()=>A.hw/2;
+  const seat=M(boxMesh(MAT.pad)),back=M(boxMesh(MAT.pad)),post=M(boxMesh(MAT.frame)),base=M(boxMesh(MAT.frame)),tower=M(boxMesh(MAT.frame)),stack=M(boxMesh(MAT.iron));
+  const lever=M(boxMesh(MAT.frame)),hub=M(cylMesh(MAT.metal)),cam=M(cylMesh(MAT.frame)),bar=M(cylMesh(MAT.metal)),cable=M(cylMesh(MAT.metal)),cable2=M(cylMesh(MAT.metal));
+  const rolls=[M(cylMesh(MAT.pad)),M(cylMesh(MAT.pad))],lap=M(cylMesh(MAT.pad)),lapBar=M(cylMesh(MAT.metal)),hnd=[M(cylMesh(MAT.pad)),M(cylMesh(MAT.pad))];
+  const pads=[M(boxMesh(MAT.pad)),M(boxMesh(MAT.pad))],legs=[M(boxMesh(MAT.frame)),M(boxMesh(MAT.frame))];
+  return{objs,update(p){
+    const e=p.eq,k=e.k,P=p.P,u=p.u,f=p.front,z=zh(),V3=(q,zz)=>V(q.x,q.y,zz||0),O=V3(e.O),C=V3(e.C);
+    const zl=-(z+.2*k), zt=-(z+.5*k);                       // рычаг и башня с грузами — на дальней стороне
+    setCyl(hub,O.clone().setZ(zl-.04),O.clone().setZ(zl+.06),.03);
+    setCyl(cam,O.clone().setZ(zl-.06),O.clone().setZ(zl-.03),.09*k);
+    boxBetween(lever,O.clone().setZ(zl),C.clone().setZ(zl),.04,.05);
+    setCyl(bar,C.clone().setZ(zl),C.clone().setZ(z+.12*k),.014);
+    for(const [i,sg] of [[0,1],[1,-1]])setCyl(rolls[i],C.clone().setZ(sg*z-.075*k),C.clone().setZ(sg*z+.075*k),LM_ROLL);
+    // стойка от пола до оси и башня с грузами
+    const ty=Math.max(1.2,O.y+.5);
+    placeBox(post,V(O.x,O.y/2,zl-.08),V(1,0,0),Y,Z,.07,O.y,.06);
+    placeBox(tower,V(O.x-.25*Math.sign(e.th.x||1),ty/2,zt),V(1,0,0),Y,Z,.1,ty,.1);
+    const n=clamp(load/10,1,15), sh=.035*n, sx=O.x-.12*Math.sign(e.th.x||1);
+    placeBox(stack,V(sx,.12+sh/2,zt),V(1,0,0),Y,Z,.2,sh,.12);
+    setCyl(cable,O.clone().setZ(zl-.05).add(V(0,.09*k,0)),V(sx,ty-.03,zt),.004);
+    setCyl(cable2,V(sx,ty-.03,zt),V(sx,.12+sh,zt),.004);
+    // сиденье или скамья
+    const hipM=P.hipMid, th3=V3(e.th), kn=V3(e.knee), ant=V(-e.th.y,e.th.x,0);   // перёд бедра — perpL(бедра)
+    if(e.kind==='lying'){
+      const fT=f.clone(), up=V(0,1,0);
+      // бедренная часть: под передней поверхностью бедра до колена; грудная — под корпусом до плеч
+      const a0=hipM.clone().addScaledVector(ant,.085*k), a1=kn.clone().addScaledVector(th3,-.06).addScaledVector(ant,.085*k);
+      boxBetween(pads[0],a0.clone().addScaledVector(ant,.04),a1.clone().addScaledVector(ant,.04),.42,.08);
+      const b0=hipM.clone().addScaledVector(fT,.1*k), b1=P.shMid.clone().addScaledVector(u,.04).addScaledVector(fT,.1*k);
+      boxBetween(pads[1],b0.clone().addScaledVector(fT,.04),b1.clone().addScaledVector(fT,.04),.42,.08);
+      for(const [i,q] of [[0,a1],[1,b1]]){const top=q.clone().addScaledVector(up,-.1);placeBox(legs[i],V(top.x,top.y/2,0),V(1,0,0),Y,Z,.08,top.y,.36);}
+      placeBox(base,V((a1.x+b1.x)/2,.025,0),V(1,0,0),Y,Z,Math.abs(a1.x-b1.x)+.3,.05,.5);
+      seat.visible=back.visible=lap.visible=lapBar.visible=false;
+    } else {
+      const sy=e.seatY, x0=hipM.x-.2*k, x1=kn.x-.08*k;
+      placeBox(seat,V((x0+x1)/2,sy-.04,0),V(1,0,0),Y,Z,x1-x0,.08,.42);
+      placeBox(back,hipM.clone().addScaledVector(u,A.trunk*.5).addScaledVector(f,-.15*k),f,u,f.clone().cross(u).normalize(),.07,A.trunk+.05,.42);
+      placeBox(base,V((x0+O.x)/2,.025,0),V(1,0,0),Y,Z,Math.abs(O.x-x0)+.5,.05,.55);
+      placeBox(legs[0],V((x0+x1)/2,(sy-.08)/2,0),V(1,0,0),Y,Z,.08,sy-.08,.08); legs[1].visible=false;
+      // валик на бёдрах над коленями
+      const lc=kn.clone().addScaledVector(th3,-.12*k).addScaledVector(ant,.085*k+.045);
+      setCyl(lap,lc.clone().setZ(-z-.1*k),lc.clone().setZ(z+.1*k),.045); setCyl(lapBar,lc.clone().setZ(zl),lc.clone().setZ(-z-.1*k),.012);
+      pads[0].visible=pads[1].visible=false; seat.visible=back.visible=lap.visible=lapBar.visible=true;
+    }
+    // рукояти
+    for(const [i,h] of e.handles.entries()){const d=e.hands==='side'?V(1,0,0):V(0,1,0);setCyl(hnd[i],h.clone().addScaledVector(d,-.07),h.clone().addScaledVector(d,.07),.018);}
+  }};
+};
 
 /* ===== Раздел: блоки (горизонтальная тяга, разгибание рук, сведение, тяга к лицу) ===== */
 
