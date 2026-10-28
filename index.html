@@ -1763,7 +1763,10 @@ function segFrames(pose,s){
     const up=P['ankle'+s].clone().sub(heel); fr.foot=mk(heel,d,up,L,MREF.foot,false); }
   const sh=P['sh'+s],el=P['el'+s],ha=P['ha'+s], du=el.clone().sub(sh),Lu=du.length();du.divideScalar(Lu);
   const df=ha.clone().sub(el),Lf=df.length();df.divideScalar(Lf);
-  const antU=perp(df.clone().multiplyScalar(Lf),du).addScaledVector(perp(f,du),.25*Lf);
+  // при почти прямом локте «перед» плеча берётся из подсказки: pose.uaAnt (для левой руки, у правой z зеркально), иначе перед корпуса.
+  // В висе на перекладине локоть сгибается во фронтальной плоскости, и перед корпуса ставил бы трицепс сбоку от плоскости сгибания
+  const hintA=pose.uaAnt?pose.uaAnt.clone():f; if(pose.uaAnt&&s==='R')hintA.z*=-1;
+  const antU=perp(df.clone().multiplyScalar(Lf),du).addScaledVector(perp(hintA,du),.25*Lf);
   fr.ua=mk(sh,du,antU,Lu,MREF.ua,false);
   // предплечье — система локтевой кости: плечевая система, повёрнутая на угол сгибания локтя; от пронации кисти не зависит
   const antF=fr.ua.ant.clone().applyQuaternion(new THREE.Quaternion().setFromUnitVectors(du,df));
