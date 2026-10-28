@@ -1876,6 +1876,265 @@ Object.assign(EQUIP_X,{pullup(load){
 }});
 
 /* ===== Раздел: разная поза левой и правой стороны (тяга гантели одной рукой, болгарские сплит-приседы, отведение бедра) ===== */
+// У суставов здесь есть side: 'L' или 'R' — своя нога или рука, 'B' — поясница, общая для обеих сторон; мышцы каждой стороны
+// считаются своей задачей (muscleState2). Реакции опор — только вертикальные, отдельно от снаряда (load…) и от веса тела (body…),
+// чтобы переключатель «вес тела» работал как в остальных упражнениях.
+// веса без 'trunkU' (это часть 'trunk') и без нагрузок: [{p, w}] — для реакций опор
+function bodyWeights(pose){return pose.forces.filter(f=>f.mass&&f.seg!=='trunkU'&&!f.seg.startsWith('load')).map(f=>({p:f.p,w:f.mass*G}));}
+// вертикальные реакции двух опор с абсциссами xa и xb (правило рычага)
+function lever2(ws,xa,xb){let W=0,M=0;for(const w of ws){W+=w.w;M+=w.w*w.p.x;}const k=Math.abs(xa-xb)>1e-6?(M/(W||1)-xb)/(xa-xb):.5;return {a:W*k,b:W*(1-k),W};}
+// фронтальная плоскость сустава ноги: момент вертикальных сил на дистальную часть вокруг оси x и где проходит их равнодействующая
+function legFrontal(J,fs){let Fy=0,M=0;for(const f of fs){Fy+=f.F.y;M+=f.F.y*(f.p.z-J.z);}const zl=Math.abs(Fy)>1e-6?M/Fy:0;
+  return {M:Math.abs(M),arm:Math.abs(zl),lat:J.z>0?zl>0:zl<0};}
+
+/* ---------- Болгарские сплит-приседы ---------- */
+// Передняя нога — левая (z > 0), задняя — правая: подъём стопы лежит на скамье. Опоры две — передняя стопа на полу и подъём задней на скамье;
+// доли веса на них — по положению общего центра масс между опорами. Суставы ног считаются снизу вверх от своей опоры, поясница — сверху вниз.
+function buildSplit(t,p,load){
+  const L=A.shank+A.thigh, hb=p.benchH/100, xE=-p.step/100, zh=A.hw/2, zR=.6*zh;   // xE — передний край скамьи; задняя стопа ближе к середине
+  const ankF=v2(0,A.ah), ankR=v2(xE-.03,hb+.04), C=v2(ankR.x-.3*A.foot,hb);       // голеностоп задней ноги над краем скамьи; C — центр давления подъёма стопы
+  const sh=p.shin*D, th=p.depth*D, kMin=Math.sqrt(A.shank**2+A.thigh**2-2*A.shank*A.thigh*Math.cos(35*D));
+  // нижняя точка: передняя голень наклонена на shin, бедро — на depth от вертикали
+  const kB=add(ankF,mul(dirA(sh),A.shank)); let hipB=add(kB,v2(-A.thigh*Math.sin(th),A.thigh*Math.cos(th))), warn='';
+  const reachR=.99*L, dR=len(sub(hipB,ankR));
+  if(dR>reachR){const dy=hipB.y-ankR.y;hipB=v2(ankR.x+Math.sqrt(Math.max(0,reachR**2-dy*dy)),hipB.y);warn='Задняя нога не достаёт до скамьи при такой глубине: таз отодвинут назад. Поставьте переднюю стопу ближе к скамье.';}
+  // подъём: таз идёт вертикально, пока передняя нога почти не выпрямится (или задняя не вытянется)
+  const yF=ankF.y+Math.sqrt(Math.max(0,(.985*L)**2-(hipB.x-ankF.x)**2)), yR=ankR.y+Math.sqrt(Math.max(0,reachR**2-(hipB.x-ankR.x)**2));
+  const hip=v2(hipB.x,lerp(Math.max(hipB.y,Math.min(yF,yR)),hipB.y,t));
+  const phi=lerp(Math.min(p.lean,4),p.lean,t)*D, S=add(hip,mul(dirA(phi),A.trunk));
+  const kF=ik2(ankF,hip,A.shank,A.thigh,v2(1,0)), kR=ik2(ankR,hip,A.shank,A.thigh,v2(0,-1));
+  if(!warn&&len(sub(hip,ankR))<kMin)warn='Колено задней ноги сгибается до предела: отодвиньте скамью или уменьшите глубину.';
+  if(!warn&&kR.y<.06)warn='Колено задней ноги касается пола: уменьшите глубину, поднимите скамью или отодвиньте её.';
+  const pose=basePose({ankle:ankF,knee:kF,hip,S,footDir:v2(1,0),sole:v2(0,-1),copFrac:COPF[p.cop]});
+  const P=pose.P, fd=v2(-1,0), so=v2(0,1);   // задняя стопа носком назад, подошвой вверх
+  P.ankleR=V(ankR.x,ankR.y,-zR); P.kneeR=V(kR.x,kR.y,-(zh+zR)/2);
+  const hR=add(add(ankR,mul(fd,-.23*A.foot)),mul(so,A.ah)), tR=add(add(ankR,mul(fd,.77*A.foot)),mul(so,A.ah));
+  P.heelR=V(hR.x,hR.y,-zR); P.toeR=V(tR.x,tR.y,-zR);
+  let Ld;
+  if(p.kind==='bar'){   // высокое положение грифа, как в приседании
+    const u=dirA(phi), back=v2(-Math.cos(phi),Math.sin(phi)), b=add(add(S,mul(u,.05)),mul(back,.06)), g=A.sw/2+.17;
+    Ld=V(b.x,b.y,0); setArms(pose,V(b.x,b.y,g),V(b.x,b.y,-g),V(-1,-.9,.45)); pose.eq.bar=Ld;
+  } else {              // гантели в опущенных руках, рукоять вдоль стопы
+    const arm=(A.ua+A.fa)*.995, dz=.035, dx=.02, dy=Math.sqrt(arm*arm-dz*dz-dx*dx);
+    setArms(pose,P.shL.clone().add(V(dx,-dy,dz)),P.shR.clone().add(V(dx,-dy,-dz)),V(-.2,0,1));
+    Ld=P.haL.clone().add(P.haR).multiplyScalar(.5); pose.eq.dbAx=[V(1,0,0),V(1,0,0)];
+  }
+  addBody(pose);
+  const W=load*G, cop=pose.cop, C3=V(C.x,C.y,-zR);
+  pose.forces.push({seg:'load',p:Ld,F:V(0,-W,0),mass:load});
+  const rl=lever2([{p:Ld,w:W}],cop.x,C.x), rb=lever2(bodyWeights(pose),cop.x,C.x);
+  // фронтальная плоскость: центр давления передней стопы там, где равновесие вокруг оси x (в пределах ширины стопы)
+  let Wz=0; for(const f of pose.forces)if(f.mass&&f.seg!=='trunkU')Wz+=f.mass*G*f.p.z;
+  const Rf=rl.a+rb.a, Rb=rl.b+rb.b; cop.z=clamp(Rf>1?(Wz-Rb*C3.z)/Rf:zh,zh-.045,zh+.035);
+  pose.forces.push({seg:'loadFt',p:cop,F:V(0,rl.a,0)},{seg:'bodyFt',p:cop,F:V(0,rb.a,0)},{seg:'loadBk',p:C3,F:V(0,rl.b,0)},{seg:'bodyBk',p:C3,F:V(0,rb.b,0)});
+  if(Rf<0||Rb<0)pose.flag='lift';
+  const up=V(0,1,0), lnR={p:C3,d:up,floor:false}, lnL={p:Ld.clone(),d:V(0,-1,0)};
+  pose.line={p:cop,d:up}; pose.lineBar=lnL;
+  pose.F=W; pose.R=rl.a+(state.body?rb.a:0); pose.sideKg=load/2;
+  Object.assign(pose.eq,{xE,hb,zR,kind:p.kind,fit:[V(xE-1.1,hb,-zR),V(xE,0,-zR-.15)]});
+  pose.warn=warn||null;
+  const shF=Math.round(p.shin), share=Math.round(Rb/Math.max(1,Rf+Rb)*100);
+  pose.fric={kind:'split',text:`Вес тела и снаряда делится между опорами: передняя стопа — <b>${100-share}%</b> (${fmt0(Rf)} Н), задняя стопа на скамье — <b>${share}%</b> (${fmt0(Rb)} Н). Чем сильнее наклон корпуса, тем больше достаётся передней ноге. Реакции считаются вертикальными: в статике горизонтальной силы нет, трение не нужно. В исследовании Arakawa и соавт. (2025) на задней ноге было 28–39% веса.`};
+  // суставы: передняя нога и задняя нога снизу вверх, поясница сверху вниз
+  const F=['loadFt','bodyFt'], B=['loadBk','bodyBk'], dv=(a,b)=>a.clone().sub(b), trunkA=dv(P.shMid,P.hipMid);
+  pose.joints=[
+    {key:'ankle',side:'L',label:'Голеностоп, передняя нога',tag:'Голеностоп',mode:'2d',line:'main',pos:P.ankleL,a:dv(P.kneeL,P.ankleL),b:dv(P.toeL,P.ankleL),free:F,primary:'flex'},
+    {key:'knee',side:'L',label:'Колено, передняя нога',tag:'Колено спереди',mode:'2d',line:'main',pos:P.kneeL,a:dv(P.hipL,P.kneeL),b:dv(P.ankleL,P.kneeL),free:[...F,'ftL','skL'],primary:'flex'},
+    {key:'hip',side:'L',label:'Тазобедренный, передняя нога',tag:'Таз спереди',mode:'2d',line:'main',pos:P.hipL,a:trunkA,b:dv(P.kneeL,P.hipL),free:[...F,'ftL','skL','thL'],primary:'flex'},
+    {key:'knee',id:'kneeR',side:'R',alt:true,label:'Колено, задняя нога',tag:'Колено сзади',mode:'2d',line:lnR,pos:P.kneeR,a:dv(P.hipR,P.kneeR),b:dv(P.ankleR,P.kneeR),free:[...B,'ftR','skR'],primary:'flex',tagOff:[-16,10]},
+    {key:'hip',id:'hipR',side:'R',alt:true,label:'Тазобедренный, задняя нога',tag:'Таз сзади',mode:'2d',line:lnR,pos:P.hipR,a:trunkA,b:dv(P.kneeR,P.hipR),free:[...B,'ftR','skR','thR'],primary:'ext',tagOff:[-16,24]},
+    {key:'L5',side:'B',mode:'2d',line:lnL,pos:P.L5,flexSign:-1,free:FREE_TOP.L5,primary:'flex'}
+  ];
+  pose.support={L:[],R:['ankle']};   // голеностоп задней ноги лежит на скамье в крайнем подошвенном сгибании — держат связки и скамья
+  // фронтальная плоскость передней ноги (только показ, как в приседании): центр давления стопы медиальнее тазобедренного
+  const bd=state.body, cnt=f=>bd||f.seg.startsWith('load'), fs=segs=>pose.forces.filter(f=>segs.includes(f.seg)&&cnt(f));
+  pose.frontal={knee:legFrontal(P.kneeL,fs([...F,'ftL','skL'])),hip:legFrontal(P.hipL,fs([...F,'ftL','skL','thL']))};
+  pose.sideNote='для каждой ноги свои';
+  pose.sideNames={L:'Передняя нога (левая)',R:'Задняя нога (правая)'};
+  return pose;
+}
+
+Object.assign(EX,{
+  split:{name:'Болгарские сплит-приседы',eq:'гантели',group:0,loadLabel:'Общий вес: обе гантели или штанга',def:30,min:0,max:200,step:2,equip:'split',build:buildSplit,
+    params:[{id:'kind',label:'Снаряд',type:'seg',opts:[['db','Гантели в руках'],['bar','Штанга на спине']],def:'db'},
+            {id:'step',label:'От передней стопы до скамьи',type:'range',min:50,max:120,step:1,unit:' см',def:80,hint:'От голеностопа передней ноги до края скамьи. Дальше — больше работает таз и растягивается задняя нога.'},
+            {id:'benchH',label:'Высота скамьи',type:'range',min:30,max:60,step:1,unit:' см',def:45},
+            {id:'depth',label:'Глубина: наклон переднего бедра от вертикали',type:'range',min:55,max:105,step:1,unit:'°',def:75,hint:'90° — бедро параллельно полу'},
+            {id:'shin',label:'Наклон передней голени внизу',type:'range',min:0,max:45,step:1,unit:'°',def:30,hint:'0° — голень вертикальна, колено над голеностопом. Больше наклон — колено уходит вперёд, нагрузка смещается с таза на колено.'},
+            {id:'lean',label:'Наклон корпуса внизу',type:'range',min:0,max:45,step:1,unit:'°',def:15,hint:'От вертикали. Сильнее наклон — больше веса на передней ноге и больше момент в её тазобедренном суставе.'},
+            COP_PARAM],
+    desc:'Задняя стопа лежит подъёмом на скамье. Вес делится между ногами по положению центра масс, каждая нога считается от своей опоры.',
+    fdesc:(p,L)=>`${p.eq.kind==='bar'?`Штанга ${fmtKg(L)} на спине`:`Две гантели по ${fmtKg(L/2)} в опущенных руках`}, вертикально вниз. Суставы передней ноги считаются от реакции пола под стопой (линия R), задней — от реакции скамьи под подъёмом стопы, поясница — от снаряда и веса верха тела.`}
+});
+// скамья вдоль оси x: подушка, рама и четыре ножки; возвращает place(центр по x, длина, высота, z)
+function benchMeshes(objs){
+  const top=boxMesh(MAT.pad), fr=boxMesh(MAT.frame), legs=[0,1,2,3].map(()=>boxMesh(MAT.frame)); objs.push(top,fr,...legs);
+  return (xc,L,hb,z)=>{placeBox(top,V(xc,hb-.035,z),V(1,0,0),Y,Z,L,.07,.29); placeBox(fr,V(xc,hb-.085,z),V(1,0,0),Y,Z,L-.15,.03,.1);
+    [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([sx,sz],i)=>placeBox(legs[i],V(xc+sx*(L/2-.12),(hb-.1)/2,z+sz*.13),V(1,0,0),Y,Z,.05,hb-.1,.05));};
+}
+EQUIP_X.split=function(load){
+  const p=state.params.split, hb=p.benchH/100, objs=[], bench=benchMeshes(objs);
+  let bar=null, dl=null, dr=null;
+  if(p.kind==='bar'){bar=makeBarbell(load);objs.push(bar);} else {dl=makeDumbbell(load/2);dr=makeDumbbell(load/2);objs.push(dl,dr);}
+  return{objs,update(ps){
+    const e=ps.eq; bench(e.xE-.6,1.2,hb,-e.zR);
+    if(bar)bar.position.copy(e.bar);
+    if(dl){dl.position.copy(ps.P.haL);dr.position.copy(ps.P.haR);dl.quaternion.setFromUnitVectors(Z,e.dbAx[0]);dr.quaternion.setFromUnitVectors(Z,e.dbAx[1]);}
+  }};
+};
+
+/* ---------- Тяга гантели одной рукой с упором в скамью ---------- */
+// Правые колено и кисть на скамье, левая стопа на полу, левая рука тянет гантель. Опоры три, их вертикальные реакции —
+// из равновесия сил и моментов вокруг осей x и z. Поясница считается в 3D: гантель сбоку добавляет к сгибанию скручивание
+// и боковой наклон, их держат мышцы живота и спины обеих сторон (одна задача на мышцы обеих сторон).
+// вертикальные реакции трёх опор a, b, c (точки) по весам [{p, w}]
+function lever3(ws,a,b,c){
+  let W=0,X=0,Zm=0; for(const w of ws){W+=w.w;X+=w.w*w.p.x;Zm+=w.w*w.p.z;}
+  const M=[[1,1,1],[a.x,b.x,c.x],[a.z,b.z,c.z]], r=[W,X,Zm];
+  const det=m=>m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+  const d=det(M), col=i=>M.map((row,j)=>row.map((v,k)=>k===i?r[j]:v));
+  return [0,1,2].map(i=>Math.abs(d)>1e-9?det(col(i))/d:W/3);
+}
+function buildDbRow(t,p,load){
+  const hb=.45, zh=A.hw/2, zs=A.sw/2, be=10*D, arm=A.ua+A.fa, reach=.99*arm;
+  const kR=V(0,hb+.05,-zh), hip=v2(kR.x-A.thigh*Math.sin(be),kR.y+A.thigh*Math.cos(be));   // колено на скамье, бедро наклонено назад на 10°
+  // корпус под углом trunk к горизонтали; кисть опорной руки на скамье чуть впереди плеча, локоть сгибается сколько нужно.
+  // Выше, чем достаёт прямая рука, корпус не поднять
+  let al=p.trunk*D, note='';
+  const alMax=Math.asin(clamp((hb+.03+Math.sqrt(reach*reach-.0025)-hip.y)/A.trunk,-1,1));
+  if(al>alMax){al=alMax;note=`Опорная рука на скамье 45 см не даёт поднять корпус выше ${Math.round(alMax/D)}°.`;}
+  const S=add(hip,v2(A.trunk*Math.cos(al),A.trunk*Math.sin(al)));
+  const pose=basePose({ankle:v2(hip.x+.05,A.ah),knee:v2(hip.x+.1,(hip.y+A.ah)/2),hip,S,footDir:v2(1,0),sole:v2(0,-1)});
+  const P=pose.P;
+  // левая нога стоит под тазом, стопа на 10 см шире
+  const zF=zh+.1, lk=ik3(P.hipL,V(hip.x+.06,A.ah,zF),A.thigh,A.shank,V(1,0,.15)); P.kneeL=lk.E; P.ankleL=lk.H;
+  P.heelL=P.ankleL.clone().add(V(-.23*A.foot,-A.ah,0)); P.toeL=P.ankleL.clone().add(V(.77*A.foot,-A.ah,0));
+  const cop=P.ankleL.clone().add(V(.27*A.foot,-A.ah,0)); pose.cop=cop;
+  if(P.ankleL.y>A.ah+.005)note=note||'Стоящая нога не достаёт до пола: скамья высока для такого роста.';
+  // правая нога: колено на скамье, голень лежит вдоль неё, стопа подошвой вверх
+  P.kneeR=kR.clone(); P.ankleR=V(kR.x-A.shank,hb+.045,-zh);
+  P.heelR=P.ankleR.clone().add(V(.23*A.foot,A.ah,0)); P.toeR=P.ankleR.clone().add(V(-.77*A.foot,A.ah,0));
+  // опорная рука: кисть на скамье на 5 см впереди плеча
+  const Hr=V(P.shR.x+.05,hb+.03,P.shR.z);
+  const ra=ik3(P.shR,Hr,A.ua,A.fa,V(-1,0,-.3)); P.elR=ra.E; P.haR=ra.H;
+  // рабочая рука: плечо отходит от вертикали на угол до top (назад и в сторону на flare), предплечье вертикально — гантель висит под локтем
+  const a=Math.max(0,90-p.trunk+p.top)*D*(1-t), ps=p.flare*D, du=V(-Math.sin(a)*Math.cos(ps),-Math.cos(a),Math.sin(a)*Math.sin(ps));
+  P.elL=P.shL.clone().addScaledVector(du,A.ua); P.haL=P.elL.clone().add(V(0,-A.fa,0));
+  pose.forearm={L:'neu',R:'pro'};
+  addBody(pose);
+  const W=load*G, H3=V(Hr.x,hb,Hr.z), K3=V(kR.x,hb,kR.z);
+  pose.forces.push({seg:'load',p:P.haL,F:V(0,-W,0),mass:load});
+  const rl=lever3([{p:P.haL,w:W}],H3,K3,cop), rb=lever3(bodyWeights(pose),H3,K3,cop);
+  [['H',H3],['K',K3],['Ft',cop]].forEach(([k,q],i)=>pose.forces.push({seg:'load'+k,p:q,F:V(0,rl[i],0)},{seg:'body'+k,p:q,F:V(0,rb[i],0)}));
+  const R=rl.map((v,i)=>v+rb[i]); if(R.some(v=>v<0))pose.flag='lift';
+  const down=V(0,-1,0); pose.lineL={p:P.haL.clone(),d:down}; pose.line=pose.lineL;
+  pose.F=W; pose.sideKg=load;
+  pose.eq={hb,benchZ:-(zh+zs)/2-.02,x0:kR.x-A.shank-.12,x1:Hr.x+.12,dbAx:[V(1,0,0),V(1,0,0)],thumb:[V(1,0,0),V(0,0,1)]};
+  pose.eq.fit=[V(pose.eq.x0,hb,pose.eq.benchZ),V(pose.eq.x1,0,pose.eq.benchZ)];
+  pose.note=note||null;
+  const Wt=R[0]+R[1]+R[2], pc=v=>Math.round(v/Math.max(1,Wt)*100);
+  pose.fric={kind:'dbrow',text:`Вес тела и гантели делится между тремя опорами: правая кисть на скамье — <b>${pc(R[0])}%</b> (${fmt0(R[0])} Н), правое колено — <b>${pc(R[1])}%</b> (${fmt0(R[1])} Н), левая стопа — <b>${pc(R[2])}%</b> (${fmt0(R[2])} Н). Реакции считаются вертикальными. Опора на руку снимает с поясницы часть веса корпуса.`};
+  const F=['loadFt','bodyFt'], dv=(x,y)=>x.clone().sub(y), trunkA=dv(P.shMid,P.hipMid), u=pose.u, fr=pose.front;
+  pose.joints=[
+    {key:'shoulder',side:'L',mode:'3d',line:'L',pos:P.shL,free:['load','uaL','faL'],fixed:'Широчайшая, большая круглая, задняя дельта',primary:'flex'},
+    {key:'elbow',side:'L',mode:'3d',line:'L',pos:P.elL,a:dv(P.shL,P.elL),b:dv(P.haL,P.elL),free:['load','faL'],primary:'ext'},
+    {key:'L5',side:'B',mode:'3d',line:'L',pos:P.L5,axes:[Z.clone(),fr.clone(),u.clone()],main:Z.clone(),mainSign:-1,noArm:true,primary:'flex',
+      free:['load','trunkU','head','uaL','uaR','faL','faR','loadH','bodyH'],
+      info:r=>{const mt=Math.abs(r.Mv.dot(u)), ml=Math.abs(r.Mv.dot(fr));return `Кроме сгибания: скручивание <b>${fmt0(mt)} Н·м</b>, боковой наклон <b>${fmt0(ml)} Н·м</b>. Их держат косые мышцы живота и мышцы спины обеих сторон. Модель корпуса строилась для сгибания, на скручивание у неё мало рычага у косых мышц, поэтому их загрузка, скорее всего, завышена.`;}},
+    // опорная рука и ноги считаются ради мышц, но не показываются
+    {key:'shoulder',id:'shoulderR',side:'R',hide:true,mode:'3d',line:'L',pos:P.shR,free:['loadH','bodyH','uaR','faR'],fixed:'Большая грудная, передняя дельта, трицепс',primary:'flex'},
+    {key:'elbow',id:'elbowR',side:'R',hide:true,mode:'3d',line:'L',pos:P.elR,a:dv(P.shR,P.elR),b:dv(P.haR,P.elR),free:['loadH','bodyH','faR'],primary:'flex'},
+    {key:'ankle',side:'L',hide:true,mode:'2d',pos:P.ankleL,a:dv(P.kneeL,P.ankleL),b:dv(P.toeL,P.ankleL),free:F,primary:'flex'},
+    {key:'knee',side:'L',hide:true,mode:'2d',pos:P.kneeL,a:dv(P.hipL,P.kneeL),b:dv(P.ankleL,P.kneeL),free:[...F,'ftL','skL'],primary:'flex'},
+    {key:'hip',side:'L',hide:true,mode:'2d',pos:P.hipL,a:trunkA,b:dv(P.kneeL,P.hipL),free:[...F,'ftL','skL','thL'],primary:'flex'},
+    {key:'hip',id:'hipR',side:'R',hide:true,mode:'2d',pos:P.hipR,a:trunkA,b:dv(P.kneeR,P.hipR),free:['loadK','bodyK','ftR','skR','thR'],primary:'flex'}
+  ];
+  pose.support={L:[],R:['knee','ankle']};   // правые колено и голень лежат на скамье
+  pose.sideNote='рабочая рука и поясница';
+  pose.sideNames={L:'Левая сторона: рабочая рука и стоящая нога',R:'Правая сторона: опорные рука и колено'};
+  return pose;
+}
+Object.assign(EX,{
+  dbrow:{name:'Тяга гантели одной рукой',eq:'гантель',group:3,loadLabel:'Вес гантели',def:20,min:4,max:80,step:1,equip:'dbrow',build:buildDbRow,
+    params:[{id:'trunk',label:'Наклон корпуса к полу',type:'range',min:5,max:40,step:1,unit:'°',def:20,hint:'Угол корпуса к горизонтали. Кисть опорной руки стоит под плечом: чем ниже корпус, тем сильнее согнут её локоть.'},
+            {id:'flare',label:'Отведение локтя от корпуса',type:'range',min:0,max:80,step:1,unit:'°',def:15,hint:'0–20° — локоть идёт вдоль корпуса к поясу, больше работает широчайшая. 60–80° — локоть в сторону: задняя дельта и середина спины.'},
+            {id:'top',label:'Локоть в верхней точке',type:'range',min:-30,max:30,step:1,unit:'°',def:-10,hint:'0° — плечо вдоль корпуса, локоть на уровне спины. Плюс — локоть выше спины: плечо уходит за корпус, где у разгибателей плеча мало рычага.'}],
+    ends:['вверху','внизу'], endsLong:['Гантель у пояса','Рука выпрямлена'],
+    desc:'Правые колено и кисть на скамье, левая рука тянет гантель. Предплечье вертикально, поэтому почти весь момент приходится на плечевой сустав. Поясницу скручивает и наклоняет вбок.',
+    fdesc:(p,L)=>`Вес гантели ${fmtKg(L)}, вертикально вниз через кисть рабочей руки. Плечевой и локтевой — для этой руки; поясница — от гантели, веса верха тела и опоры правой руки на скамью.`}
+});
+EQUIP_X.dbrow=function(load){
+  const objs=[], bench=benchMeshes(objs), db=makeDumbbell(load); objs.push(db);
+  return{objs,update(ps){const e=ps.eq; bench((e.x0+e.x1)/2,e.x1-e.x0,e.hb,e.benchZ); db.position.copy(ps.P.haL); db.quaternion.setFromUnitVectors(Z,e.dbAx[0]);}};
+};
+
+/* ---------- Отведение бедра в тренажёре сидя ---------- */
+// Бёдра лежат на сиденье горизонтально, голени вертикально, стопы на подножках. Подушки давят на наружную сторону бёдер у колен
+// внутрь, перпендикулярно бедру; рычаги ходят вокруг вертикальной оси, и момент сил подушки — только вокруг неё.
+// Наклон корпуса меняет сгибание бедра (90° ± наклон),
+// а с ним и то, какие мышцы отводят бедро.
+function buildAbduct(t,p,load){
+  const yS=.47, hip=v2(0,yS+.09), zh=A.hw/2, ph=p.lean*D, th=lerp(p.a1,5,t)*D;
+  const S=add(hip,mul(dirA(ph),A.trunk));
+  const pose=basePose({ankle:v2(A.thigh,hip.y-A.shank),knee:v2(A.thigh,hip.y),hip,S,footDir:v2(1,0),sole:v2(0,-1)});
+  const P=pose.P, T=load*G/2, fit=[];
+  pose.eq={yS,th,pads:{}};
+  for(const [s,k] of [['L',1],['R',-1]]){
+    const d=V(Math.cos(th),0,k*Math.sin(th)), n=V(Math.sin(th),0,-k*Math.cos(th));   // вдоль бедра и внутрь
+    const H=P['hip'+s], K=H.clone().addScaledVector(d,A.thigh), An=K.clone().add(V(0,-A.shank,0));
+    P['knee'+s]=K; P['ankle'+s]=An; P['heel'+s]=An.clone().add(V(-.23*A.foot,-A.ah,0)); P['toe'+s]=An.clone().add(V(.77*A.foot,-A.ah,0));
+    const pad=H.clone().addScaledVector(d,.9*A.thigh).addScaledVector(n,-.075);   // подушка на наружной стороне бедра у колена
+    pose.forces.push({seg:'load'+s,p:pad,F:n.clone().multiplyScalar(T)});
+    pose['line'+s]={p:pad,d:n.clone()}; pose.eq.pads[s]={p:pad,n,d};
+  }
+  pose.line=pose.lineL;
+  const hL=P.hipL.clone().add(V(.12,-.02,.2)), hR=hL.clone(); hR.z*=-1;   // руки держат рукояти у сиденья
+  setArms(pose,hL,hR,V(-.3,-1,.5));
+  addBody(pose);
+  pose.F=T; pose.sideKg=T/G;
+  pose.fric={kind:'abd',text:'Бёдра лежат на сиденье, стопы на подножках, вес ног держит тренажёр. Подушки давят горизонтально, а вес тела вертикален и вокруг вертикальной оси момента не даёт — переключатель веса тела здесь ничего не меняет.'};
+  const fl=Math.round(90+p.lean);
+  // мышцы держат момент вокруг вертикали и не дают лишнего сгибания или разгибания (ось поперёк бедра): иначе прямая бедра или задняя
+  // поверхность «отводили» бы бедро без противодействия. Вращение бедра внутрь держит подушка (она прижата к колену и голени снаружи),
+  // поэтому ось вдоль бедра свободна. Вес ноги держит сиденье — в расчёт не входит
+  const dL=P.kneeL.clone().sub(P.hipL).normalize(), Yv=V(0,1,0);
+  pose.joints=[{key:'hip',mode:'3d',line:'L',pos:P.hipL,axes:[Yv,Yv.clone().cross(dL).normalize()],main:Yv,mainSign:1,a:V(0,0,-1),b:dL.clone(),free:['loadL'],mArm:.05,primary:'flex',
+    label:'Тазобедренный: отведение',mus:{flex:'Средняя и малая ягодичные, верх большой ягодичной, напрягатель широкой фасции',ext:'Приводящие'},dirl:{flex:'приводит бедро',ext:'отводит бедро'},
+    info:r=>`Сгибание бедра ${fl}°. Рычаги тренажёра ходят вокруг вертикали, и момент подушки — только вокруг неё. Вес ноги держат сиденье и подножки.`},
+    // колено: внешнего момента нет (подушка выше колена, голень стоит на подножке), но двусуставные мышцы должны уравновесить друг друга и здесь
+    {key:'knee',mode:'3d',hide:true,pos:P.kneeL,axes:[dL.clone().cross(V(0,-1,0)).normalize()],a:dL.clone().negate(),b:V(0,-1,0),free:[],primary:'flex'}];
+  pose.support=['ankle','L5'];   // стопы на подножках, спина у спинки
+  pose.sideNote='на одну ногу';
+  return pose;
+}
+Object.assign(EX,{
+  abduct:{name:'Отведение бедра в тренажёре',eq:'тренажёр',group:1,loadLabel:'Вес груза',def:40,min:5,max:150,step:5,equip:'abduct',build:buildAbduct,
+    params:[{id:'lean',label:'Наклон корпуса',type:'range',min:-45,max:45,step:1,unit:'°',def:0,
+              hint:'0° — спина у спинки, бедро согнуто на 90°. Плюс — наклон вперёд (сгибание 135° при +45°), минус — откинуться назад. В исследовании Farias и соавт. (2026) при наклоне вперёд доля средней ягодичной относительно напрягателя широкой фасции росла: 0,8 при 45° сгибания, 1,3 при 90°, 3,3 при 135°.'},
+            {id:'a1',label:'Разведение в конечной точке',type:'range',min:25,max:50,step:1,unit:'°',def:40,hint:'Угол каждого бедра от прямой вперёд'}],
+    ends:['разведены','сведены'], endsLong:['Бёдра разведены','Бёдра сведены'],
+    desc:'Подушки давят на бёдра у колен внутрь. Плечо силы — почти вся длина бедра, поэтому момент большой даже при небольшом весе.',
+    fdesc:(p,L)=>`Подушки давят на наружную сторону бёдер у колен внутрь, перпендикулярно бедру: по половине веса груза на ногу, ${fmt0(p.F)} Н (рычаги тренажёра считаем 1 : 1, у разных моделей передача своя).`}
+});
+EQUIP_X.abduct=function(load){
+  const objs=[],M=m=>(objs.push(m),m);
+  const seat=M(boxMesh(MAT.pad)),back=M(boxMesh(MAT.pad)),post=M(boxMesh(MAT.frame)),base=M(boxMesh(MAT.frame)),col=M(boxMesh(MAT.frame)),stack=M(boxMesh(MAT.iron)),rest=M(boxMesh(MAT.frame));
+  const pads={L:M(cylMesh(MAT.pad)),R:M(cylMesh(MAT.pad))}, arms={L:M(boxMesh(MAT.frame)),R:M(boxMesh(MAT.frame))}, hnd={L:M(cylMesh(MAT.pad)),R:M(cylMesh(MAT.pad))};
+  const n=equipStack(load);
+  return{objs,update(ps){
+    const e=ps.eq,P=ps.P,u=ps.u,f=ps.front,y=e.yS;
+    placeBox(seat,V(.18,y-.04,0),V(1,0,0),Y,Z,.5,.08,.5);
+    placeBox(post,V(.15,(y-.08)/2,0),V(1,0,0),Y,Z,.1,y-.08,.1);
+    placeBox(base,V(.15,.025,0),V(1,0,0),Y,Z,1.3,.05,.7);
+    placeBox(back,P.hipMid.clone().addScaledVector(u,A.trunk*.5).addScaledVector(f,-.16),f,u,f.clone().cross(u).normalize(),.08,A.trunk+.1,.46);
+    placeBox(col,V(-.45,.6,0),V(1,0,0),Y,Z,.12,1.2,.3); placeBox(stack,V(-.45,.25+.04*n,0),V(1,0,0),Y,Z,.18,.1+.08*n,.24);
+    placeBox(rest,V(A.thigh+.08,.06,0),V(1,0,0),Y,Z,.3,.04,.9);
+    for(const s of ['L','R']){const q=e.pads[s];
+      setCyl(pads[s],q.p.clone().add(V(0,-.1,0)).addScaledVector(q.n,-.03),q.p.clone().add(V(0,.1,0)).addScaledVector(q.n,-.03),.05);
+      boxBetween(arms[s],V(.12,y-.12,0),q.p.clone().add(V(0,-.12,0)).addScaledVector(q.n,-.06),.05,.04);
+      const h=P['ha'+s]; setCyl(hnd[s],h.clone().add(V(-.06,0,0)),h.clone().add(V(.06,0,0)),.018);}
+  }};
+};
 
 const GROUPS=['Свободные веса: ноги и спина','Тренажёры для ног','Грудь','Спина: тяги','Плечи','Руки'];
 
