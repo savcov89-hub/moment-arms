@@ -2356,7 +2356,7 @@ function frame(){
   for(const mt of [MAT.body,MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R,MAT.headScan,MAT.muscle,MAT.deep,MAT.frame,MAT.pad,MAT.metal,MAT.iron,...Object.values(plateMats)]){const sk=mt===MAT.body||mt===MAT.shorts||mt===MAT.shortsCut.L||mt===MAT.shortsCut.R||mt===MAT.deep;mt.transparent=state.show.xray;mt.opacity=state.show.xray?(sk?.15:mt===MAT.headScan?.28:.22):1;mt.depthWrite=!state.show.xray;}
   if(state.ex==='bridge'&&!state.show.xray)for(const mt of Object.values(plateMats)){mt.transparent=true;mt.opacity=.3;mt.depthWrite=false;} // блины у таза не закрывают сустав
   const upper=!!pose.lineL, vis=shown(res);
-  const lower2d=res.some(r=>r.j.mode==='2d'&&r.j.bil);
+  const lower2d=vis.some(r=>r.j.mode==='2d'&&r.j.bil&&r.j.line==='main');   // показанные суставы ног на основной линии
   // линии силы: основная, по руке на каждую кисть, реакция скамьи, вес штанги
   const lines=[...new Set([pose.line,pose.lineL,pose.lineR,pose.lineB,pose.lineBar,...vis.map(r=>typeof r.j.line==='object'?r.j.line:null)].filter(Boolean))].slice(0,FL.length);
   FL.forEach((o,i)=>{
