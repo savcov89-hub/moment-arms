@@ -1133,7 +1133,7 @@ function lever3(ws,a,b,c){
   const d=det(M), col=i=>M.map((row,j)=>row.map((v,k)=>k===i?r[j]:v));
   return [0,1,2].map(i=>Math.abs(d)>1e-9?det(col(i))/d:W/3);
 }
-function buildRow(t,p,load){
+function buildDbRow(t,p,load){
   const hb=.45, zh=A.hw/2, zs=A.sw/2, be=10*D, arm=A.ua+A.fa, reach=.99*arm;
   const kR=V(0,hb+.05,-zh), hip=v2(kR.x-A.thigh*Math.sin(be),kR.y+A.thigh*Math.cos(be));   // колено на скамье, бедро наклонено назад на 10°
   // корпус под углом trunk к горизонтали; кисть опорной руки на скамье чуть впереди плеча, локоть сгибается сколько нужно.
@@ -1171,7 +1171,7 @@ function buildRow(t,p,load){
   pose.eq.fit=[V(pose.eq.x0,hb,pose.eq.benchZ),V(pose.eq.x1,0,pose.eq.benchZ)];
   pose.note=note||null;
   const Wt=R[0]+R[1]+R[2], pc=v=>Math.round(v/Math.max(1,Wt)*100);
-  pose.fric={kind:'row',text:`Вес тела и гантели делится между тремя опорами: правая кисть на скамье — <b>${pc(R[0])}%</b> (${fmt0(R[0])} Н), правое колено — <b>${pc(R[1])}%</b> (${fmt0(R[1])} Н), левая стопа — <b>${pc(R[2])}%</b> (${fmt0(R[2])} Н). Реакции считаются вертикальными. Опора на руку снимает с поясницы часть веса корпуса.`};
+  pose.fric={kind:'dbrow',text:`Вес тела и гантели делится между тремя опорами: правая кисть на скамье — <b>${pc(R[0])}%</b> (${fmt0(R[0])} Н), правое колено — <b>${pc(R[1])}%</b> (${fmt0(R[1])} Н), левая стопа — <b>${pc(R[2])}%</b> (${fmt0(R[2])} Н). Реакции считаются вертикальными. Опора на руку снимает с поясницы часть веса корпуса.`};
   const F=['loadFt','bodyFt'], dv=(x,y)=>x.clone().sub(y), trunkA=dv(P.shMid,P.hipMid), u=pose.u, fr=pose.front;
   pose.joints=[
     {key:'shoulder',side:'L',mode:'3d',line:'L',pos:P.shL,free:['load','uaL','faL'],fixed:'Широчайшая, большая круглая, задняя дельта',primary:'flex'},
@@ -1193,7 +1193,7 @@ function buildRow(t,p,load){
   return pose;
 }
 Object.assign(EX,{
-  row:{name:'Тяга гантели одной рукой',eq:'гантель',group:3,loadLabel:'Вес гантели',def:20,min:4,max:80,step:1,equip:'row',build:buildRow,
+  dbrow:{name:'Тяга гантели одной рукой',eq:'гантель',group:3,loadLabel:'Вес гантели',def:20,min:4,max:80,step:1,equip:'dbrow',build:buildDbRow,
     params:[{id:'trunk',label:'Наклон корпуса к полу',type:'range',min:5,max:40,step:1,unit:'°',def:20,hint:'Угол корпуса к горизонтали. Кисть опорной руки стоит под плечом: чем ниже корпус, тем сильнее согнут её локоть.'},
             {id:'flare',label:'Отведение локтя от корпуса',type:'range',min:0,max:80,step:1,unit:'°',def:15,hint:'0–20° — локоть идёт вдоль корпуса к поясу, больше работает широчайшая. 60–80° — локоть в сторону: задняя дельта и середина спины.'},
             {id:'top',label:'Локоть в верхней точке',type:'range',min:-30,max:30,step:1,unit:'°',def:-10,hint:'0° — плечо вдоль корпуса, локоть на уровне спины. Плюс — локоть выше спины: плечо уходит за корпус, где у разгибателей плеча мало рычага.'}],
@@ -1201,7 +1201,7 @@ Object.assign(EX,{
     desc:'Правые колено и кисть на скамье, левая рука тянет гантель. Предплечье вертикально, поэтому почти весь момент приходится на плечевой сустав. Поясницу скручивает и наклоняет вбок.',
     fdesc:(p,L)=>`Вес гантели ${fmtKg(L)}, вертикально вниз через кисть рабочей руки. Плечевой и локтевой — для этой руки; поясница — от гантели, веса верха тела и опоры правой руки на скамью.`}
 });
-EQUIP_X.row=function(load){
+EQUIP_X.dbrow=function(load){
   const objs=[], bench=benchMeshes(objs), db=makeDumbbell(load); objs.push(db);
   return{objs,update(ps){const e=ps.eq; bench((e.x0+e.x1)/2,e.x1-e.x0,e.hb,e.benchZ); db.position.copy(ps.P.haL); db.quaternion.setFromUnitVectors(Z,e.dbAx[0]);}};
 };
