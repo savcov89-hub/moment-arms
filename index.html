@@ -1033,7 +1033,7 @@ function rowElbow(S,H,u,f,psi){
 function rowClearLegs(b,segs){let x=b.x;for(const [a,c,ra,rc] of segs){const y0=Math.min(a.y,c.y),y1=Math.max(a.y,c.y);if(b.y>=y0&&b.y<=y1&&y1-y0>1e-4){const k=(b.y-a.y)/(c.y-a.y);x=Math.max(x,a.x+k*(c.x-a.x)+lerp(ra,rc,k)+.016);}}return v2(x,b.y);}
 function buildRow(t,p,load){
   const mf=.27*A.foot, phi=p.tilt*D, kap=p.knee*D, g=p.grip/200, arm=A.ua+A.fa, yMin=plateR(load);
-  const armS=Math.sqrt(Math.max(.01,(arm*.995)**2-(g-A.sw/2)**2)), tt=ROW_TOUCH[p.touch]||ROW_TOUCH.navel, dF=torsoFront(tt,A.trunk)+.02;
+  const armS=Math.sqrt(Math.max(.01,(arm*.9995)**2-(g-A.sw/2)**2)), tt=ROW_TOUCH[p.touch]||ROW_TOUCH.navel, dF=torsoFront(tt,A.trunk)+.02;
   // локоть в верхней точке — в системе корпуса (наклон корпуса и сгибание коленей постоянны, поэтому от баланса он не зависит)
   const u3=V(Math.sin(phi),Math.cos(phi),0), f3=V(Math.cos(phi),-Math.sin(phi),0);
   const pole=rowElbow(V(0,0,A.sw/2),u3.clone().multiplyScalar(-(1-tt)*A.trunk).addScaledVector(f3,dF).setZ(g),u3,f3,p.flare);
