@@ -1039,10 +1039,22 @@ function puBuild(t,p,load,legs,Yb,al){
   const P=pose.P, B=V(0,Yb,0), hL=V(0,Yb,g), u=hL.clone().sub(P.shL).normalize(), pole=Y.clone().addScaledVector(u,-u.y).negate();
   setArms(pose,hL,V(0,Yb,-g),pole); pose.uaAnt=pole.negate();
   addBody(pose);
-  const belt=P.hipMid.clone().addScaledVector(pose.front,.11).addScaledVector(pose.u,.05), plate=belt.clone().add(V(0,-.3,0));
+  const belt=P.hipMid.clone().addScaledVector(pose.front,.11).addScaledVector(pose.u,.05), plate=puPlate(P,belt,load);
   if(load>0)pose.forces.push({seg:'belt',p:plate,F:V(0,-load*G,0),mass:load});
   pose.eq={B,Yb,g,belt,plate,kind:p.grip,al};
   return pose;
+}
+// блины на поясе: сколько каких (как в EQUIP_X.pullup), толщина пачки и наибольший радиус
+const PU_PL=[[25,.225,.06,0x2b5db8],[20,.225,.05,0x2b5db8],[15,.2,.045,0xd9a21b],[10,.165,.04,0x2f9e57],[5,.115,.03,0x9aa3a7],[2.5,.1,.022,0x9aa3a7]];
+function puStack(load){const items=[];let th=0,left=load;for(const [kg,r,w,c] of PU_PL)while(left>=kg-1e-6&&th<.24){items.push({r,w,c});th+=w+.003;left-=kg;}
+  return {items,th,r:items.reduce((a,q)=>Math.max(a,q.r),0)};}
+// центр пачки блинов: верх на 25 см ниже пояса, отвесно под ним; если там бёдра или голени, пачка ложится на них спереди
+function puPlate(P,belt,load){
+  const st=puStack(load), r=st.r, h=st.th/2, y=belt.y-.25-r; let x=belt.x;
+  const pts=[]; for(const [a,b,rad] of [[P.hipL,P.kneeL,.09],[P.kneeL,P.ankleL,.06]])for(let k=0;k<=8;k++){const q=a.clone().lerp(b,k/8);if(Math.abs(q.y-y)<r+rad)pts.push([q.x,rad]);}
+  pts.sort((p,q)=>p[0]-q[0]);
+  for(const [qx,rad] of pts)if(Math.abs(qx-x)<rad+h)x=qx+rad+h;
+  return V(x,y,0);
 }
 function puCom(pose){let m=0;const c=V(0,0,0);for(const f of pose.forces)if(f.mass&&f.seg!=='trunkU'){m+=f.mass;c.addScaledVector(f.p,f.mass);}return c.divideScalar(m);}
 // поворот вокруг перекладины, при котором общий центр масс под ней: для жёсткого тела — сразу, вес на поясе висит отвесно — ещё пара шагов
@@ -1103,9 +1115,9 @@ Object.assign(EQUIP_X,{pullup(load){
   const posts=two(()=>M(boxMesh(MAT.frame))),beams=two(()=>M(boxMesh(MAT.frame))),feet=two(()=>M(boxMesh(MAT.frame))),hang=two(()=>M(boxMesh(MAT.frame)));
   const cross=M(boxMesh(MAT.frame)),bar=M(cylMesh(MAT.metal)),hnd=two(()=>M(cylMesh(MAT.pad))),rods=[0,1,2,3].map(()=>M(cylMesh(MAT.metal)));
   const chain=M(cylMesh(MAT.metal)),plate=new THREE.Group();M(plate);scene.add(plate);
-  const PL=[[25,.225,.06,0x2b5db8],[20,.225,.05,0x2b5db8],[15,.2,.045,0xd9a21b],[10,.165,.04,0x2f9e57],[5,.115,.03,0x9aa3a7],[2.5,.1,.022,0x9aa3a7]];
-  let z=0,left=load; for(const [kg,r,th,c] of PL)while(left>=kg-1e-6&&z<.24){const m=new THREE.Mesh(UNIT_CYL,plateMat(c));m.rotation.z=Math.PI/2;m.scale.set(r,th,r);m.position.x=z+th/2;m.castShadow=true;plate.add(m);z+=th+.003;left-=kg;}
-  plate.children.forEach(m=>m.position.x-=z/2); plate.userData.r=plate.children.reduce((a,m)=>Math.max(a,m.scale.x),0);
+  const st=puStack(load); let z=0;
+  for(const {r,w,c} of st.items){const m=new THREE.Mesh(UNIT_CYL,plateMat(c));m.rotation.z=Math.PI/2;m.scale.set(r,w,r);m.position.x=z+w/2-st.th/2;m.castShadow=true;plate.add(m);z+=w+.003;}
+  plate.userData.r=st.r;
   return{objs,update(p){
     const e=p.eq,B=e.B,hl=e.hl,top=e.kind==='neutral'?e.Yb+.15:e.Yb, yT=e.Yb+.45, xP=-.8;
     for(const [i,s] of [[0,1],[1,-1]]){
