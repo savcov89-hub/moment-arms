@@ -1006,6 +1006,69 @@ const EQUIP_X={};
 /* ===== Раздел: жимы гантелей сидя и на наклонной скамье ===== */
 
 /* ===== Раздел: тяга штанги в наклоне ===== */
+// Корпус наклонён на p.tilt от вертикали и держит наклон всю амплитуду, колени согнуты на p.knee.
+// Внизу руки выпрямлены и висят вертикально под плечевыми суставами (если не мешают бёдра или пол), вверху гриф касается
+// передней поверхности корпуса в выбранной точке; между ними гриф идёт по прямой. Общий центр масс тела и штанги
+// держится над серединой стопы наклоном голени, как в румынской тяге.
+const ROW_TOUCH={belly:.2,navel:.32,chest:.55};   // доля длины корпуса от тазобедренных суставов: низ живота, пупок, низ груди
+// передняя поверхность фигуры по средней линии (эллипсоиды MUS.torso) на доле tt длины корпуса T: м от линии таз — плечо
+function torsoFront(tt,T){let d=.1;for(const [,t,a,l,ra,ry,rl] of MUS.torso){if(Math.abs(l)>rl)continue;const q=(tt-t)*T/ry;if(Math.abs(q)<1)d=Math.max(d,a+ra*Math.sqrt(1-q*q));}return d;}
+// самый большой блин на грифе (как в makeBarbell): ниже его радиуса центр грифа не опустится — снаряд стоит на полу
+function plateR(load){const side=(load-20)/2;for(const [kg,r] of PLATES)if(side>=kg-1e-6)return r;return .025;}
+// разведение локтя: угол плеча к корпусу во фронтальной плоскости корпуса (если смотреть со спины), градусы
+function rowFlare(e,u){return Math.atan2(Math.abs(e.z),-e.dot(u))/D;}
+// локоть в верхней точке на окружности возможных положений (плечевой сустав S, кисть H): поворот θ от «локоть вверх»
+// к «локоть в сторону»; берётся θ, при котором разведение ближе всего к psi, а локоть позади корпуса (f — вперёд от корпуса).
+// Возвращает направление плеча от S; по ходу движения оно служит полюсом в setArms — локоть плавно приходит в эту точку
+function rowElbow(S,H,u,f,psi){
+  const d=H.clone().sub(S), L=clamp(d.length(),Math.abs(A.ua-A.fa)+1e-3,(A.ua+A.fa)*.9995), ax=d.clone().divideScalar(d.length()||1);
+  const a=(A.ua*A.ua-A.fa*A.fa+L*L)/(2*L), h=Math.sqrt(Math.max(0,A.ua*A.ua-a*a));
+  const p1=Y.clone().addScaledVector(ax,-ax.y).normalize(), p2=ax.clone().cross(p1); if(p2.z<0)p2.negate();
+  let best=null,bs=1e9;
+  for(let i=0;i<=360;i++){const th=(i/360-.5)*Math.PI, e=ax.clone().multiplyScalar(a).addScaledVector(p1,h*Math.cos(th)).addScaledVector(p2,h*Math.sin(th));
+    const sc=Math.abs(rowFlare(e,u)-psi)+(e.z<.02?50:0)+Math.max(0,e.dot(f))*200; if(sc<bs-1e-9){bs=sc;best=e;}}
+  return best;
+}
+// точка грифа не заходит в бедро и голень (вид сбоку): выталкивается вперёд к их передней поверхности
+function rowClearLegs(b,segs){let x=b.x;for(const [a,c,ra,rc] of segs){const y0=Math.min(a.y,c.y),y1=Math.max(a.y,c.y);if(b.y>=y0&&b.y<=y1&&y1-y0>1e-4){const k=(b.y-a.y)/(c.y-a.y);x=Math.max(x,a.x+k*(c.x-a.x)+lerp(ra,rc,k)+.016);}}return v2(x,b.y);}
+function buildRow(t,p,load){
+  const mf=.27*A.foot, phi=p.tilt*D, kap=p.knee*D, g=p.grip/200, arm=A.ua+A.fa, yMin=plateR(load);
+  const armS=Math.sqrt(Math.max(.01,(arm*.995)**2-(g-A.sw/2)**2)), tt=ROW_TOUCH[p.touch]||ROW_TOUCH.navel, dF=torsoFront(tt,A.trunk)+.02;
+  // локоть в верхней точке — в системе корпуса (наклон корпуса и сгибание коленей постоянны, поэтому от баланса он не зависит)
+  const u3=V(Math.sin(phi),Math.cos(phi),0), f3=V(Math.cos(phi),-Math.sin(phi),0);
+  const pole=rowElbow(V(0,0,A.sw/2),u3.clone().multiplyScalar(-(1-tt)*A.trunk).addScaledVector(f3,dF).setZ(g),u3,f3,p.flare);
+  const mk=thsh=>{
+    const pose=standBase(thsh,kap,phi), P=pose.P, u2=dirA(phi), f2=v2(Math.cos(phi),-Math.sin(phi));
+    const ankle=v2(P.ankleL.x,P.ankleL.y), knee=v2(P.kneeL.x,P.kneeL.y), hip=v2(P.hipMid.x,P.hipMid.y), S=v2(P.shMid.x,P.shMid.y);
+    const segs=[[ankle,knee,.04,.05],[knee,hip,.052,.075]];
+    let B0=hang(S,armS,segs,false); if(B0.y<yMin)B0=v2(B0.x,yMin);   // гриф не ниже пола: блины встают на пол
+    const Bc=add(add(hip,mul(u2,tt*A.trunk)),mul(f2,dF));   // касание: поверхность корпуса + радиус грифа
+    const b=rowClearLegs(add(B0,mul(sub(Bc,B0),t)),segs), B=V(b.x,b.y,0);
+    const hL=B.clone().setZ(g), hR=B.clone().setZ(-g);
+    setArms(pose,hL,hR,pole);
+    addBody(pose); barForces(pose,load,B,p,2*g);
+    pose.eq.floor=B0.y<=yMin+1e-6&&hang(S,armS,segs,false).y<yMin;
+    return pose;
+  };
+  const pose=solveBalance(mk,-30*D,30*D,mf);
+  standJoints(pose,'Широчайшая, большая круглая, задняя дельта; лопатки сводят трапециевидная и ромбовидные',['ankle','knee','hip']);
+  pose.joints[1].primary='ext';
+  if(pose.eq.floor&&t<.05)pose.note='Внизу блины стоят на полу: при таком наклоне и сгибании коленей руки не выпрямляются до конца.';
+  return pose;
+}
+Object.assign(EX,{
+  row:{name:'Тяга штанги в наклоне',eq:'штанга',group:3,loadLabel:'Вес штанги',def:60,min:20,max:200,step:2.5,equip:'barbell',build:buildRow,
+    ends:['руки прямые','гриф у корпуса'],endsLong:['Руки выпрямлены','Гриф у корпуса'],
+    params:[{id:'tilt',label:'Наклон корпуса от вертикали',type:'range',min:20,max:90,step:1,unit:'°',def:45,hint:'90° — корпус параллелен полу, как в тяге Пендли; 45° — классическая тяга; 20–30° — почти стоя'},
+            {id:'knee',label:'Сгибание коленей',type:'range',min:5,max:45,step:1,unit:'°',def:20},
+            {id:'touch',label:'Куда тянуть гриф',type:'seg',opts:[['belly','Низ живота'],['navel','К поясу'],['chest','Низ груди']],def:'navel',
+              hint:p=>p.touch==='chest'?'Гриф касается низа груди: плечо уходит вбок от корпуса, больше работают задняя дельта и середина трапеции.':p.touch==='belly'?'Гриф касается низа живота: плечо идёт вдоль корпуса назад, больше работает широчайшая.':'Гриф касается живота на уровне пупка — классическая тяга к поясу.'},
+            {id:'grip',label:'Ширина хвата (между центрами кистей)',type:'range',min:40,max:90,step:1,unit:' см',def:55,hint:'Хват сверху. Чуть шире плеч — около 50–60 см'},
+            {id:'flare',label:'Разведение локтей',type:'range',min:10,max:85,step:1,unit:'°',def:45,hint:'Угол плеча к корпусу, если смотреть со спины: прижатые локти — 15–30°, классика — около 45°, локти в стороны — 70–85°'},
+            ...FRIC('pull')],
+    desc:'Корпус держит наклон всю амплитуду, гриф идёт от виса на прямых руках к корпусу. Общий центр масс тела и штанги — над серединой стопы.',
+    fdesc:(p,L)=>`Вес штанги ${fmtKg(L)} × g. Для ног и поясницы — вес всей штанги через центр грифа (ноги — на одну ногу, поясница — суммарно), для плеча и локтя — половина на кисть с боковым усилием хвата.`}
+});
 
 /* ===== Раздел: разгибание и сгибание ног в тренажёрах ===== */
 
