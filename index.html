@@ -2450,8 +2450,10 @@ function frame(){
     const dir=(r.dem&&r.dem!=='fixed')?`<span class="dir">${(r.j.dirl||(r.key==='ankle'?DIR_ANKLE:DIRLBL))[r.dem]}</span>`:'';
     const html=`${dir}${r.dem?'работают: ':''}${r.muscles}`; const mu=row.querySelector('.mus'); if(mu._h!==html){mu.innerHTML=html;mu._h=html;}
     row.querySelector('.bar span').style.width=`${clamp(r.abs/shownMax*100,0,100)}%`;
-    const arm=r.key==='shoulder'||r.key==='elbow', base=(pose.sideKg||0)*(r.key==='L5'?2:1), ratio=base>.01?r.mKg/base:0;
-    row.querySelector('.mf').innerHTML=`Мышцы: ≈ <b>${fmt0(r.mKg)} кг</b> · плечо мышцы ${fmt1(r.mArm*100)} см${ratio>.05?` · <span title="во сколько раз больше нагрузки">×${fmt1(ratio)} к нагрузке на ${r.key==='L5'?'весь снаряд':arm?'руку':'ногу'}</span>`:''}`;
+    // j.ratio: false — без сравнения с нагрузкой; {kg, of} — своя база в кг и подпись после «к» (подтягивания: {kg: вес тела, of:'весу тела'})
+    const arm=r.key==='shoulder'||r.key==='elbow', jr=r.j.ratio, base=jr===false?0:jr?jr.kg:(pose.sideKg||0)*(r.key==='L5'?2:1), ratio=base>.01?r.mKg/base:0;
+    const of=jr&&jr.of||'нагрузке на '+(r.key==='L5'?'весь снаряд':arm?'руку':'ногу');
+    row.querySelector('.mf').innerHTML=`Мышцы: ≈ <b>${fmt0(r.mKg)} кг</b> · плечо мышцы ${fmt1(r.mArm*100)} см${ratio>.05?` · <span title="во сколько раз больше нагрузки">×${fmt1(ratio)} к ${of}</span>`:''}`;
     const frEl=row.querySelector('.fr'), fr=pose.frontal&&pose.frontal[r.id];
     if(r.j.info){const h=r.j.info(r);frEl.hidden=!h;if(h&&frEl._h!==h){frEl.innerHTML=h;frEl._h=h;}continue;}   // своя строка сустава (составляющие момента и т. п.)
     if(r.key==='shoulder'){const P=pose.P,e=P.elL.clone().sub(P.shL),f=P.haL.clone().sub(P.elL);
