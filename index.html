@@ -115,7 +115,7 @@ input[type=range]{width:100%;accent-color:var(--ink);margin:2px 0;height:18px}
 .views button{border:0;background:transparent;border-radius:5px;padding:5px 9px;font-size:12.5px;color:var(--ink-2)}
 .views button:hover{background:var(--panel-2)}
 .views button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
-.warn{position:absolute;left:16px;top:96px;max-width:340px;font-size:12.5px;background:var(--hud);border:1px solid var(--j-lumbar);border-radius:6px;padding:6px 9px;color:var(--ink)}
+.warn{position:absolute;left:16px;top:var(--warn-top,96px);max-width:340px;font-size:12.5px;background:var(--hud);border:1px solid var(--j-lumbar);border-radius:6px;padding:6px 9px;color:var(--ink)}
 .hud-bottom{position:absolute;left:16px;right:16px;bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--hud);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:10px;padding:8px 12px;box-shadow:var(--shadow)}
 .play{width:38px;height:38px;flex:none;border-radius:50%;border:0;background:var(--ink);color:var(--panel);display:grid;place-items:center}
 .play svg{width:16px;height:16px}
@@ -1002,6 +1002,167 @@ const EQUIP_X={};
 // pose.eq.fit — точки снаряда, которые камера должна вместить. joint.line может быть своим объектом {p, d} (линия силы этого сустава).
 
 /* ===== Раздел: плечи и руки стоя (жим штанги стоя, махи гантелями, подъём на бицепс) ===== */
+// Строка сустава: составляющие момента в сагиттальной плоскости (вокруг оси Z) и во фронтальной (вокруг оси X)
+const planesTxt=r=>`сагиттальная плоскость <b>${fmt0(Math.abs(r.Mv.z))} Н·м</b> · фронтальная <b>${fmt0(Math.abs(r.Mv.x))} Н·м</b>`;
+// Предплечье: сгибание в локте и наклон от вертикали (вертикальная сила — плечо силы = предплечье × sin наклона)
+function forearmTxt(pose){const P=pose.P,f=P.haL.clone().sub(P.elL),fl=Math.round(180-inclAngle(P.shL,P.elL,P.haL)/D),tl=Math.round(Math.acos(clamp(Math.abs(f.y)/f.length(),0,1))/D);
+  return `Сгибание в локте <b>${fl}°</b> · предплечье наклонено от вертикали на <b>${tl}°</b>`;}
+// руки стоя: плечевой сустав со своей строкой, локоть — сгибание или разгибание; legs — какие суставы ног показать
+function standArms(pose,shText,info,legs){
+  standJoints(pose,shText,legs);
+  const sh=pose.joints.find(j=>j.key==='shoulder'), el=pose.joints.find(j=>j.key==='elbow');
+  sh.info=info; return {sh,el};
+}
+
+/* ---------- Жим штанги стоя ---------- */
+// Передний край головы-скана (assets/head2.bin) через 1 см по высоте: [вверх, вперёд] от её центра, м
+const FACE_PROF=[[.12,.025],[.11,.055],[.1,.06],[.09,.065],[.08,.072],[.07,.079],[.06,.084],[.05,.089],[.04,.091],[.03,.091],[.02,.089],[.01,.095],[0,.102],[-.01,.107],
+  [-.02,.109],[-.03,.11],[-.04,.099],[-.05,.099],[-.06,.1],[-.07,.1],[-.08,.098],[-.09,.101],[-.1,.103],[-.11,.103],[-.12,.096],[-.13,.091],[-.14,.039],[-.15,.033],
+  [-.16,.027],[-.17,.027],[-.18,.032],[-.19,.034],[-.2,.035]];
+// Насколько впереди точки sh должен идти центр грифа на высоте y над ней, чтобы не задеть лицо: ближе R к профилю нельзя,
+// а выше и ниже лица гриф может подходить к нему с наклоном k (м вперёд на м вверх) — так путь плавно обходит подбородок
+function faceClear(pose,sh,y,R,k){
+  const u=pose.u, f=pose.front, O=pose.P.head.clone().addScaledVector(u,-SCAN_DROP); let x=-1;
+  for(const [yl,xl] of FACE_PROF){
+    const px=O.x+f.x*xl+u.x*yl-sh.x, d=Math.abs(O.y+f.y*xl+u.y*yl-sh.y-y);
+    x=Math.max(x,d<R?px+Math.sqrt(R*R-d*d):px-(d-R)*k);
+  }
+  return x;
+}
+// Гриф стартует на передних дельтах (или у подбородка) и в верхней точке встаёт над плечевыми суставами. По пути он обходит лицо:
+// голова уходит назад на 2 см (подбородок втянут), корпус отклонён назад на p.lean у низа и почти выпрямлен вверху,
+// а перед лицом гриф идёт так близко, как позволяет профиль головы. Общий центр масс тела и штанги — над серединой стопы.
+function buildOHP(t,p,load){
+  const mf=.27*A.foot, kap=3*D, g=p.grip/200, zs=A.sw/2, arm=A.ua+A.fa, x0=.075;
+  const top=Math.sqrt(Math.max(.01,(.99*arm)**2-(g-zs)**2)), y0=p.bottom==='chin'?.12:.045;
+  const yRel=lerp(top,y0,t), phi=-p.lean*D*lerp(.2,1,t), hb=.02*(1-smooth(.3,.42,yRel));
+  const xBase=x0*(1-smooth(.12,top-.04,yRel));   // без лица: с дельт плавно назад, вверху — над плечевыми суставами
+  const mk=thsh=>{
+    const pose=standBase(thsh,kap,phi), P=pose.P;
+    P.head.addScaledVector(pose.front,-hb);
+    const xRel=Math.max(xBase,faceClear(pose,P.shMid,yRel,.0145+.008,1.2));
+    const B=V(P.shMid.x+xRel,P.shMid.y+yRel,0);
+    setArms(pose,B.clone().setZ(g),B.clone().setZ(-g),V(0,-1,0));   // локоть — в самой низкой точке: предплечье как можно вертикальнее
+    addBody(pose); barForces(pose,load,B,p,2*g); return pose;
+  };
+  const pose=solveBalance(mk,-14*D,14*D,mf);
+  const {el}=standArms(pose,'Передняя и средняя дельта, ключичная часть большой грудной, надостная; лопатку поворачивают трапециевидная и передняя зубчатая',
+    r=>{const d=pose.P.haL.clone().sub(pose.P.shL);return `Рука поднята на <b>${Math.round(elevation(pose,'L'))}°</b> · кисть впереди плечевого сустава на ${fmt1(d.x*100)} см, снаружи на ${fmt1(d.z*100)} см · ${planesTxt(r)}`;});
+  el.info=()=>{const P=pose.P,f=P.haL.clone().sub(P.elL),a=Math.round(Math.acos(clamp(Math.abs(f.dot(pose.lineL.d))/f.length(),-1,1))/D);
+    return `Угол между предплечьем и линией силы: <b>${a}°</b>${a<=5?' — сила идёт вдоль предплечья, локоть почти не нагружен':''}`;};
+  // внизу локоть согнут на 140–160° (так и в модели Pagaduan 2025: гриф на 4 см выше и 10 см впереди плеча), а данные плеч мышц локтя — до 140°
+  const P=pose.P, fl=Math.round(180-inclAngle(P.shL,P.elL,P.haL)/D);
+  if(fl>140)pose.warn=`Локоть согнут на ${fl}°. У трицепса в таком положении плечо меньше 1 см, а данные мышц локтя есть до 140°, поэтому сила трицепса здесь — оценка сверху: у живого человека часть момента держит упор предплечья в плечо.`;
+  return pose;
+}
+
+/* ---------- Махи гантелями в стороны ---------- */
+// Открытая цепь: каждая гантель тянет кисть вертикально вниз. Рука поднимается в плоскости p.plane (0° — строго в стороны,
+// 30° — плоскость лопатки) от p.bot до p.top градусов к корпусу; локоть согнут вперёд на p.elbow, плечо не вращается:
+// внизу ладони смотрят на бёдра, вверху — вниз, большой палец впереди (предплечье в среднем положении)
+function buildLatRaise(t,p,load){
+  const mf=.27*A.foot, kap=3*D, al=lerp(p.top,p.bot,t)*D, pl=p.plane*D, ke=p.elbow*D;
+  const mk=thsh=>{
+    const pose=standBase(thsh,kap,0), u=pose.u, f=pose.front;
+    const sd=f.clone().multiplyScalar(Math.sin(pl)).addScaledVector(Z,Math.cos(pl));
+    const du=u.clone().multiplyScalar(-Math.cos(al)).addScaledVector(sd,Math.sin(al)).normalize();
+    // локоть сгибается в сторону «как можно вперёд», перпендикулярно плечу: вверху предплечье горизонтально, кисть на высоте локтя,
+    // и вертикальная сила не сгибает и не разгибает локоть
+    const fw=perp(f,du).normalize(), df=du.clone().multiplyScalar(Math.cos(ke)).addScaledVector(fw,Math.sin(ke));
+    armsByDir(pose,du,df);
+    const th=fw.clone().multiplyScalar(Math.cos(ke)).addScaledVector(du,-Math.sin(ke));   // большой палец и гриф гантели — по сгибанию локтя
+    pose.eq.dbAx=pose.eq.thumb=[th,V(th.x,th.y,-th.z)]; pose.forearm='neu';
+    addBody(pose); dbForces(pose,load); return pose;
+  };
+  const pose=solveBalance(mk,-14*D,14*D,mf);
+  const {el}=standArms(pose,'Средняя дельта, надостная, передняя дельта; лопатку поворачивают трапециевидная и передняя зубчатая',
+    r=>{const P=pose.P,d=P.haL.clone().sub(P.shL);return `Рука отведена на <b>${Math.round(elevation(pose,'L'))}°</b> от корпуса · гантель от плечевого сустава по горизонтали ${fmt1(Math.hypot(d.x,d.z)*100)} см · ${planesTxt(r)}`;});
+  // локоть держит угол: момент в нём почти весь — боковой изгиб, который держат связки и форма сустава; считается только ради мышц
+  el.hide=true;
+  return pose;
+}
+
+/* ---------- Подъём на бицепс: штанга, гантели, «молотки» ---------- */
+// Плечо у корпуса и к верху уходит вперёд на p.fwd; локоть сгибается от почти прямого (6°) до p.top.
+// Штанга: предплечья отведены наружу так, чтобы кисти были на ширине хвата во всей амплитуде; внизу гриф лежит на бёдрах:
+// если он упирается в бедро, рука уходит вперёд ровно настолько, чтобы он прошёл перед ним.
+// Гантели: вся рука отведена в плече так, что внизу кисть на 6 см снаружи плечевого сустава, а рядом с бедром — ещё дальше,
+// пока гантель не выйдет из бедра. Отведение, а не наклон предплечья: иначе наклон считался бы сгибанием локтя вбок и внизу
+// добавлял бы локтю момент, которого у живого человека нет: у него предплечье уводит наружу физиологический угол локтя, а этот наклон держат связки.
+function buildCurl(t,p,load,kind){
+  const mf=.27*A.foot, kap=3*D, ke=lerp(p.top,6,t)*D, th0=lerp(p.fwd,0,t)*D, zs=A.sw/2;
+  const zb=p.grip/200, q=kind==='bar'?clamp((zb-zs)/A.fa,-.5,.5):0;
+  // размеры гантели как в makeDumbbell: радиус блина и его толщина; блин начинается в 7 см от центра кисти
+  const R=clamp(.05+.0011*load,.05,.1), hl=clamp(.025+.0017*load,.03,.1);
+  const mk=thsh=>{
+    const pose=standBase(thsh,kap,-p.lean*D), P=pose.P, u=pose.u, f=pose.front;
+    let th=th0, a, dn, sa=kind==='bar'?0:.06/(A.ua+A.fa);   // sa — синус отведения руки
+    for(let i=0;i<4;i++){
+      dn=u.clone().multiplyScalar(-Math.sqrt(1-sa*sa)).addScaledVector(Z,sa);   // «вниз» в плоскости отведённой руки
+      const du=dn.clone().multiplyScalar(Math.cos(th)).addScaledVector(f,Math.sin(th)); a=th+ke;
+      const fs=dn.clone().multiplyScalar(Math.cos(a)).addScaledVector(f,Math.sin(a));
+      armsByDir(pose,du,fs.multiplyScalar(Math.sqrt(1-q*q)).addScaledVector(Z,q));
+      const h=P.haL, hp=P.hipL, kn=P.kneeL; if(h.y>hp.y||h.y<kn.y)break;
+      const k=(h.y-kn.y)/(hp.y-kn.y), front=kn.x+k*(hp.x-kn.x)+lerp(.052,.075,k);   // передний край бедра на высоте кисти
+      if(kind!=='bar'){
+        // рядом с бедром кисть отходит наружу, пока внутренний блин (хват снизу) или край блинов («молоток») не выйдет из бедра.
+        // Полуширина бедра с шортами 6,2 см у колена … 8,8 см у таза; пока гантель целиком перед бедром, отводить не нужно
+        const bx=kind==='hammer'?.07+hl:R, mz=kind==='hammer'?R:.07+hl;
+        const need=(hp.z+lerp(.062,.088,k)+.005+mz-h.z)*smooth(-.01,.03,front-(h.x-bx));
+        if(need<=1e-4)break; sa=clamp(sa+need/Math.max(.2,A.ua*Math.cos(th)+A.fa*Math.cos(a)),0,.35); continue;
+      }
+      // перед бедром: ось бедра на высоте кисти + радиус бедра (как в hang) + радиус грифа
+      const need=front+.016+.0145-h.x;
+      if(need<=1e-4)break; th+=need/Math.max(.2,P.shL.distanceTo(h));
+    }
+    pose.forearm=kind==='hammer'?'neu':'sup';
+    if(kind==='bar'){const B=P.haL.clone().setZ(0); addBody(pose); barForces(pose,load,B,p,2*zb); pose.eq.thumb=[Z.clone(),Z.clone().negate()];}
+    else{
+      // хват снизу: гриф гантели поперёк тела; «молоток»: гриф по сгибанию локтя, большой палец вперёд-вверх
+      const ax=kind==='hammer'?dn.clone().multiplyScalar(-Math.sin(a)).addScaledVector(f,Math.cos(a)):Z.clone();
+      pose.eq.dbAx=pose.eq.thumb=[ax,V(ax.x,ax.y,-ax.z)];
+      addBody(pose); dbForces(pose,load);
+    }
+    return pose;
+  };
+  const pose=solveBalance(mk,-14*D,14*D,mf);
+  const {sh,el}=standArms(pose,'Передняя дельта, ключичная часть большой грудной, бицепс: не дают руке уйти вниз и назад',
+    r=>{const d=pose.P.haL.clone().sub(pose.P.shL);return `Плечо впереди корпуса на <b>${Math.round(elevation(pose,'L'))}°</b> · кисть впереди плечевого сустава на ${fmt1(d.x*100)} см`;});
+  el.primary='ext'; el.info=()=>forearmTxt(pose);
+  if(kind==='hammer')el.mus={ext:'Плечелучевая, плечевая, бицепс',flex:'Трицепс'};
+  pose.joints=[el,sh,...pose.joints.filter(j=>j!==el&&j!==sh)];   // главный сустав — локоть, он первым
+  return pose;
+}
+
+const CURL_P=[{id:'top',label:'Сгибание локтя в верхней точке',type:'range',min:90,max:150,step:1,unit:'°',def:130,hint:'0° — рука прямая. 90° — предплечье перпендикулярно плечу'},
+  {id:'fwd',label:'Локти уходят вперёд к верху',type:'range',min:0,max:40,step:1,unit:'°',def:10,hint:'Угол плеча к корпусу в верхней точке. Чем дальше локти вперёд, тем раньше предплечье становится горизонтальным и тем меньше нагрузка вверху'},
+  {id:'lean',label:'Отклонение корпуса назад',type:'range',min:0,max:20,step:1,unit:'°',def:0,hint:'Корпус неподвижен; баланс держит наклон голеней'}];
+const CURL_DESC='Сила вертикальна: плечо силы для локтя максимально, когда предплечье горизонтально, и почти исчезает внизу и вверху.';
+const dbDesc=(p,L)=>`Вес одной гантели ${fmtKg(L)}, вертикально вниз через кисть. Значения на одну руку; поясница — от обеих гантелей.`;
+Object.assign(EX,{
+  ohp:{name:'Жим штанги стоя',eq:'штанга',group:4,loadLabel:'Вес штанги',def:40,min:20,max:150,step:2.5,equip:'barbell',build:buildOHP,
+    params:[{id:'grip',label:'Ширина хвата (между центрами кистей)',type:'range',min:40,max:80,step:1,unit:' см',def:52,hint:'Обычно чуть шире плеч: в нижней точке предплечья почти вертикальны'},
+            {id:'lean',label:'Отклонение корпуса назад в нижней точке',type:'range',min:0,max:20,step:1,unit:'°',def:8,hint:'Корпус отклоняется, чтобы гриф прошёл перед лицом, и к верху выпрямляется'},
+            {id:'bottom',label:'Нижняя точка',type:'seg',opts:[['clav','Гриф на дельтах'],['chin','У подбородка']],def:'clav'},
+            ...FRIC('press')],
+    desc:'Гриф обходит лицо: подбородок втянут, корпус немного отклонён назад. Вверху гриф над плечевыми суставами, общий центр масс — над серединой стопы.',
+    fdesc:(p,L)=>`Половина веса штанги (${fmtKg(L/2)}) на каждую руку. Линия силы — результирующая с боковой силой от кисти. Значения на одну руку; поясница — от всей штанги.`},
+  latraise:{name:'Махи гантелями в стороны',eq:'гантели',group:4,loadLabel:'Вес одной гантели',def:8,min:1,max:30,step:1,equip:'dbstand',build:buildLatRaise,
+    params:[{id:'top',label:'Подъём в верхней точке',type:'range',min:60,max:120,step:1,unit:'°',def:90,hint:'Угол между плечом и корпусом: 90° — рука параллельна полу'},
+            {id:'bot',label:'Угол в нижней точке',type:'range',min:0,max:40,step:1,unit:'°',def:10},
+            {id:'plane',label:'Плоскость подъёма: впереди от строго в стороны',type:'range',min:0,max:45,step:1,unit:'°',def:20,hint:'0° — строго в стороны, около 30° — плоскость лопатки'},
+            {id:'elbow',label:'Сгибание локтя',type:'range',min:0,max:60,step:1,unit:'°',def:15,hint:'Согнутый локоть приближает гантель к плечу и уменьшает момент'}],
+    desc:'Сила вертикальна: плечо силы для плечевого сустава — расстояние по горизонтали до гантели, поэтому нагрузка растёт к верху. Локоть не показан: момент в нём — боковой изгиб, его держат связки.',
+    fdesc:dbDesc},
+  curl:{name:'Подъём штанги на бицепс',eq:'штанга',group:5,loadLabel:'Вес штанги',def:30,min:10,max:90,step:2.5,equip:'barbell',build:(t,p,l)=>buildCurl(t,p,l,'bar'),
+    params:[{id:'grip',label:'Ширина хвата (между центрами кистей)',type:'range',min:36,max:70,step:1,unit:' см',def:44},...CURL_P],
+    desc:CURL_DESC+' Хват снизу: предплечья супинированы. Внизу гриф лежит на бёдрах.',
+    fdesc:(p,L)=>`Половина веса штанги (${fmtKg(L/2)}) на каждую руку, вертикально вниз. Значения на одну руку; поясница — от всей штанги.`},
+  dbcurl:{name:'Подъём гантелей на бицепс',eq:'гантели',group:5,loadLabel:'Вес одной гантели',def:12,min:2,max:40,step:1,equip:'dbstand',build:(t,p,l)=>buildCurl(t,p,l,'db'),
+    params:CURL_P, desc:CURL_DESC+' Хват снизу: предплечья супинированы.',fdesc:dbDesc},
+  hammer:{name:'«Молотки» с гантелями',eq:'гантели',group:5,loadLabel:'Вес одной гантели',def:14,min:2,max:40,step:1,equip:'dbstand',build:(t,p,l)=>buildCurl(t,p,l,'hammer'),
+    params:CURL_P, desc:CURL_DESC+' Нейтральный хват: у плечелучевой мышцы плечо больше, чем при хвате снизу, у бицепса меньше.',fdesc:dbDesc}
+});
 
 /* ===== Раздел: жимы гантелей сидя и на наклонной скамье ===== */
 // Регулируемая скамья: сиденье горизонтально на высоте DBI_SEAT, спинка под углом al к полу. Как в жиме лёжа, центр тазобедренного
@@ -3600,6 +3761,8 @@ function frame(){
   const cts=(state.show.force&&pose.contacts)||[];
   CARR.forEach((o,i)=>{const c=cts[i];if(!c){setArrow(o,null,null,false);return;}const d=c.push.clone().normalize();setArrow(o,c.p.clone().addScaledVector(d,.3),d,true,C.muted);});
   const w=$('#warn'); if(pose.warn){w.hidden=false;w.textContent=pose.warn;} else if(!pose.flag&&pose.note){w.hidden=false;w.textContent=pose.note;} else if(pose.flag){w.hidden=false;w.textContent=pose.flag==='pad'?'При такой опоре стопы тело отрывается от подушки: равновесие возможно только если держаться руками.':pose.flag==='lift'?'Одна из опор отрывается: при такой постановке равновесие невозможно.':pose.flag==='slipBridge'?'Трения не хватает: стопы или спина проскользнут. Измените постановку стоп или режим трения.':pose.flag==='slip'?'Реакции платформы нужно трение больше μ — стопы соскользнут. Смените точку опоры или вынос стоп.':pose.flag==='dl'?'Центр масс не удаётся удержать над серединой стопы: гриф ушёл на предел вперёд или назад. Поза на пределе баланса.':pose.flag==='front'?'Центр масс не удаётся удержать над серединой стопы: даже при максимальном наклоне он позади. Поза на пределе баланса.':'Центр масс впереди середины стопы даже при вертикальном корпусе. Поза на пределе баланса.';} else w.hidden=true;
+  // предупреждение — сразу под заголовком с описанием, иначе длинное описание уходит под него
+  if(!w.hidden&&w.offsetParent)w.style.setProperty('--warn-top',Math.round($('.hud-top').getBoundingClientRect().bottom-w.offsetParent.getBoundingClientRect().top+8)+'px');
   drawMarker();
 }
 function updateTags(){
