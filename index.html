@@ -1018,7 +1018,8 @@ function plateR(load){const side=(load-20)/2;for(const [kg,r] of PLATES)if(side>
 // разведение локтя: угол плеча к корпусу во фронтальной плоскости корпуса (если смотреть со спины), градусы
 function rowFlare(e,u){return Math.atan2(Math.abs(e.z),-e.dot(u))/D;}
 // локоть в верхней точке на окружности возможных положений (плечевой сустав S, кисть H): поворот θ от «локоть вверх»
-// к «локоть в сторону»; берётся θ, при котором разведение ближе всего к psi, а локоть позади корпуса (f — вперёд от корпуса).
+// к «локоть в сторону»; берётся θ, при котором разведение ближе всего к psi (psi = null — локоть над грифом: предплечье
+// вертикально при виде сбоку), а локоть позади корпуса (f — вперёд от корпуса).
 // Возвращает направление плеча от S; по ходу движения оно служит полюсом в setArms — локоть плавно приходит в эту точку
 function rowElbow(S,H,u,f,psi){
   const d=H.clone().sub(S), L=clamp(d.length(),Math.abs(A.ua-A.fa)+1e-3,(A.ua+A.fa)*.9995), ax=d.clone().divideScalar(d.length()||1);
@@ -1026,7 +1027,7 @@ function rowElbow(S,H,u,f,psi){
   const p1=Y.clone().addScaledVector(ax,-ax.y).normalize(), p2=ax.clone().cross(p1); if(p2.z<0)p2.negate();
   let best=null,bs=1e9;
   for(let i=0;i<=360;i++){const th=(i/360-.5)*Math.PI, e=ax.clone().multiplyScalar(a).addScaledVector(p1,h*Math.cos(th)).addScaledVector(p2,h*Math.sin(th));
-    const sc=Math.abs(rowFlare(e,u)-psi)+(e.z<.02?50:0)+Math.max(0,e.dot(f))*200; if(sc<bs-1e-9){bs=sc;best=e;}}
+    const sc=(psi==null?Math.abs(S.x+e.x-H.x)*1000:Math.abs(rowFlare(e,u)-psi))+(e.z<.02?50:0)+Math.max(0,e.dot(f))*200; if(sc<bs-1e-9){bs=sc;best=e;}}
   return best;
 }
 // точка грифа не заходит в бедро и голень (вид сбоку): выталкивается вперёд к их передней поверхности
@@ -1036,7 +1037,7 @@ function buildRow(t,p,load){
   const armS=Math.sqrt(Math.max(.01,(arm*.9995)**2-(g-A.sw/2)**2)), tt=ROW_TOUCH[p.touch]||ROW_TOUCH.navel, dF=torsoFront(tt,A.trunk)+.02;
   // локоть в верхней точке — в системе корпуса (наклон корпуса и сгибание коленей постоянны, поэтому от баланса он не зависит)
   const u3=V(Math.sin(phi),Math.cos(phi),0), f3=V(Math.cos(phi),-Math.sin(phi),0);
-  const pole=rowElbow(V(0,0,A.sw/2),u3.clone().multiplyScalar(-(1-tt)*A.trunk).addScaledVector(f3,dF).setZ(g),u3,f3,p.flare);
+  const pole=rowElbow(V(0,0,A.sw/2),u3.clone().multiplyScalar(-(1-tt)*A.trunk).addScaledVector(f3,dF).setZ(g),u3,f3,p.elbows==='flare'?p.flare:null);
   const mk=thsh=>{
     const pose=standBase(thsh,kap,phi), P=pose.P, u2=dirA(phi), f2=v2(Math.cos(phi),-Math.sin(phi));
     const ankle=v2(P.ankleL.x,P.ankleL.y), knee=v2(P.kneeL.x,P.kneeL.y), hip=v2(P.hipMid.x,P.hipMid.y), S=v2(P.shMid.x,P.shMid.y);
@@ -1046,13 +1047,21 @@ function buildRow(t,p,load){
     const b=rowClearLegs(add(B0,mul(sub(Bc,B0),t)),segs), B=V(b.x,b.y,0);
     const hL=B.clone().setZ(g), hR=B.clone().setZ(-g);
     setArms(pose,hL,hR,pole);
+    if(p.hold==='sup'){pose.forearm='sup';pose.eq.thumb=[V(0,0,1),V(0,0,-1)];}   // хват снизу: предплечье в супинации, большой палец наружу
     addBody(pose); barForces(pose,load,B,p,2*g);
     pose.eq.floor=B0.y<=yMin+1e-6&&hang(S,armS,segs,false).y<yMin;
     return pose;
   };
   const pose=solveBalance(mk,-30*D,30*D,mf);
-  standJoints(pose,'Широчайшая, большая круглая, задняя дельта; лопатки сводят трапециевидная и ромбовидные',['ankle','knee','hip']);
+  standJoints(pose,'Задняя и средняя дельта, широчайшая, большая круглая, подостная; лопатки сводят трапециевидная и ромбовидные',['ankle','knee','hip']);
   pose.joints[1].primary='ext';
+  // строки под суставами: разведение локтя и составляющие момента в плече (оси корпуса), сгибание локтя и наклон предплечья к линии силы
+  const P=pose.P, u=pose.u, f=pose.front;
+  pose.joints[0].info=r=>{const M=r.Mv||V(0,0,0), c=(v,a,b)=>v>.5?`${a} <b>${fmt0(v)}</b>`:v<-.5?`${b} <b>${fmt0(-v)}</b>`:'';
+    const parts=[c(M.z,'разгибание','сгибание'),c(M.dot(f),'отведение','приведение'),c(M.dot(u),'горизонтальное отведение','горизонтальное приведение')].filter(Boolean);
+    return `Разведение локтя <b>${Math.round(rowFlare(P.elL.clone().sub(P.shL),u))}°</b>${parts.length?` · мышцам нужно: ${parts.join(', ')} Н·м`:''}`;};
+  pose.joints[1].info=()=>{const a=P.shL.clone().sub(P.elL), b=P.haL.clone().sub(P.elL), tl=Math.acos(clamp(Math.abs(b.dot(pose.lineL.d))/b.length(),0,1))/D;
+    return `Сгибание локтя <b>${Math.round(180-a.angleTo(b)/D)}°</b> · предплечье отклонено от линии силы на <b>${Math.round(tl)}°</b>${tl<=5?' — сила идёт вдоль предплечья, момента почти нет':''}`;};
   if(pose.eq.floor&&t<.05)pose.note='Внизу блины стоят на полу: при таком наклоне и сгибании коленей руки не выпрямляются до конца.';
   return pose;
 }
@@ -1062,10 +1071,14 @@ Object.assign(EX,{
     params:[{id:'tilt',label:'Наклон корпуса от вертикали',type:'range',min:20,max:90,step:1,unit:'°',def:45,hint:'90° — корпус параллелен полу, как в тяге Пендли; 45° — классическая тяга; 20–30° — почти стоя'},
             {id:'knee',label:'Сгибание коленей',type:'range',min:5,max:45,step:1,unit:'°',def:20},
             {id:'touch',label:'Куда тянуть гриф',type:'seg',opts:[['belly','Низ живота'],['navel','К поясу'],['chest','Низ груди']],def:'navel',
-              hint:p=>p.touch==='chest'?'Гриф касается низа груди: плечо уходит вбок от корпуса, больше работают задняя дельта и середина трапеции.':p.touch==='belly'?'Гриф касается низа живота: плечо идёт вдоль корпуса назад, больше работает широчайшая.':'Гриф касается живота на уровне пупка — классическая тяга к поясу.'},
-            {id:'grip',label:'Ширина хвата (между центрами кистей)',type:'range',min:40,max:90,step:1,unit:' см',def:55,hint:'Хват сверху. Чуть шире плеч — около 50–60 см'},
-            {id:'flare',label:'Разведение локтей',type:'range',min:10,max:85,step:1,unit:'°',def:45,hint:'Угол плеча к корпусу, если смотреть со спины: прижатые локти — 15–30°, классика — около 45°, локти в стороны — 70–85°'},
-            ...FRIC('pull')],
+              hint:p=>p.touch==='chest'?'Гриф касается низа груди — так тянут с корпусом почти параллельно полу (тяга Пендли).':p.touch==='belly'?'Гриф касается низа живота — так тянут с более высоким корпусом, часто хватом снизу (тяга Йейтса).':'Гриф касается живота на уровне пупка — классическая тяга к поясу.'},
+            {id:'hold',label:'Хват',type:'seg',opts:[['pro','Сверху'],['sup','Снизу']],def:'pro',
+              hint:p=>p.hold==='sup'?'Хват снизу, как в тяге Йейтса: предплечья супинированы, у бицепса больше плечо силы. Обычно с ним корпус выше (20–45°), локти ближе к корпусу, гриф к низу живота.':'Хват сверху, ладони смотрят назад — классическая тяга.'},
+            {id:'grip',label:'Ширина хвата (между центрами кистей)',type:'range',min:40,max:90,step:1,unit:' см',def:55,hint:'Чуть шире плеч — около 50–60 см'},
+            {id:'elbows',label:'Локти',type:'seg',opts:[['vert','Над грифом'],['flare','Задать разведение']],def:'vert',
+              hint:p=>p.elbows==='flare'?'Локоть держит заданный угол к корпусу, предплечье может наклоняться вперёд или назад.':'В верхней точке локоть над грифом: сбоку предплечье вертикально, нагрузка на сгибатели локтя меньше. Разведение локтей получается из пропорций, ширины хвата и точки касания — оно показано в карточке плечевого сустава.'},
+            {id:'flare',label:'Разведение локтей',type:'range',min:10,max:85,step:1,unit:'°',def:45,hint:'Угол плеча к корпусу, если смотреть со спины: прижатые локти — 15–30°, около 45° — среднее, локти в стороны — 70–85°',show:p=>p.elbows==='flare'},
+            ...FRIC('pull','none')],
     desc:'Корпус держит наклон всю амплитуду, гриф идёт от виса на прямых руках к корпусу. Общий центр масс тела и штанги — над серединой стопы.',
     fdesc:(p,L)=>`Вес штанги ${fmtKg(L)} × g. Для ног и поясницы — вес всей штанги через центр грифа (ноги — на одну ногу, поясница — суммарно), для плеча и локтя — половина на кисть с боковым усилием хвата.`}
 });
