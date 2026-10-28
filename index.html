@@ -2363,7 +2363,7 @@ function frame(){
     const ln=lines[i], show=state.show.force&&!!ln;
     o.line.visible=show; if(!show){setArrow(o,null,null,false);return;}
     let tmin=-.35,tmax=.35; for(const r of res){const tq=r.j.pos.clone().sub(ln.p).dot(ln.d);if(r.j.line===ln||(r.j.line==='L'&&ln===pose.lineL)||(r.j.line==='main'&&ln===pose.line)||(r.j.line==='B'&&ln===pose.lineB)){tmin=Math.min(tmin,tq-.12);tmax=Math.max(tmax,tq+.12);}}
-    if(!upper||ln===pose.line&&lower2d) tmax=Math.max(tmax, (ln.p.y-.0)/Math.max(.2,-ln.d.y)); // до пола
+    if((!upper||ln===pose.line&&lower2d)&&ln.floor!==false) tmax=Math.max(tmax, (ln.p.y-.0)/Math.max(.2,-ln.d.y)); // до пола
     tmax=Math.min(tmax,3); tmin=Math.max(tmin,-1.2);
     setCyl(o.line,ln.p.clone().addScaledVector(ln.d,tmin),ln.p.clone().addScaledVector(ln.d,tmax),.0045);
     o.line.material.color.set(C.force); o.line.material.opacity=(ln===pose.lineR||ln===pose.lineBar)?.4:.95;
