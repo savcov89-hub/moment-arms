@@ -19,7 +19,11 @@ REGIONS = {
         **dict.fromkeys(['biceps_long', 'biceps_short', 'brachialis', 'brachioradialis', 'pronator_teres'], .6),
         **dict.fromkeys(['triceps_long', 'triceps_lateral', 'triceps_medial', 'anconeus'], 1.3),
         **dict.fromkeys(['deltoid_middle', 'supraspinatus'], 1.6),
-        **dict.fromkeys(['lat_dorsi_thoracic', 'lat_dorsi_lumbar', 'lat_dorsi_iliac', 'teres_major', 'pec_major_sternal', 'pec_major_abdominal'], .8)}},
+        **dict.fromkeys(['lat_dorsi_thoracic', 'lat_dorsi_lumbar', 'lat_dorsi_iliac', 'teres_major', 'pec_major_sternal', 'pec_major_abdominal'], .8)},
+        # плечелучевая: путь по точкам прикрепления MoBL (extra.path_anatomical без точек огибания), а не подогнанная прямая
+        # начало → шиловидный отросток. Промежуточная точка на лучевой кости (t 0,45) при повороте предплечья уходит назад,
+        # поэтому путь даёт и пронацию, и нейтраль, и супинацию: rms 0,19 / 0,17 / 0,66 см против 0,68 / 0,55 / 1,45 у прямой
+        'site_path': ['brachioradialis']},
     # README ног: PCSA = Fmax Rajagopal 2016 / 60 Н/см² (объёмы по МРТ); под рост и массу — регрессия объёма Handsfield 2014
     # подвздошная и поясничная после 110–115° сгибания бедра выходят за проверенный диапазон модели и меняют знак плеча (README ног):
     # в тазобедренном суставе считаем их только сгибателями
@@ -113,6 +117,8 @@ def convert(m, region, cfg):
     alt = cfg.get('alt_path', {}).get(m['id'])
     if alt:
         path = m['extra'][alt]['path']
+    if m['id'] in cfg.get('site_path', ()):
+        path = [p for p in m['extra']['path_anatomical'] if p.get('kind') == 'site']
     extra = m.get('extra') or {}
     shift = scaling(m).get('mass_shift_m_per_kg') or {}
     pts = [point(p, m) for p in path]
