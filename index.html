@@ -286,7 +286,7 @@ html{overflow-anchor:none}
         <div class="field-top"><label for="mass">Масса тела</label><output id="massOut"></output></div>
         <input type="range" id="mass" min="45" max="150" step="1">
       </div>
-      <label class="check"><input type="checkbox" id="bodyW"><span>Учитывать вес сегментов тела в моментах<br><span class="small">Иначе считается только внешняя нагрузка: момент = F × плечо</span></span></label>
+      <label class="check"><input type="checkbox" id="bodyW" checked><span>Учитывать вес тела: результирующая реакция опоры<br><span class="small">Как на силовой платформе: пол держит вес тела и снаряда вместе, моменты считаются от этой силы. Выключите, чтобы увидеть вклад только снаряда: момент = F × плечо</span></span></label>
     </section>
       <section class="pane" data-pane="tech" data-title="Техника" hidden>
       <div id="paramBox" style="display:flex;flex-direction:column;gap:12px"></div>
@@ -326,6 +326,7 @@ html{overflow-anchor:none}
       <ul class="notes">
         <li><b>Линия силы</b> проходит через точку приложения нагрузки по направлению силы: вертикально для штанги и гантелей, по тросу для блока. В жиме ногами — через точку опоры стопы вдоль направляющих. В гак-приседе и маятнике это реакция платформы R: она проходит через точку опоры стопы, а её направление находится из равновесия с упором спиной в подушку.</li>
         <li><b>Плечо силы</b> — кратчайшее расстояние от центра сустава до линии силы. <b>Момент</b> = сила × плечо.</li>
+        <li><b>Результирующая реакция опоры.</b> Так моменты считают в исследованиях с силовыми платформами: платформа под стопами измеряет одну силу — реакцию пола R, равную весу тела и снаряда вместе (и тяге троса, если она есть), — и точку, где она приложена, центр давления. Для голеностопа, колена и тазобедренного линия силы — линия R, момент = R × плечо минус вклад веса звеньев ноги ниже сустава (в тазобедренном это обычно 10–35 Н·м, в колене и голеностопе меньше). Для поясницы линия силы — равнодействующая снаряда и веса корпуса с головой и руками. Длина стрелки реакции растёт с силой: 30 см — вес тела. Если в «Нагрузке» выключить вес тела, останется только снаряд: момент = F × плечо до линии снаряда; так моменты в ногах и пояснице заметно меньше, чем на платформе (в приседе по данным Wretenberg 1996 — тазобедренный на 20–30% меньше).</li>
         <li>Для ног и поясницы расчёт в сагиттальной плоскости, для рук — в 3D, поэтому ширина хвата и разведение локтей влияют на плечо.</li>
         <li>В свободных весах корпус подбирается так, чтобы общий центр масс тела и снаряда оставался над серединой стопы.</li>
         <li><b>Трение.</b> В замкнутой цепи (гриф в двух руках, стопы на полу или платформе) опора передаёт не только нормальную силу, но и касательную — не больше μ × нормальная. В жиме лёжа режим «По данным» берёт боковую силу из измерений Larsen и соавт. (2021): широкий хват — кисти давят наружу, узкий — внутрь. В приседе «Авто» — «разведение пола», в жиме ногами — минимум суммарной нагрузки на суставы. Стрелка у кисти или стопы на 3D показывает, куда давит атлет; реакция опоры, от которой считаются плечи, направлена в обратную сторону. Гантели — открытая цепь, боковой силы у них нет. В статике горизонтальная сила под стопами вперёд-назад равна нулю, иначе тело бы ускорялось.</li>
@@ -337,7 +338,7 @@ html{overflow-anchor:none}
         <li><b>Блоки.</b> Сила троса направлена к ролику. Стоя у блока тело держит равновесие против тяги троса, точка давления ходит по стопе.</li>
         <li><b>Упражнения на одну сторону</b> (сплит-присед, тяга гантели одной рукой, отведение бедра). Левая и правая сторона считаются отдельно, у каждого сустава своя строка; мышцы обеих сторон делят моменты в одной задаче.</li>
         <li><b>Подтягивания.</b> Нагрузка — вес тела и пояса, общий центр масс всегда под перекладиной.</li>
-        <li>Модель статическая: без ускорений, трения и индивидуальной анатомии суставов. Значения — для сравнения вариантов, а не абсолютная истина.</li>
+        <li>Модель статическая: без ускорений, трения и индивидуальной анатомии суставов. На платформе при разгоне вверх реакция бывает больше веса — этого модель пока не учитывает. Значения — для сравнения вариантов, а не абсолютная истина.</li>
       </ul>
     </section>
     </div>
@@ -461,6 +462,38 @@ function addBody(pose,fn){
 function comX(pose){let m=0,mx=0;for(const f of pose.forces){if(f.mass&&f.seg!=='trunkU'&&!f.seg.startsWith('ft')&&!f.seg.startsWith('loadL')&&!f.seg.startsWith('loadR')){m+=f.mass;mx+=f.mass*f.p.x;}}
   if(!pose.ext)return mx/m;
   let W=m*G,M=mx*G; for(const e of pose.ext){W-=e.F.y;M-=e.p.x*e.F.y-e.p.y*e.F.x;} return M/W;}
+// Результирующая реакция опоры — то, что меряет силовая платформа: пол давит на стопы суммой веса тела, снаряда и внешних
+// сил (трос) с обратным знаком, и проходит она через центр давления — точку, где их равнодействующая уходит в пол.
+// Моменты в суставах ног от неё и от веса звеньев ноги ниже сустава те же, что сверху вниз от снаряда и тела (статика).
+// Без веса тела тело со снарядом не в равновесии, поэтому линии нет — остаётся линия снаряда.
+function groundLine(pose){
+  let Fx=0,Fy=0,M=0;
+  const put=(p,F)=>{Fx+=F.x;Fy+=F.y;M+=p.x*F.y-p.y*F.x;};
+  for(const f of pose.forces)if(f.mass&&f.seg!=='trunkU'&&!f.seg.startsWith('ft')&&!f.seg.startsWith('loadL')&&!f.seg.startsWith('loadR'))put(f.p,f.F);
+  for(const e of pose.ext||[])put(e.p,e.F);
+  if(Fy>-1)return null;
+  const R=V(-Fx,-Fy,0);
+  return {p:V(M/Fy,0,0),d:R.clone().normalize(),mag:R.length(),lbl:'R опоры'};
+}
+// Равнодействующая сил из списка segs (поясница сверху вниз: снаряд и вес верха тела): момент сустава = её величина × плечо.
+// Линия проходит через общий центр этих сил; если силы почти гасят друг друга (трос вверх, вес вниз), линии нет.
+function sumLine(pose,segs){
+  const F=V(0,0,0), c=V(0,0,0); let M=0,W=0,mx=0;
+  for(const f of pose.forces){if(!segs.includes(f.seg))continue;const w=f.F.length();F.add(f.F);M+=f.p.x*f.F.y-f.p.y*f.F.x;c.addScaledVector(f.p,w);W+=w;mx=Math.max(mx,w);}
+  const L=Math.hypot(F.x,F.y); if(!W||L<.6*mx)return null;
+  c.divideScalar(W); const d=V(F.x/L,F.y/L,0), r0=V(M*F.y/(L*L),-M*F.x/(L*L),0);
+  return {p:r0.addScaledVector(d,c.sub(r0).dot(d)),d,floor:false};
+}
+// линия силы сустава. 'G' — реакция опоры, 'T' — равнодействующая сил, от которых считается сустав; обе только с весом тела,
+// без него — j.line0 (по умолчанию основная линия). 'L', 'B' — линия левой кисти и опоры спины; объект {p, d} — своя линия
+function jointLine(pose,j,withBody){
+  let l=j.line;
+  if(l==='G'||l==='T'){
+    const r=!withBody?null:l==='G'?(pose.lineG!==undefined?pose.lineG:(pose.lineG=groundLine(pose))):(j._ln!==undefined?j._ln:(j._ln=sumLine(pose,j.free)));
+    if(r)return r; l=j.line0||'main';
+  }
+  return (typeof l==='object'?l:l==='L'?pose.lineL:l==='B'?pose.lineB:pose.line)||{p:j.pos,d:V(0,-1,0)};
+}
 function solveBalance(mk,lo,hi,target){
   const pl=mk(lo); if(comX(pl)>=target){pl.flag='back';return pl;}
   const ph=mk(hi); if(comX(ph)<=target){ph.flag='front';return ph;}
@@ -470,7 +503,8 @@ function solveBalance(mk,lo,hi,target){
 function topDownJoints(pose,keys){
   const P=pose.P;
   const defs={ankle:{pos:P.ankleL,flexSign:-1,bil:true},knee:{pos:P.kneeL,flexSign:1,bil:true},hip:{pos:P.hipL,flexSign:-1,bil:true},L5:{pos:P.L5,flexSign:-1,bil:false}};
-  pose.joints=keys.map(k=>Object.assign({key:k,mode:'2d',line:'main',free:FREE_TOP[k],primary:'flex'},defs[k]));
+  // ноги — от реакции пола, поясница — от равнодействующей снаряда и веса верха тела
+  pose.joints=keys.map(k=>Object.assign({key:k,mode:'2d',line:k==='L5'?'T':'G',free:FREE_TOP[k],primary:'flex'},defs[k]));
 }
 function armJoints(pose,shoulderText){
   const P=pose.P;
@@ -711,8 +745,10 @@ function buildBridge(t,p,load){
   const body=[]; for(const f of pose.forces)if(f.mass&&f.seg!=='trunkU')body.push({p:f.p,w:f.mass*G});
   const L=bridgeSolve([{p:B,w:F}],cop,Pv3,n,tau,p.fric,k), Bd=bridgeSolve(body,cop,Pv3,n,tau,p.fric,k);
   pose.forces.push({seg:'load',p:cop,F:L.foot},{seg:'hatG',p:cop,F:Bd.foot},{seg:'loadB',p:Pv3.clone(),F:L.back},{seg:'bodyB',p:Pv3.clone(),F:Bd.back});
-  pose.line={p:cop,d:L.foot.clone().normalize()}; pose.lineB={p:Pv3,d:L.back.clone().normalize()}; pose.lineBar={p:B.clone(),d:V(0,-1,0)};
-  pose.F=F; pose.R=L.foot.length(); pose.sideKg=load/2; pose.eq={bar:B,Pv:Pv3,benchH:p.benchH/100};
+  // учтённые реакции пола и скамьи: от штанги или вместе с весом тела
+  const Rf=state.body?L.foot.clone().add(Bd.foot):L.foot, Rk=state.body?L.back.clone().add(Bd.back):L.back;
+  pose.line={p:cop,d:Rf.clone().normalize(),mag:Rf.length()}; pose.lineB={p:Pv3,d:Rk.clone().normalize()}; pose.lineBar={p:B.clone(),d:V(0,-1,0)};
+  pose.F=F; pose.R=Rf.length(); pose.sideKg=load/2; pose.eq={bar:B,Pv:Pv3,benchH:p.benchH/100};
   // трение — по полным реакциям (штанга + тело): так оно и работает физически
   const Nf=L.Nf+Bd.Nf, Tf=L.Tf+Bd.Tf, Nb=L.Nb+Bd.Nb, Tb=L.Tb+Bd.Tb;
   const needF=Nf>1?Math.abs(Tf)/Nf:0, needB=Nb>1?Math.abs(Tb)/Nb:0;
@@ -828,7 +864,8 @@ function buildPendulum(t,p,load){
   addBody(pose);
   const C=pose.P.shMid.clone().addScaledVector(pose.u,.075), pr=padReaction(pose,V(Math.sin(a),-Math.cos(a),0).multiplyScalar(F),C), Rv=pr.RL;
   pose.forces.push({seg:'load',p:cop,F:Rv},{seg:'hatG',p:cop,F:pr.RW}); if(pr.lost)pose.flag='pad';
-  pose.line={p:cop,d:Rv.clone().normalize()}; pose.F=F; pose.R=Rv.length(); pose.sideKg=F/G/2; pose.eq={Pv,a,R,S,yP};
+  const Rt=state.body?Rv.clone().add(pr.RW):Rv;   // учтённая реакция платформы: от нагрузки или вместе с весом тела
+  pose.line={p:cop,d:Rt.clone().normalize(),mag:Rt.length()}; pose.F=F; pose.R=Rt.length(); pose.sideKg=F/G/2; pose.eq={Pv,a,R,S,yP};
   machineFric(pose,pr,p);
   bottomUpJoints(pose);
   return pose;
@@ -855,7 +892,8 @@ function buildHack(t,p,load){
   addBody(pose);
   const C=pose.P.shMid.clone().addScaledVector(pose.u,.075), pr=padReaction(pose,V(dr.x,dr.y,0).multiplyScalar(F),C), Rv=pr.RL;
   pose.forces.push({seg:'load',p:cop,F:Rv},{seg:'hatG',p:cop,F:pr.RW}); if(pr.lost)pose.flag='pad';
-  pose.line={p:cop,d:Rv.clone().normalize()}; pose.F=F; pose.R=Rv.length(); pose.sideKg=F/G/2; pose.eq={hipT,dr,al,yP,front:pose.front.clone()};
+  const Rt=state.body?Rv.clone().add(pr.RW):Rv;
+  pose.line={p:cop,d:Rt.clone().normalize(),mag:Rt.length()}; pose.F=F; pose.R=Rt.length(); pose.sideKg=F/G/2; pose.eq={hipT,dr,al,yP,front:pose.front.clone()};
   machineFric(pose,pr,p);
   if(sMax<p.depth/100-.005)pose.note=`Ход каретки ограничен ${Math.round(sMax*100)} см: дальше таз уходит за пятки или колено сгибается до предела. Вынесите стопы дальше вперёд.`;
   bottomUpJoints(pose);
@@ -2093,13 +2131,14 @@ function buildSplit(t,p,load){
   const Rf=rl.a+rb.a, Rb=rl.b+rb.b; cop.z=clamp(Rf>1?(Wz-Rb*C3.z)/Rf:zh,zh-.045,zh+.035);
   pose.forces.push({seg:'loadFt',p:cop,F:V(0,rl.a,0)},{seg:'bodyFt',p:cop,F:V(0,rb.a,0)},{seg:'loadBk',p:C3,F:V(0,rl.b,0)},{seg:'bodyBk',p:C3,F:V(0,rb.b,0)});
   if(Rf<0||Rb<0)pose.flag='lift';
-  const up=V(0,1,0), lnR={p:C3,d:up,floor:false}, lnL={p:Ld.clone(),d:V(0,-1,0)};
-  pose.line={p:cop,d:up}; pose.lineBar=lnL;
-  pose.F=W; pose.R=rl.a+(state.body?rb.a:0); pose.sideKg=load/2;
+  // стрелки реакций — по величине учтённой силы (с весом тела — полные реакции, как на двух силовых платформах)
+  const bd=state.body, up=V(0,1,0), lnR={p:C3,d:up,floor:false,mag:rl.b+(bd?rb.b:0),lbl:'R скамьи'}, lnL={p:Ld.clone(),d:V(0,-1,0)};
+  pose.line={p:cop,d:up,mag:rl.a+(bd?rb.a:0)}; pose.lineBar=lnL;
+  pose.F=W; pose.R=pose.line.mag; pose.sideKg=load/2;
   Object.assign(pose.eq,{xE,hb,zR,kind:p.kind,fit:[V(xE-1.1,hb,-zR),V(xE,0,-zR-.15)]});
   pose.warn=warn||null;
   const shF=Math.round(p.shin), share=Math.round(Rb/Math.max(1,Rf+Rb)*100);
-  pose.fric={kind:'split',text:`Вес тела и снаряда делится между опорами: передняя стопа — <b>${100-share}%</b> (${fmt0(Rf)} Н), задняя стопа на скамье — <b>${share}%</b> (${fmt0(Rb)} Н). Чем сильнее наклон корпуса, тем больше достаётся передней ноге. Реакции считаются вертикальными: в статике горизонтальной силы нет, трение не нужно. В исследовании Arakawa и соавт. (2025) на задней ноге было 28–39% веса.`};
+  pose.fric={kind:'split',text:`Вес тела и снаряда делится между опорами: передняя стопа — <b>${100-share}%</b> (${fmt0(Rf)} Н), задняя стопа на скамье — <b>${share}%</b> (${fmt0(Rb)} Н). Чем сильнее наклон корпуса, тем больше достаётся передней ноге. Реакции вертикальные: на двух силовых платформах (Arakawa и соавт., 2025) горизонтальная сила под передней стопой была почти нулевой — до 14 Н при 360–430 Н вертикальной, на задней ноге было 28–39% общей вертикальной силы, а с наклоном корпуса на 10° реакция под передней ногой росла на 6–10%.`};
   // суставы: передняя нога и задняя нога снизу вверх, поясница сверху вниз
   const F=['loadFt','bodyFt'], B=['loadBk','bodyBk'], dv=(a,b)=>a.clone().sub(b), trunkA=dv(P.shMid,P.hipMid);
   pose.joints=[
@@ -2108,11 +2147,11 @@ function buildSplit(t,p,load){
     {key:'hip',side:'L',label:'Тазобедренный, передняя нога',tag:'Таз спереди',mode:'2d',line:'main',pos:P.hipL,a:trunkA,b:dv(P.kneeL,P.hipL),free:[...F,'ftL','skL','thL'],primary:'flex'},
     {key:'knee',id:'kneeR',side:'R',alt:true,label:'Колено, задняя нога',tag:'Колено сзади',mode:'2d',line:lnR,pos:P.kneeR,a:dv(P.hipR,P.kneeR),b:dv(P.ankleR,P.kneeR),free:[...B,'ftR','skR'],primary:'flex',tagOff:[-16,10]},
     {key:'hip',id:'hipR',side:'R',alt:true,label:'Тазобедренный, задняя нога',tag:'Таз сзади',mode:'2d',line:lnR,pos:P.hipR,a:trunkA,b:dv(P.kneeR,P.hipR),free:[...B,'ftR','skR','thR'],primary:'ext',tagOff:[-16,24]},
-    {key:'L5',side:'B',mode:'2d',line:lnL,pos:P.L5,flexSign:-1,free:FREE_TOP.L5,primary:'flex'}
+    {key:'L5',side:'B',mode:'2d',line:'T',line0:lnL,pos:P.L5,flexSign:-1,free:FREE_TOP.L5,primary:'flex'}
   ];
   pose.support={L:[],R:['ankle']};   // голеностоп задней ноги лежит на скамье в крайнем подошвенном сгибании — держат связки и скамья
   // фронтальная плоскость передней ноги (только показ, как в приседании): центр давления стопы медиальнее тазобедренного
-  const bd=state.body, cnt=f=>bd||f.seg.startsWith('load'), fs=segs=>pose.forces.filter(f=>segs.includes(f.seg)&&cnt(f));
+  const cnt=f=>bd||f.seg.startsWith('load'), fs=segs=>pose.forces.filter(f=>segs.includes(f.seg)&&cnt(f));
   pose.frontal={knee:legFrontal(P.kneeL,fs([...F,'ftL','skL'])),hip:legFrontal(P.hipL,fs([...F,'ftL','skL','thL']))};
   pose.sideNote='для каждой ноги свои';
   pose.sideNames={L:'Передняя нога (левая)',R:'Задняя нога (правая)'};
@@ -2304,7 +2343,7 @@ EQUIP_X.abduct=function(load){
 const GROUPS=['Свободные веса: ноги и спина','Тренажёры для ног','Грудь','Спина: тяги','Плечи','Руки'];
 
 /* ================= Состояние ================= */
-const state={ex:'squat',t:.7,playing:false,chartMode:'moment',mass:80,body:false,loads:{},params:{},show:{force:true,arms:true,arcs:true,labels:true,xray:false,anat:true},compare:null};
+const state={ex:'squat',t:.7,playing:false,chartMode:'moment',mass:80,body:true,loads:{},params:{},show:{force:true,arms:true,arcs:true,labels:true,xray:false,anat:true},compare:null};
 for(const id in EX){state.loads[id]=EX[id].def;state.params[id]={};for(const p of EX[id].params)state.params[id][p.id]=p.def;}
 const cur=()=>EX[state.ex];
 const buildNow=t=>cur().build(t,state.params[state.ex],state.loads[state.ex]);
@@ -2324,8 +2363,8 @@ function analyze(pose,withBody){
   withBody=withBody||!!pose.bodyLoad;   // подтягивания: вес тела и есть нагрузка
   return pose.joints.map(j=>{
     const forces=pose.forces.filter(f=>j.free.includes(f.seg)&&(withBody||f.seg.startsWith('load')));
-    const ln=(typeof j.line==='object'?j.line:j.line==='L'?pose.lineL:j.line==='B'?pose.lineB:pose.line)||{p:j.pos,d:V(0,-1,0)};   // своя линия сустава — объект {p,d}
-    const r={key:j.key,id:j.id||j.key,j};   // id — строка, кривая и подпись сустава; key — его тип (две стороны: knee и kneeR)
+    const ln=jointLine(pose,j,withBody);
+    const r={key:j.key,id:j.id||j.key,j,ln};   // id — строка, кривая и подпись сустава; key — его тип (две стороны: knee и kneeR)
     if(j.mode==='2d'){
       let M=0; for(const f of forces) M+=(f.p.x-j.pos.x)*f.F.y-(f.p.y-j.pos.y)*f.F.x;
       const d=nrm(v2(ln.d.x,ln.d.y)), rel=v2(j.pos.x-ln.p.x,j.pos.y-ln.p.y);
@@ -3337,13 +3376,16 @@ function ovCone(){const m=new THREE.Mesh(new THREE.ConeGeometry(1,1,18),ovMat())
 function ovSph(){const m=new THREE.Mesh(UNIT_SPH,ovMat());m.renderOrder=11;ovG.add(m);return m;}
 const FL=[0,1,2,3,4,5].map(()=>({line:ovCyl(),shaft:ovCyl(),head:ovCone()}));
 const guide=ovCyl();
+let drawnLines=[];   // линии силы последнего кадра — для подписей реакций
+const arrowLen=F=>clamp(.3*F/(state.mass*G),.12,.8);   // 30 см на вес тела
 const ARMS=[0,1,2,3,4,5].map(()=>({seg:ovCyl(),dot:ovSph(),ring:ovSph()}));
 const CARR=[0,1].map(()=>({shaft:ovCyl(),head:ovCone()}));
 const ARCS=[0,1,2,3,4,5].map(()=>{const g=new THREE.Group();const torus=new THREE.Mesh(new THREE.TorusGeometry(.08,.008,8,40,Math.PI),ovMat());torus.renderOrder=9;const cone=new THREE.Mesh(new THREE.ConeGeometry(.02,.05,14),ovMat());cone.renderOrder=9;g.add(torus,cone);ovG.add(g);g.userData={torus,cone,arc:-1};return g;});
-function setArrow(o,p,d,show,col){
+// len — длина стрелки, м (по умолчанию 32 см); у реакций опоры она растёт с силой — arrowLen
+function setArrow(o,p,d,show,col,len){
   for(const k of ['shaft','head'])o[k].visible=show;
   if(!show)return;
-  const tipBack=p.clone().addScaledVector(d,-.075), tail=p.clone().addScaledVector(d,-.32);
+  const tipBack=p.clone().addScaledVector(d,-.075), tail=p.clone().addScaledVector(d,-(len||.32));
   setCyl(o.shaft,tail,tipBack,.009);
   o.head.position.copy(p.clone().addScaledVector(d,-.0375)); o.head.quaternion.setFromUnitVectors(Y,d); o.head.scale.set(.028,.075,.028);
   o.shaft.material.color.set(col);o.head.material.color.set(col);
@@ -3351,8 +3393,8 @@ function setArrow(o,p,d,show,col){
 
 /* ---- метки ---- */
 const tagsEl=$('#tags'); const TAGS={};
-function tag(key){if(TAGS[key])return TAGS[key];const el=document.createElement('div');el.className='tag'+(key==='F'?' force':'');tagsEl.appendChild(el);TAGS[key]=el;return el;}
-const TAG_OFF={ankle:[14,6],knee:[16,-4],hip:[16,8],L5:[-16,-6],shoulder:[-14,-18],elbow:[16,6],F:[14,-14]};
+function tag(key){if(TAGS[key])return TAGS[key];const el=document.createElement('div');el.className='tag'+(key[0]==='F'?' force':'');tagsEl.appendChild(el);TAGS[key]=el;return el;}
+const TAG_OFF={ankle:[14,6],knee:[16,-4],hip:[16,8],L5:[-16,-6],shoulder:[-14,-18],elbow:[16,6],F:[14,-14],R:[-16,14]};
 function setTagHTML(el,h){if(el._h!==h){el.innerHTML=h;el._h=h;}}
 function placeTag(el,p,off){
   const v=p.clone().project(camera);
@@ -3671,9 +3713,15 @@ function forceDesc(p){
   if(state.ex==='db') return `Вес одной гантели ${fmtKg(L)}, вертикально вниз через кисть. Значения на одну руку.`;
   if(state.ex==='bench'||state.ex==='close') return `Половина веса штанги (${fmtKg(L)}) на каждую руку. Линия силы — результирующая с боковой силой от кисти.`;
   if(state.ex==='pdn'||state.ex==='pdw') return `Натяжение троса ${fmt0(p.F)} Н, по ${fmt0(p.F/2)} Н на руку. На каждой кисти — результирующая троса и боковой силы.`;
-  if(state.ex==='pendulum') return `Усилие рычага на плечи m·g·cos(угла рычага), сейчас ${fmt0(p.F)} Н. Линия R — реакция платформы от нагрузки, ${fmt0(p.R)} Н: через точку опоры стопы, с учётом упора спиной в подушку. Значения на одну ногу.`;
-  if(state.ex==='hack') return `Каретка давит на плечи вдоль направляющих: m·g·sin ${state.params.hack.angle}°. Линия R — реакция платформы от нагрузки, ${fmt0(p.R)} Н: через точку опоры стопы, с учётом упора спиной в подушку. Значения на одну ногу.`;
+  if(state.ex==='pendulum') return `Усилие рычага на плечи m·g·cos(угла рычага), сейчас ${fmt0(p.F)} Н. Линия R — реакция платформы ${state.body?'от нагрузки и веса тела':'только от нагрузки'}, ${fmt0(p.R)} Н: через точку опоры стопы, с учётом упора спиной в подушку. Значения на одну ногу.`;
+  if(state.ex==='hack') return `Каретка давит на плечи вдоль направляющих: m·g·sin ${state.params.hack.angle}°. Линия R — реакция платформы ${state.body?'от нагрузки и веса тела':'только от нагрузки'}, ${fmt0(p.R)} Н: через точку опоры стопы, с учётом упора спиной в подушку. Значения на одну ногу.`;
   return `Составляющая веса платформы вдоль направляющих: m·g·sin 45°. Линия R — результирующая с учётом касательной силы по платформе. Значения на одну ногу.`;
+}
+// карточка «Внешняя сила»: реакция пола, от которой считаются показанные суставы ног, — то, что показала бы силовая платформа
+function grfDesc(pose,vis){
+  const lg=pose.lineG; if(!lg||!vis.some(r=>r.ln===lg))return '';
+  const dx=lg.p.x-MF(), at=pose.eq&&pose.eq.split?'между стопами':Math.abs(dx)<.005?'под серединой стопы':`в ${fmt0(Math.abs(dx)*100)} см ${dx>0?'впереди':'позади'} середины стопы`;
+  return ` Пол давит на стопы с силой R = ${fmt0(lg.mag)} Н (${fmt1(lg.mag/(state.mass*G))} веса тела): вес тела и снаряда вместе${pose.ext?' с тягой троса':''} — то, что показала бы силовая платформа. R проходит через центр давления ${at}; от неё считаются плечи для суставов ног.`;
 }
 function fricText(p){
   const f=p.fric; if(!f) return ''; if(f.text) return f.text;
@@ -3703,22 +3751,23 @@ function frame(){
   for(const mt of [MAT.body,MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R,MAT.headScan,MAT.muscle,MAT.deep,MAT.frame,MAT.pad,MAT.metal,MAT.iron,...Object.values(plateMats)]){const sk=mt===MAT.body||mt===MAT.shorts||mt===MAT.shortsCut.L||mt===MAT.shortsCut.R||mt===MAT.deep;mt.transparent=state.show.xray;mt.opacity=state.show.xray?(sk?.15:mt===MAT.headScan?.28:.22):1;mt.depthWrite=!state.show.xray;}
   if(state.ex==='bridge'&&!state.show.xray)for(const mt of Object.values(plateMats)){mt.transparent=true;mt.opacity=.3;mt.depthWrite=false;} // блины у таза не закрывают сустав
   const upper=!!pose.lineL, vis=shown(res);
-  const lower2d=vis.some(r=>r.j.mode==='2d'&&r.j.bil&&r.j.line==='main');   // показанные суставы ног на основной линии
-  // линии силы: основная, по руке на каждую кисть, реакция скамьи, вес штанги
-  const lines=[...new Set([pose.line,pose.lineL,pose.lineR,pose.lineB,pose.lineBar,...vis.map(r=>typeof r.j.line==='object'?r.j.line:null)].filter(Boolean))].slice(0,FL.length);
+  const legLn=(vis.find(r=>r.j.mode==='2d'&&r.j.bil)||{}).ln;   // линия показанных суставов ног (реакция опоры или линия снаряда)
+  // линии силы: основная, по руке на каждую кисть, реакция скамьи, вес штанги, линии суставов (реакция пола, равнодействующая для поясницы)
+  const lines=drawnLines=[...new Set([pose.line,pose.lineL,pose.lineR,pose.lineB,pose.lineBar,...vis.map(r=>r.ln)].filter(Boolean))].slice(0,FL.length);
   FL.forEach((o,i)=>{
     const ln=lines[i], show=state.show.force&&!!ln;
     o.line.visible=show; if(!show){setArrow(o,null,null,false);return;}
-    let tmin=-.35,tmax=.35; for(const r of res){const tq=r.j.pos.clone().sub(ln.p).dot(ln.d);if(r.j.line===ln||(r.j.line==='L'&&ln===pose.lineL)||(r.j.line==='main'&&ln===pose.line)||(r.j.line==='B'&&ln===pose.lineB)){tmin=Math.min(tmin,tq-.12);tmax=Math.max(tmax,tq+.12);}}
-    if((!upper||ln===pose.line&&lower2d)&&ln.floor!==false) tmax=Math.max(tmax, (ln.p.y-.0)/Math.max(.2,-ln.d.y)); // до пола
+    let tmin=-.35,tmax=.35; for(const r of res)if(r.ln===ln){const tq=r.j.pos.clone().sub(ln.p).dot(ln.d);tmin=Math.min(tmin,tq-.12);tmax=Math.max(tmax,tq+.12);}
+    if((!upper||ln===legLn)&&ln.floor!==false) tmax=Math.max(tmax, (ln.p.y-.0)/Math.max(.2,-ln.d.y)); // до пола
     tmax=Math.min(tmax,3); tmin=Math.max(tmin,-1.2);
     setCyl(o.line,ln.p.clone().addScaledVector(ln.d,tmin),ln.p.clone().addScaledVector(ln.d,tmax),.0045);
-    o.line.material.color.set(C.force); o.line.material.opacity=(ln===pose.lineR||ln===pose.lineBar)?.4:.95;
-    setArrow(o,ln.p,ln.d,true,C.force);
+    // линия, от которой не считается ни один показанный сустав (вес штанги рядом с реакцией опоры, правая кисть), — бледнее
+    o.line.material.color.set(C.force); o.line.material.opacity=vis.some(r=>r.ln===ln)?.95:.4;
+    setArrow(o,ln.p,ln.d,true,C.force,ln.mag?arrowLen(ln.mag):null);
   });
   // проекция линии в плоскость ноги
-  guide.visible=state.show.force&&lower2d;
-  if(guide.visible){const ln=pose.line,z=A.hw/2;const a=ln.p.clone().setZ(z),dd=ln.d.clone();let t0=-.4,t1=.4;for(const r of res)if(r.j.mode==='2d'){t0=Math.min(t0,r.tq-.1);t1=Math.max(t1,r.tq+.1);}setCyl(guide,a.clone().addScaledVector(dd,t0),a.clone().addScaledVector(dd,t1),.0025);guide.material.color.set(C.force);guide.material.opacity=.35;}
+  guide.visible=state.show.force&&!!legLn;
+  if(guide.visible){const ln=legLn,z=A.hw/2;const a=ln.p.clone().setZ(z),dd=ln.d.clone();let t0=-.4,t1=.4;for(const r of res)if(r.ln===ln){t0=Math.min(t0,r.tq-.1);t1=Math.max(t1,r.tq+.1);}setCyl(guide,a.clone().addScaledVector(dd,t0),a.clone().addScaledVector(dd,t1),.0025);guide.material.color.set(C.force);guide.material.opacity=.35;}
   // плечи и дуги
   const maxAbs=samples?samples.maxAbs:1;
   ARMS.forEach((o,i)=>{const r=vis[i];const show=!!r&&state.show.arms;o.seg.visible=o.dot.visible=show;o.ring.visible=!!r;
@@ -3738,7 +3787,7 @@ function frame(){
   // суставы цветом
   {const jc=state.show.anat?MAT.deep.color:C.body;for(const k in JS)JS[k].material.color.set(jc); L5m.material.color.set(jc);}
   // панель
-  $('#fVal').textContent=fmt0(pose.F); $('#fDesc').textContent=forceDesc(pose);
+  $('#fVal').textContent=fmt0(pose.F); $('#fDesc').textContent=forceDesc(pose)+grfDesc(pose,vis);
   $('#tOut').textContent=`${Math.round(state.t*100)} %`;
   const hasArm=vis.some(r=>r.key==='shoulder'||r.key==='elbow'), hasLeg=vis.some(r=>r.j.bil||r.key==='ankle'||r.key==='knee'||r.key==='hip');
   $('#sideNote').textContent=pose.sideNote||(hasArm&&hasLeg?'на одну руку и одну ногу':hasArm?'на одну руку':'на одну ногу');
@@ -3777,7 +3826,11 @@ function updateTags(){
   if(!show)return;
   const used=new Set(), list=[];
   for(const r of shown(res)){const el=tag(r.id);used.add(r.id);el.style.display='';setTagHTML(el,`<i style="background:${C[r.key]};opacity:${jOp(r.j)}"></i>${r.j.tag||jLabel(r.j)} <b>${r.arm>=0?fmt1(r.arm*100)+' см':fmt0(r.abs)+' Н·м'}</b><span class="mk">${fmt0(r.mKg)} кг</span>`);list.push(placeTag(el,r.j.pos,r.j.tagOff||TAG_OFF[r.key]||[14,0]));}
-  if(state.show.force){const el=tag('F');used.add('F');el.style.display='';const ln=pose.line;const p=ln.p.clone().addScaledVector(ln.d,-.3);setTagHTML(el,`<i></i>${pose.R!=null?'R':'F'} <b>${fmt0(pose.R!=null?pose.R:pose.F)} Н</b>`);list.push(placeTag(el,p,TAG_OFF.F));}
+  // реакция опоры (у линии есть mag) подписана у точки опоры слева: стрелка уходит под пол, а низ сцены закрывает панель
+  if(state.show.force){const el=tag('F');used.add('F');el.style.display='';const ln=pose.line;const p=ln.mag?ln.p.clone():ln.p.clone().addScaledVector(ln.d,-.3);setTagHTML(el,`<i></i>${pose.R!=null?'R':'F'} <b>${fmt0(pose.R!=null?pose.R:pose.F)} Н</b>`);list.push(placeTag(el,p,ln.mag?TAG_OFF.R:TAG_OFF.F));
+    // остальные реакции со своей линией: пол под стопами при учёте веса тела, скамья под задней стопой
+    drawnLines.forEach((ln,i)=>{if(!ln.lbl||ln===pose.line)return;const k='F'+(i+1),el=tag(k);used.add(k);el.style.display='';
+      setTagHTML(el,`<i></i>${ln.lbl} <b>${fmt0(ln.mag)} Н</b>`);list.push(placeTag(el,ln.p.clone(),TAG_OFF.R));});}
   const c0=state.show.force&&pose.contacts&&pose.contacts[0];
   if(c0&&c0.label){const el=tag('P');used.add('P');el.style.display='';setTagHTML(el,`<i style="background:${C.muted}"></i>${c0.label} <b>${Math.round(c0.need*100)}%</b>`);list.push(placeTag(el,c0.p.clone().addScaledVector(c0.push.clone().normalize(),.3),[12,8]));}
   applyTags(list);
