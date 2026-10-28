@@ -1302,7 +1302,7 @@ function segMatrix(F,ref,out,dA){const kx=F.L/ref,O=F.O,a=F.ant,x=F.ax,l=F.lat;
 // поворачиваются вокруг оси пронации (головка лучевой → головка локтевой), пока большой палец не ляжет вдоль рукояти: у штанги
 // и гантелей — к середине грифа, на параллельных рукоятях тяги — назад, на тренажёрах — вверх по рукояти или вперёд.
 // Центр хвата при этом уходит с оси предплечья, и всё предплечье чуть наклоняется вокруг локтя, чтобы он вернулся на рукоять.
-// Только картинка: расчёт ведётся по данным рук в пронации.
+// Только картинка: расчёт ведётся по данным рук в пронации или в положении предплечья pose.forearm (forearmDeg).
 function gripThumb(pose,s,out){
   const P=pose.P, e=EX[state.ex].equip, X=V(1,0,0);
   if(pose.eq.thumb)return out.copy(pose.eq.thumb[s==='L'?0:1]);   // новые упражнения задают направление большого пальца сами: [левая, правая]
@@ -1311,7 +1311,7 @@ function gripThumb(pose,s,out){
   if(e==='pulldown'&&pose.eq.kind!=='wide')return out.copy(X).multiplyScalar(-(Math.sign(pose.front.x)||1));
   return out.copy(P['ha'+(s==='L'?'R':'L')]).sub(P['ha'+s]);
 }
-const GRIP_W={L:{rh:new THREE.Matrix4(),u:new THREE.Matrix4(),on:false},R:{rh:new THREE.Matrix4(),u:new THREE.Matrix4(),on:false}};
+const GRIP_W={L:{rh:new THREE.Matrix4(),rm:new THREE.Matrix4(),u:new THREE.Matrix4(),on:false},R:{rh:new THREE.Matrix4(),rm:new THREE.Matrix4(),u:new THREE.Matrix4(),on:false}};
 const _gq=new THREE.Quaternion(), _gq2=new THREE.Quaternion(), _gM=new THREE.Matrix4(), _gA=V(0,0,0), _gH=V(0,0,0), _gG=V(0,0,0), _gT=V(0,0,0), _gD=V(0,0,0), _gC=V(0,0,0);
 function gripTwist(pose,s,F){
   const w=GRIP_W[s]; w.on=false; if(!SKEL.pro||!SKEL.pro.h||!SKEL.pro.u)return w;
@@ -1331,6 +1331,8 @@ function gripTwist(pose,s,F){
   _gq.setFromAxisAngle(_gA,psi); _gC.copy(_gG).sub(_gH).applyQuaternion(_gq).add(_gH).sub(F.O); _gq2.setFromUnitVectors(_gC.normalize(),F.ax);
   const rot=(q,c,m)=>m.makeTranslation(c.x,c.y,c.z).multiply(_skA.makeRotationFromQuaternion(q)).multiply(_skB.makeTranslation(-c.x,-c.y,-c.z));
   rot(_gq2,F.O,w.u); w.rh.copy(w.u).multiply(rot(_gq,_gH,_gM));
+  // точки мышц на лучевой кости уже повёрнуты в расчёте на угол предплечья (forearmDeg; у правой руки система зеркальна) — им остаток
+  const pm=forearmDeg(pose,s)*D*(s==='L'?1:-1); _gq.setFromAxisAngle(_gA,psi-pm); w.rm.copy(w.u).multiply(rot(_gq,_gH,_gM));
   w.psi=psi; w.tilt=2*Math.acos(Math.min(1,Math.abs(_gq2.w))); w.on=true; return w;
 }
 const splineAt=([x,y],q)=>{if(q<=x[0])return y[0];for(let i=1;i<x.length;i++)if(q<=x[i])return y[i-1]+(y[i]-y[i-1])*(q-x[i-1])/(x[i]-x[i-1]);return y[y.length-1];};
@@ -1483,11 +1485,26 @@ function segFrames(pose,s){
   // предплечье — система локтевой кости: плечевая система, повёрнутая на угол сгибания локтя; от пронации кисти не зависит
   const antF=fr.ua.ant.clone().applyQuaternion(new THREE.Quaternion().setFromUnitVectors(du,df));
   fr.fa=mk(el,df,antF,Lf,MREF.fa,false);
+  const ps=forearmDeg(pose,s)*D; if(ps)fr.fa.pr=proRot(ps);
   return fr;
 }
+// Положение предплечья. Точки мышц на лучевой кости и кисти (флаги 8 и 16) в данных рук — в полной пронации;
+// pose.forearm — угол супинации от неё (градусы или 'pro' | 'neu' | 'sup', можно {L, R}): лучевая кость с кистью поворачиваются
+// вокруг оси пронации, локтевая остаётся. Ось — в системе предплечья эталона (вдоль оси, м; вперёд; наружу): от головки лучевой
+// кости (2 см наружу от оси предплечья у локтя) к центру хвата. Подогнана по 27 парам точек лучевой кости в пронации и супинации
+// (anatomy/arms: extra.path_anatomical и path_supinated_anatomical, поворот на 180°): rms 1,1 мм, максимум 1,8 мм
+const PRO_AX={c:[0,.0002,.0199],n:[.99831,-.00076,-.05818]}, FOREARM={pro:0,neu:90,sup:180};
+function forearmDeg(pose,s){const f=pose.forearm;if(f==null)return 0;const v=typeof f==='object'?f[s]:f;return typeof v==='string'?FOREARM[v]:v||0;}
+// поворот вокруг оси пронации на ps (рад, + — супинация): в системе (вдоль оси, вперёд, наружу) как в правой тройке, у обеих сторон одинаково
+function proRot(ps){const [x,y,z]=PRO_AX.n,c=Math.cos(ps),s=Math.sin(ps),k=1-c;
+  return [c+x*x*k,x*y*k-z*s,x*z*k+y*s, y*x*k+z*s,c+y*y*k,y*z*k-x*s, z*x*k-y*s,z*y*k+x*s,c+z*z*k];}
 // p[4] & 2: поперечные смещения × рост/1,80, а не длину сегмента (точки у локтя и на головке плеча: плечо задаёт толщина кости, Murray 2002)
 // p[4] & 4: точка стопы — высота от голеностопа (a уже без эталонных 0,072 м) плюс высота голеностопа приложения
-function mPoint(fr,p,out){const F=fr[p[0]],h=p[4]&2?A.H/MREF.H:0;out=(out||V(0,0,0)).copy(F.O).addScaledVector(F.ax,p[1]*F.L).addScaledVector(F.ant,p[2]*(h||F.sa)).addScaledVector(F.lat,p[3]*(h||F.sl));
+// fr.fa.pr: лучевая кость и кисть повёрнуты из пронации (forearmDeg) — точки с флагами 8 и 16 поворачиваются вокруг оси пронации эталона
+function mPoint(fr,p,out){const F=fr[p[0]],h=p[4]&2?A.H/MREF.H:0;let t=p[1],a=p[2],l=p[3];
+  if(F.pr&&p[4]&24){const R=F.pr,c=PRO_AX.c,x=t*MREF.fa-c[0],y=a-c[1],z=l-c[2];
+    t=(c[0]+R[0]*x+R[1]*y+R[2]*z)/MREF.fa; a=c[1]+R[3]*x+R[4]*y+R[5]*z; l=c[2]+R[6]*x+R[7]*y+R[8]*z;}
+  out=(out||V(0,0,0)).copy(F.O).addScaledVector(F.ax,t*F.L).addScaledVector(F.ant,a*(h||F.sa)).addScaledVector(F.lat,l*(h||F.sl));
   if(p[4]&4)out.addScaledVector(F.ant,A.ah); return out;}
 // p[4] & 1: точка смещается с массой тела (живот, по Anderson 2012), м на кг сверх 80 — m.ms
 // m.wp — обходы костей: между точками after и after+1 путь огибает цилиндр или сферу; точки дуги движутся с сегментом обхода (pts.sg)
@@ -1823,7 +1840,7 @@ const _gp=[]; for(let i=0;i<24;i++)_gp.push(V(0,0,0));
 function gripPts(m,pts,s){
   const w=GRIP_W[s]; if(!w.on||!m.path.some(p=>p[0]==='fa'))return pts;
   const out=pts.map((q,j)=>{const k=pts.pi?pts.pi[j]:j, p=k>=0?m.path[k]:null; if(!p||p[0]!=='fa')return q;
-    return (_gp[j]||V(0,0,0)).copy(q).applyMatrix4((p[4]|0)&24?w.rh:w.u);});
+    return (_gp[j]||V(0,0,0)).copy(q).applyMatrix4((p[4]|0)&24?w.rm:w.u);});
   return out;
 }
 function updateMuscles(pose,res){
