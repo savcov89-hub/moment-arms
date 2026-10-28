@@ -3584,6 +3584,8 @@ function layoutOverlays(animate){
 }
 new ResizeObserver(()=>{if(isPhone())layoutOverlays(false);}).observe(DRAWER.L);
 new ResizeObserver(()=>{if(isPhone())layoutOverlays(false);}).observe(DRAWER.R);
+/* отступ под полоску «домой» iOS иногда отдаёт уже после загрузки: панель вкладок растёт (это padding → border-box), --tab-h пересчитываем */
+new ResizeObserver(()=>{if(isPhone())layoutOverlays(false);}).observe(RAIL.L,{box:'border-box'});
 $('#exTitle').style.cursor='pointer'; $('#exTitle').onclick=()=>setPane('L',openPane.L==='ex'?null:'ex');
 
 /* ---- амплитуда и воспроизведение ---- */
