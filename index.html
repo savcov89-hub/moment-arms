@@ -1512,8 +1512,11 @@ function mPoint(fr,p,out){const F=fr[p[0]],h=p[4]&2?A.H/MREF.H:0;let t=p[1],a=p[
   if(p[4]&4)out.addScaledVector(F.ant,A.ah); return out;}
 // p[4] & 1: точка смещается с массой тела (живот, по Anderson 2012), м на кг сверх 80 — m.ms
 // m.wp — обходы костей: между точками after и after+1 путь огибает цилиндр или сферу; точки дуги движутся с сегментом обхода (pts.sg)
+// m.lo = [i, t, a, l, e0, e1]: при опущенной руке (подъём плеча до e0°) точка i пути другая — (t, a, l), к e1° плавно переходит в свою
+function loPoint(fr,lo,p){const e=Math.acos(clamp(-fr.ua.ax.dot(fr.trunk.ax),-1,1))/D, w=smooth(lo[4],lo[5],e);
+  return [p[0],lerp(lo[1],p[1],w),lerp(lo[2],p[2],w),lerp(lo[3],p[3],w),p[4]];}
 function mPath(fr,m){const dm=m.ms?state.mass-MREF.mass:0;
-  const pts=m.path.map(p=>{const v=mPoint(fr,p);if(dm&&p[4]&1){const F=fr[p[0]];v.addScaledVector(F.ant,m.ms[0]*dm).addScaledVector(F.lat,m.ms[1]*dm);}return v;});
+  const pts=m.path.map((p,i)=>{if(m.lo&&m.lo[0]===i)p=loPoint(fr,m.lo,p); const v=mPoint(fr,p);if(dm&&p[4]&1){const F=fr[p[0]];v.addScaledVector(F.ant,m.ms[0]*dm).addScaledVector(F.lat,m.ms[1]*dm);}return v;});
   if(!m.wp)return pts;
   const out=[pts[0]], sg=[m.path[0][0]], pi=[0];
   for(let i=0;i+1<pts.length;i++){
