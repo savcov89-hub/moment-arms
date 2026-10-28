@@ -2415,18 +2415,26 @@ let musDirty=true, musTimer=0;
 const MGROUPS=[...new Set(MDEF.map(m=>m.group))];
 function renderMuscleList(){
   if(!MS)return;
-  const box=$('#musList'), rows=MGROUPS.map(g=>{const it=MS.out.filter(o=>o.m.group===g),F=it.reduce((a,o)=>a+o.F,0),act=Math.max(...it.map(o=>o.act)),
-    dl=it.reduce((a,o)=>a+(o.L-o.L0)/o.L0,0)/it.length, active=it.filter(o=>o.F>1).length;return {g,F,act,dl,n:it.length,active};}).sort((a,b)=>b.F-a.F||a.g.localeCompare(b.g));
   const c0=new THREE.Color(0x9c3b33),c1=new THREE.Color(0xff4a1c);
-  let html='';
-  for(const r of rows){
-    const kg=r.F/G, idle=r.F<G*.5, col='#'+c0.clone().lerp(c1,r.act).getHexString(), pct=Math.round(r.dl*100);
-    const len=Math.abs(pct)<1?'длина как в стойке':(pct>0?`длиннее на ${pct} %`:`короче на ${-pct} %`);
-    html+=`<div class="mrow${idle?' idle':''}"><span class="n">${r.g}</span><span class="f">${idle?'—':fmt0(kg)+' кг'}</span><span class="s"><span class="b"><span style="width:${Math.round(r.act*100)}%;background:${col}"></span></span>${len}</span></div>`;
-  }
+  // список групп одной стороны; когда стороны считаются отдельно (MS.outR), у каждой свой раздел и только мышцы под нагрузкой
+  const list=(out,hideIdle)=>{
+    const rows=MGROUPS.map(g=>{const it=out.filter(o=>o.m.group===g),F=it.reduce((a,o)=>a+o.F,0),act=Math.max(...it.map(o=>o.act)),
+      dl=it.reduce((a,o)=>a+(o.L-o.L0)/o.L0,0)/it.length, active=it.filter(o=>o.F>1).length;return {g,F,act,dl,n:it.length,active};}).sort((a,b)=>b.F-a.F||a.g.localeCompare(b.g));
+    let h='', idleN=0;
+    for(const r of rows){
+      const kg=r.F/G, idle=r.F<G*.5, col='#'+c0.clone().lerp(c1,r.act).getHexString(), pct=Math.round(r.dl*100);
+      if(idle&&hideIdle){idleN++;continue;}
+      const len=Math.abs(pct)<1?'длина как в стойке':(pct>0?`длиннее на ${pct} %`:`короче на ${-pct} %`);
+      h+=`<div class="mrow${idle?' idle':''}"><span class="n">${r.g}</span><span class="f">${idle?'—':fmt0(kg)+' кг'}</span><span class="s"><span class="b"><span style="width:${Math.round(r.act*100)}%;background:${col}"></span></span>${len}</span></div>`;
+    }
+    if(idleN)h+=`<div class="small" style="padding:2px 8px 6px">Без нагрузки: ещё ${idleN} ${idleN%10===1&&idleN%100!==11?'группа':idleN%10>=2&&idleN%10<=4&&(idleN%100<12||idleN%100>14)?'группы':'групп'}</div>`;
+    return h;
+  };
+  const box=$('#musList'), names=pose&&pose.sideNames||{L:'Левая сторона',R:'Правая сторона'};
+  const html=MS.outR?['L','R'].map(sd=>`<div class="subh">${names[sd]}</div>`+list(sd==='L'?MS.out:MS.outR,true)).join(''):list(MS.out,false);
   if(box._h!==html){box.innerHTML=html;box._h=html;}
   const legs=pose&&pose.joints.some(j=>j.bil&&!j.hide), note=$('#musNote'), side=pose&&pose.musSide||(pose&&pose.lineL?(legs?'одной стороны тела':'одной руки'):'одной ноги');
-  note.innerHTML=`Усилие на ${side}, кгс. Момент в каждом суставе делится между мышцами так, чтобы сумма кубов их загрузки была минимальной (загрузка — сила ÷ максимальная сила, поперечник × удельное напряжение): нагрузка расходится по мышцам как можно равномернее. Полоса — доля от максимальной силы, так же светится мышца; полная полоса — 100 % и выше. Длина — изменение длины волокон относительно стойки.`;
+  note.innerHTML=`${MS.outR?'Усилие мышц каждой стороны':'Усилие на '+side}, кгс. Момент в каждом суставе делится между мышцами так, чтобы сумма кубов их загрузки была минимальной (загрузка — сила ÷ максимальная сила, поперечник × удельное напряжение): нагрузка расходится по мышцам как можно равномернее. Полоса — доля от максимальной силы, так же светится мышца; полная полоса — 100 % и выше. Длина — изменение длины волокон относительно стойки.`;
 }
 
 /* ---- меню по краям: панели открываются поверх сцены, модель вписывается в оставшееся место ---- */
