@@ -1365,6 +1365,389 @@ EQUIP_X.legmach=function(load){
 };
 
 /* ===== Раздел: блоки (горизонтальная тяга, разгибание рук, сведение, тяга к лицу) ===== */
+// Трос тянет рукоять к блоку с силой веса в блоке (трение в блоках не учитываем). Прямая или V-рукоять держится двумя кистями:
+// на каждую — половина натяжения плюс боковое усилие хвата, как в вертикальной тяге. Канат — две ветви от карабина к кистям:
+// узел в равновесии, поэтому трос продолжает биссектрису ветвей, а натяжение ветви F / (2·cos β), β — угол ветви к тросу.
+// Когда кисти разводят концы каната, ветви тянут их и друг к другу. Стоя голени и всё тело наклоняются, пока равнодействующая
+// веса тела и троса не пройдёт через середину стопы (pose.ext в comX).
+const ROPE=.36;   // ветвь каната от карабина до середины хвата, м
+const MF=()=>.27*A.foot;   // середина стопы от голеностопа
+// направление руки в системе корпуса (левая): подъём eps от опущенной вдоль корпуса, psi — от фронтальной плоскости вперёд
+function tdir(pose,eps,psi){return Z.clone().multiplyScalar(Math.sin(eps)*Math.cos(psi)).addScaledVector(pose.front,Math.sin(eps)*Math.sin(psi)).addScaledVector(pose.u,-Math.cos(eps));}
+// расстояние плечо — кисть при сгибании локтя fl
+const reachAt=fl=>Math.sqrt(A.ua*A.ua+A.fa*A.fa+2*A.ua*A.fa*Math.cos(fl));
+// большой палец вдоль рукояти, поперёк силы: «вверх», насколько позволяет направление троса d
+function thumbUp(d){const v=Y.clone().addScaledVector(d,-d.y);return v.lengthSq()>1e-6?v.normalize():V(1,0,0);}
+// нейтральный хват (V-рукоять, канат, отдельные рукояти): предплечье повёрнуто на 90° из пронации (pose.forearm),
+// большой палец смотрит на сторону сгибания локтя — ось «вперёд» системы предплечья
+function neutralGrip(pose){pose.forearm='neu';pose.eq.thumb=['L','R'].map(s=>segFrames(pose,s).fa.ant.clone());}
+// силы троса на кисти: прямая рукоять или V (kind 'bar'), канат ('rope'). Трос в сумме — в середине между кистями (для поясницы и ног)
+function cableForces(pose,F,PL,kind,p){
+  const P=pose.P, M=P.haL.clone().add(P.haR).multiplyScalar(.5), c=PL.clone().sub(M).normalize();
+  let FL,FR,A_=M.clone(),cosb=1;
+  if(kind==='rope'){
+    const w=Math.min(P.haL.distanceTo(P.haR)/2,.95*ROPE), k=Math.sqrt(ROPE*ROPE-w*w); cosb=k/ROPE;
+    A_=M.clone().addScaledVector(c,k);
+    FL=A_.clone().sub(P.haL).normalize().multiplyScalar(F/2/cosb); FR=A_.clone().sub(P.haR).normalize().multiplyScalar(F/2/cosb);
+    const lat=F/2/cosb*w/ROPE;
+    pose.fric={kind:'rope',text:lat<1?'Концы каната вместе: каждая ветвь тянет кисть вдоль троса, по половине натяжения.':
+      `Кисти разводят концы каната на ${fmt0(200*w)} см: ветви идут к карабину под углом ${Math.round(Math.acos(cosb)/D)}° к тросу и тянут каждую кисть <b>к середине с силой ${fmt0(lat)} Н</b>. Натяжение ветви ${fmt0(F/2/cosb)} Н — больше половины веса в блоке; эту боковую силу держат мышцы плеча.`};
+  } else ({FL,FR}=gripFriction(pose,c.clone().multiplyScalar(F/2),p,P.haL.distanceTo(P.haR)));
+  pose.forces.push({seg:'load',p:M,F:c.clone().multiplyScalar(F)},{seg:'loadL',p:P.haL,F:FL},{seg:'loadR',p:P.haR,F:FR});
+  pose.ext=[{p:M,F:c.clone().multiplyScalar(F)}];
+  pose.line={p:M,d:c,floor:false}; pose.lineL={p:P.haL.clone(),d:FL.clone().normalize()}; pose.lineR={p:P.haR.clone(),d:FR.clone().normalize()};
+  pose.F=F; pose.sideKg=F/G/2;
+  Object.assign(pose.eq,{PL:PL.clone(),A:A_,M,kind,c,Lc:A_.distanceTo(PL)});
+}
+// Стойка у блока. Стопы рядом: тело наклоняется целиком от голеностопов, корпус — под углом phi к линии ног (голеностоп — таз).
+// Разножка: левая нога впереди (голень наклонена на thsh, колено согнуто на kap), корпус под углом phi к вертикали, таз
+// смещается между стопами; правая нога сзади: носок на полу в STRIDE за голеностопом передней, пятка поднята, чтобы нога дотянулась
+const STRIDE=.6;
+function cableBase(thsh,kap,phi,split){
+  if(!split){const h=add(mul(dirA(thsh),A.shank),mul(dirA(thsh-kap),A.thigh));return standBase(thsh,kap,phi+Math.atan2(h.x,h.y));}
+  const pose=standBase(thsh,kap,phi);
+  const P=pose.P, H=v2(P.hipR.x,P.hipR.y), T=v2(-STRIDE,0), Lm=.985*(A.thigh+A.shank), z=P.hipR.z;
+  let fd,so,an;
+  for(let b=20*D;b<=70*D+1e-9;b+=2.5*D){fd=dirA(90*D+b);so=dirA(180*D+b);an=add(add(T,mul(fd,-.77*A.foot)),mul(so,-A.ah));if(len(sub(an,H))<=Lm)break;}
+  const kn=ik2(H,an,A.thigh,A.shank,v2(1,0)), he=add(add(an,mul(fd,-.23*A.foot)),mul(so,A.ah)), to=add(add(an,mul(fd,.77*A.foot)),mul(so,A.ah));
+  P.ankleR=V(an.x,an.y,z); P.kneeR=V(kn.x,kn.y,z); P.heelR=V(he.x,he.y,z); P.toeR=V(to.x,to.y,z);
+  pose.eq.split=true; return pose;
+}
+// опора по x: от пятки до носка; в разножке — от носка задней стопы до носка передней
+const cableSup=split=>[split?-STRIDE:-.23*A.foot,.77*A.foot];
+// Стойка одна на весь повтор, как у человека у блока: наклон голени подбирается так, чтобы точка, через которую
+// равнодействующая веса и троса проходит в пол (comX), за повтор ходила симметрично около середины опоры. Внутри повтора
+// эта точка смещается по стопе; вышла за опору — предупреждение. mk(thsh, t) строит позу; key — параметры и вес (для кеша)
+// Если в какой-то точке амплитуды она подходит к краю опоры ближе 2 см, тело смещается ровно настолько, чтобы остаться у края.
+const STANCE=new Map(), TH_LO=-20*D, TH_HI=35*D;
+function cableStand(mk,t,key,split){
+  const sup=cableSup(split), mid=(sup[0]+sup[1])/2, TS=[0,.2,.4,.6,.8,1], k=key+'|'+state.mass+'|'+JSON.stringify(A);
+  let st=STANCE.get(k);
+  if(!st){
+    const rng=th=>{let a=1e9,b=-1e9;for(const s of TS){const x=comX(mk(th,s));a=Math.min(a,x);b=Math.max(b,x);}return [a,b];}, c=th=>{const r=rng(th);return (r[0]+r[1])/2;};
+    let lo=TH_LO,hi=TH_HI,th;
+    if(c(lo)>=mid)th=lo; else if(c(hi)<=mid)th=hi; else{for(let i=0;i<22;i++){const md=(lo+hi)/2;if(c(md)<mid)lo=md;else hi=md;}th=(lo+hi)/2;}
+    st={th,rng:rng(th),L0:mk(th,0).eq.Lc}; if(STANCE.size>300)STANCE.clear(); STANCE.set(k,st);
+  }
+  let pose=mk(st.th,t), x=comX(pose), th=st.th;
+  const e0=sup[0]+.02, e1=sup[1]-.02;
+  if(x<e0||x>e1){pose=solveBalance(h=>mk(h,t),TH_LO,TH_HI,x<e0?e0:e1); x=comX(pose); th=pose.eq.thsh; pose.flag=null;}
+  const Fe=V(0,0,0); for(const e of pose.ext)Fe.add(e.F);
+  const N=state.mass*G-Fe.y;
+  // длина троса в начале амплитуды при той же стойке — от неё поднимается груз в стойке блока
+  Object.assign(pose.eq,{thsh:th,cop:x,copRng:[Math.max(st.rng[0],e0),Math.min(st.rng[1],e1)],edge:st.rng[0]<e0||st.rng[1]>e1,sway:th!==st.th,sup,Lc0:st.L0,Fe,muF:N>1?Math.abs(Fe.x)/N:9});
+  if(x<sup[0]||x>sup[1])pose.warn=`Равнодействующая веса и троса уходит в пол ${x>sup[1]?'впереди носков':split?'позади задней стопы':'позади пяток'}: в этой точке амплитуды стопы не удержат равновесие. ${split?'Уменьшите вес или наклонитесь сильнее.':'Поставьте ноги в разножку, встаньте иначе к блоку или уменьшите вес.'}`;
+  else if(pose.eq.muF>.6)pose.warn=`Трос тянет тело ${Fe.x<0?'назад':'вперёд'} с силой ${fmt0(Math.abs(Fe.x))} Н: чтобы стопы не поехали, нужно трение подошв ${MU_FMT(pose.eq.muF)} — больше, чем у обычной обуви на гладком полу (около 0,6).`;
+  return pose;
+}
+// карточка опоры для упражнений стоя: хват (своим текстом или текстом карточки трения) + куда давят стопы и какое трение нужно
+function standFric(pose){
+  const e=pose.eq, x=e.cop, cm=v=>fmt0(Math.abs(v)*100), g=fricText(pose), fx=Math.abs(e.Fe.x);
+  let s;
+  if(e.split){
+    const xr=e.sup[0], xf=MF(), w=clamp((x-xr)/(xf-xr),0,1);
+    s=`Разножка: левая стопа впереди, правая — на носке в ${cm(STRIDE-.23*A.foot)} см позади пятки левой. Равнодействующая веса тела и троса проходит в пол в ${cm(x-xr)} см впереди носка задней стопы: на переднюю ногу приходится около <b>${Math.round(w*100)}%</b> опоры${x>xf?' и давление переходит на носок передней стопы':''}${e.edge?'; у края опоры тело смещается целиком':''}.`;
+  } else {
+    const d=x-MF();
+    s=`Стопы рядом. Равнодействующая веса тела и троса проходит в пол ${Math.abs(d)<.005?'через середину стопы':`в <b>${cm(d)} см ${d>0?'впереди':'позади'}</b> середины стопы (${d>0?'к носкам':'к пяткам'})`}; за повтор эта точка ходит от ${fmt0(e.copRng[0]*100-MF()*100)} до ${fmt0(e.copRng[1]*100-MF()*100)} см${e.edge?' — у края стопы тело смещается целиком, чтобы она не вышла за опору':''}.`;
+  }
+  s+=fx<1?' Горизонтальной силы нет — трение подошв не нужно.':` Горизонтально трос тянет тело ${e.Fe.x<0?'назад':'вперёд'} с силой ${fmt0(fx)} Н — её держит трение подошв, нужно μ ${MU_FMT(e.muF)}.`;
+  pose.fric=Object.assign({},pose.fric||{kind:'open'},{text:(g?g+' ':'')+s});
+}
+// суставы стоя у блока: плечо, локоть, поясница и бедро (сверху вниз). Колена и голеностопа нет и в расчёте мышц: трос тянет
+// далеко от стоп, и без веса тела (переключатель) их моменты были бы огромными — тело уравновешивает трос наклоном только вместе
+// с весом; в разножке их сверху и не посчитать — неизвестно, как вес делится между ногами
+function cableJoints(pose,shText){
+  standJoints(pose,shText,['hip']);
+  pose.joints=pose.joints.filter(j=>j.key!=='knee'&&j.key!=='ankle');
+}
+
+// локоть с наименьшим плечом троса: точка на окружности возможных локтей (плечо S, кисть H), ближайшая к линии троса
+// через кисть (направление c), — предплечье идёт по тросу, насколько позволяет длина руки. zmin..zmax — допустимый z локтя
+function alignPole(S,H,c,zmin,zmax){
+  const u=H.clone().sub(S).normalize(); let e1=c.clone().addScaledVector(u,-c.dot(u)); if(e1.lengthSq()<1e-8)e1=V(0,-1,0).addScaledVector(u,u.y); e1.normalize();
+  const e2=u.clone().cross(e1), L=Math.min(S.distanceTo(H),(A.ua+A.fa)*.9995), a=(A.ua*A.ua-A.fa*A.fa+L*L)/(2*L), h=Math.sqrt(Math.max(0,A.ua*A.ua-a*a));
+  let best=null,bd=1e9;
+  for(let i=0;i<72;i++){const q=i/72*2*Math.PI, p=e1.clone().multiplyScalar(Math.cos(q)).addScaledVector(e2,Math.sin(q)), E=S.clone().addScaledVector(u,a).addScaledVector(p,h);
+    if(E.z<zmin||E.z>zmax)continue; const d=E.clone().sub(H).cross(c).length(); if(d<bd){bd=d;best=p;}}
+  return best||e1.negate();
+}
+
+/* --- Тяга горизонтального блока сидя --- */
+// Опоры: сиденье под тазом (вертикально N и трение T) и плита под стопами (по нормали и вдоль плиты). Неизвестных четыре,
+// уравнений равновесия три — четвёртое задаёт режим: сиденье скользит (трос держат ноги) или трение сиденья берёт долю троса.
+// Суставы ног считаются снизу, от реакции плиты, поясница — сверху, от троса; вклад троса и вклад веса тела — по отдельности.
+function rowSupport(ws,Ps,cop,n,tau,Ts){
+  const cz=(r,F)=>r.x*F.y-r.y*F.x; let Fx=0,Fy=0,M=0;
+  for(const w of ws){Fx+=w.F.x;Fy+=w.F.y;M+=cz(V(w.p.x-Ps.x,w.p.y-Ps.y,0),w.F);}
+  const r=V(cop.x-Ps.x,cop.y-Ps.y,0), a=n.x,b=tau.x,c=cz(r,n),d=cz(r,tau),det=a*d-b*c, e=-(Ts+Fx), f=-M;
+  const Np=(e*d-b*f)/det, Tp=(a*f-e*c)/det, Ns=-(Fy+Np*n.y+Tp*tau.y);
+  return {Np,Tp,Ns,Ts,R:n.clone().multiplyScalar(Np).addScaledVector(tau,Tp)};
+}
+function buildCableRow(t,p,load){
+  const ySeat=.42, H=v2(0,ySeat+.09), kap=p.knee*D, drop=.12, F=load*G, wide=p.handle==='wide', g=wide?.25:.065;
+  const Dd=Math.sqrt(A.thigh**2+A.shank**2+2*A.thigh*A.shank*Math.cos(kap));
+  const ankle=v2(H.x+Math.sqrt(Math.max(.01,Dd*Dd-drop*drop)),H.y-drop), knee=ik2(H,ankle,A.thigh,A.shank,v2(0,1));
+  // плита наклонена верхом от себя на 25°: стопа стоит носком вверх
+  const bp=25*D, fd=v2(Math.sin(bp),Math.cos(bp)), so=v2(Math.cos(bp),-Math.sin(bp));
+  const s=smooth(0,1,t), phi=lerp(p.lean0,-p.lean1,s)*D, S=add(H,mul(dirA(phi),A.trunk));
+  const pose=basePose({ankle,knee,hip:H,S,footDir:fd,sole:so,copFrac:COPF[p.cop]}), P=pose.P, f=pose.front, u=pose.u;
+  const sole=add(ankle,mul(so,A.ah)), PL=V(sole.x+.15,p.pulley/100,0);
+  // начало: руки вытянуты прямо к блоку (трос продолжает руку); конец: рукоять у живота (широкая — у низа груди)
+  const R0=reachAt(8*D), T0=V(PL.x,PL.y,g), H0=P.shL.clone().addScaledVector(T0.sub(P.shL).normalize(),R0);
+  const H1=P.hipMid.clone().addScaledVector(u,(wide?.6:.44)*A.trunk).addScaledVector(f,wide?.15:.13).setZ(g);
+  const hL=H0.clone().lerp(H1,s);
+  // локти: в начале вниз (с широкой рукоятью — в стороны), дальше предплечье идёт по линии троса — так тянут на блоке;
+  // с V-рукоятью локти у боков, с широкой — в стороны
+  const zS=P.shL.z, ca=PL.clone().sub(V(hL.x,hL.y,0)).normalize();
+  const pole=(wide?V(-.2,-.5,1):V(0,-1,.3)).normalize().lerp(alignPole(P.shL,hL,ca,zS-(wide?.02:.04),zS+(wide?.5:.06)),smooth(0,.35,s));
+  setArms(pose,hL,hL.clone().setZ(-g),pole);
+  cableForces(pose,F,PL,'bar',p);
+  if(!wide)neutralGrip(pose);
+  addBody(pose);
+  // опоры
+  const cop=pose.cop.clone(), n=V(-so.x,-so.y,0), tau=V(fd.x,fd.y,0), Ps=V(H.x-.01,ySeat,0), Fc=pose.eq.c.clone().multiplyScalar(F);
+  const sh=p.seat==='fric'?p.share/100:0;
+  const L=rowSupport([{p:pose.eq.M,F:Fc}],Ps,cop,n,tau,-sh*Fc.x);
+  const body=[]; for(const fo of pose.forces)if(fo.mass&&fo.seg!=='trunkU')body.push({p:fo.p,F:fo.F});
+  const Bd=rowSupport(body,Ps,cop,n,tau,0);
+  pose.forces.push({seg:'loadP',p:cop,F:L.R},{seg:'bodyP',p:cop,F:Bd.R});
+  pose.lineB={p:cop,d:L.R.clone().normalize()}; pose.R=null;
+  const Np=L.Np+Bd.Np, Tp=L.Tp+Bd.Tp, Ns=L.Ns+Bd.Ns, Ts=L.Ts, needP=Np>1?Math.abs(Tp)/Np:9, needS=Ns>1?Math.abs(Ts)/Ns:9;
+  const gripTxt=fricText(pose);
+  const wordP=Tp>0?'вниз, к пяткам':'вверх, к носкам';
+  pose.fric=Object.assign(pose.fric||{},{text:`${gripTxt?gripTxt+'<br>':''}Плита давит на стопы <b>${fmt0(Np)} Н</b> по нормали${Math.abs(Tp)>1?` и ${fmt0(Math.abs(Tp))} Н вдоль плиты — стопы давят на неё <b>${wordP}</b>; нужно трение ${MU_FMT(needP)} при μ = ${MU_FMT(p.mu)}`:''}. `+
+    (sh>0?`Сиденье держит трением ${fmt0(Math.abs(Ts))} Н (${Math.round(sh*100)}% тяги троса): нужно μ ${MU_FMT(needS)} при ${MU_FMT(p.mus)}. `:'Сиденье держит только вертикально: тягу троса принимают ноги через плиту. ')+
+    `Сиденье давит на таз <b>${fmt0(Ns)} Н</b>. Учтены трос и вес тела.`});
+  if(Ns<0)pose.warn='Сиденье разгружается полностью: трос тянет таз вверх, равновесие держится только руками и ногами.';
+  else if(Np<0)pose.warn='Стопы отрываются от плиты: при таком положении трос держит только сиденье.';
+  else if(needP>p.mu||sh>0&&needS>p.mus)pose.warn='Трения не хватает: стопы скользят по плите или таз по сиденью. Поставьте стопу иначе или уменьшите вес.';
+  pose.contacts=pose.contacts&&pose.contacts.length?pose.contacts:Math.abs(Tp)>.5?[{p:cop,push:tau.clone().multiplyScalar(-Math.sign(Tp)),need:needP,label:`стопа давит ${wordP}`}]:[];
+  pose.eq.row={H,ySeat,ankle,sole,so,fd,bp,knee,g,wide};
+  pose.eq.Lc0=(()=>{const S0=add(H,mul(dirA(p.lean0*D),A.trunk)), sh0=V(S0.x,S0.y,A.sw/2), T=V(PL.x,PL.y,0);return sh0.clone().addScaledVector(T.sub(sh0).normalize(),R0).setZ(0).distanceTo(PL);})();
+  pose.eq.fit=[PL.clone(),V(PL.x+.45,1.1,0)];
+  // суставы: плечо, локоть (3D), поясница сверху от троса, ноги снизу от реакции плиты
+  const aj=armJoints(pose,'Широчайшая, большая круглая, задняя дельта, ромбовидные'); aj[1].primary='ext';
+  const lf=['loadP','bodyP'];
+  pose.joints=[...aj,
+    {key:'L5',mode:'2d',line:'main',pos:P.L5,free:FREE_TOP.L5,flexSign:-1,bil:false,primary:'flex'},
+    {key:'hip',mode:'2d',line:'B',pos:P.hipL,a:P.shMid.clone().sub(P.hipMid),b:P.kneeL.clone().sub(P.hipL),free:[...lf,'ftL','ftR','skL','skR','thL','thR'],bil:true,primary:'flex'},
+    {key:'knee',mode:'2d',line:'B',pos:P.kneeL,a:P.hipL.clone().sub(P.kneeL),b:P.ankleL.clone().sub(P.kneeL),free:[...lf,'ftL','ftR','skL','skR'],bil:true,primary:'flex'},
+    {key:'ankle',mode:'2d',line:'B',pos:P.ankleL,a:P.kneeL.clone().sub(P.ankleL),b:P.toeL.clone().sub(P.ankleL),free:[...lf,'ftL','ftR'],bil:true,primary:'flex'}];
+  return pose;
+}
+
+/* --- Разгибание рук на верхнем блоке --- */
+function buildPushdown(t,p,load){
+  const F=load*G, PL=V(p.dist/100,2.05,0), kap=8*D, phi=p.lean*D, al=p.elb*D, rope=p.handle==='rope';
+  const mk=(thsh,tt)=>{
+    const pose=cableBase(thsh,kap,phi), P=pose.P, f=pose.front, u=pose.u;
+    // плечо вдоль корпуса под углом al вперёд, локоть у бока — на 3 см ближе к середине, чем плечевой сустав
+    const k=.03/A.ua, du=u.clone().multiplyScalar(-Math.cos(al)).addScaledVector(f,Math.sin(al)).multiplyScalar(Math.sqrt(1-k*k)).addScaledVector(Z,-k);
+    const th=lerp(p.flex,5,smooth(0,1,tt))*D, fp=f.clone().addScaledVector(du,-f.dot(du)).normalize();
+    let df=du.clone().multiplyScalar(Math.cos(th)).addScaledVector(fp,Math.sin(th));
+    // канат: вверху концы вместе, внизу кисти разводят их до ширины бёдер
+    const zE=A.sw/2-.03, q=rope?clamp((lerp(.06,.19,smooth(.15,1,tt))-zE)/A.fa,-.9,.9):0;
+    if(q){const dz=df.z; df.z=0; df.multiplyScalar(Math.sqrt(Math.max(0,1-q*q))/Math.max(1e-6,df.length())).setZ(q); if(Math.abs(dz)>.5)df.normalize();}
+    armsByDir(pose,du,df);
+    cableForces(pose,F,PL,rope?'rope':'bar',p);
+    addBody(pose); pose.eq.thsh=thsh; return pose;
+  };
+  const pose=cableStand(mk,t,JSON.stringify(['pd',p,load]));
+  if(rope)neutralGrip(pose);
+  standFric(pose);
+  cableJoints(pose,'Широчайшая, большая круглая, задняя дельта, длинная головка трицепса');
+  pose.eq.fit=[PL.clone(),V(PL.x+.2,2.25,0)];
+  return pose;
+}
+
+/* --- Сведение рук на блоках (кроссовер) --- */
+const XO_Z=1.35;   // блоки по бокам, м от середины
+function buildCrossover(t,p,load){
+  const F=load*G/(+p.ratio||1), split=p.stance==='split', kap=(split?18:10)*D, phi=p.lean*D, yP=p.height/100, xP=-p.step/100, fl=p.bend*D, R=reachAt(fl);
+  const PLL=V(xP,yP,XO_Z), PLR=V(xP,yP,-XO_Z);
+  const mk=(thsh,tt)=>{
+    const pose=cableBase(thsh,kap,phi,split), P=pose.P, f=pose.front, u=pose.u, S=P.shL;
+    // начало: рука тянется к своему блоку (растяжение), назад от фронтальной плоскости не больше 20°
+    const d0=PLL.clone().sub(S).normalize(), e0=clamp(Math.acos(clamp(-d0.dot(u),-1,1)),25*D,120*D), p0=Math.max(-20*D,Math.atan2(d0.dot(f),d0.z));
+    // конец: кисти сходятся перед телом — от верхних блоков у пупка, от средних на уровне груди, от нижних у верха груди
+    const hP=yP-S.y, e1=clamp(75-55*hP,40,95)*D, p1=Math.acos(clamp((.06-S.z)/(R*Math.sin(e1)),-1,1));
+    const s=smooth(0,1,tt), e=lerp(e0,e1,s), ps=lerp(p0,p1,s), d=tdir(pose,e,ps);
+    const hL=S.clone().addScaledVector(d,R);
+    // локоть смотрит назад-наружу, против движения кисти (обнимающее движение)
+    const tg=tdir(pose,e,ps+.05).sub(d).normalize(), pole=tg.negate().addScaledVector(u,.35);
+    setArms(pose,hL,hL.clone().setZ(-hL.z),pole);
+    const FL=PLL.clone().sub(P.haL).normalize().multiplyScalar(F), FR=PLR.clone().sub(P.haR).normalize().multiplyScalar(F), Fs=FL.clone().add(FR);
+    const M=P.haL.clone().add(P.haR).multiplyScalar(.5).setZ(0);
+    pose.forces.push({seg:'load',p:M,F:Fs},{seg:'loadL',p:P.haL,F:FL},{seg:'loadR',p:P.haR,F:FR});
+    pose.ext=[{p:P.haL,F:FL},{p:P.haR,F:FR}];
+    pose.line={p:M,d:Fs.length()>1e-6?Fs.clone().normalize():V(0,-1,0),floor:false}; pose.lineL={p:P.haL.clone(),d:FL.clone().normalize()}; pose.lineR={p:P.haR.clone(),d:FR.clone().normalize()};
+    pose.F=F; pose.R=Fs.length(); pose.sideKg=F/G;
+    Object.assign(pose.eq,{PLs:[PLL,PLR],thsh,Lc:P.haL.distanceTo(PLL),ratio:+p.ratio||1});
+    addBody(pose); return pose;
+  };
+  const pose=cableStand(mk,t,JSON.stringify(['xo',p,load]),split);
+  neutralGrip(pose);
+  pose.fric={kind:'open',text:'Каждая рукоять на своём тросе и ничем не связана с другой: сила на кисть идёт строго по её тросу. Боковые составляющие двух тросов равны и противоположны, поэтому для корпуса и ног остаётся их сумма R в плоскости движения.'};
+  standFric(pose);
+  cableJoints(pose,'Большая грудная, передняя дельта, клювовидно-плечевая');
+  pose.joints[1].primary='ext';
+  pose.eq.fit=[V(xP,Math.max(yP,1.9)+.15,.6),V(xP,Math.max(yP,1.9)+.15,-.6)];
+  return pose;
+}
+
+/* --- Тяга каната к лицу --- */
+function buildFacePull(t,p,load){
+  const F=load*G, kap=10*D, phi=p.lean*D, PL=V(p.dist/100,p.height/100,0);
+  const mk=(thsh,tt)=>{
+    const pose=cableBase(thsh,kap,phi), P=pose.P, f=pose.front, u=pose.u, S=P.shL;
+    // начало: руки вытянуты к блоку, концы каната вместе; конец: кисти у лица — на уровне глаз, впереди лица, по бокам головы
+    const R0=reachAt(12*D), H0=S.clone().addScaledVector(V(PL.x,PL.y,.06).sub(S).normalize(),R0);
+    const H1=P.shMid.clone().addScaledVector(f,.28).addScaledVector(u,.22).setZ(.2);
+    const s=smooth(0,1,tt), hL=H0.clone().lerp(H1,s);
+    // локти: в начале вниз-наружу, в конце высоко в стороны
+    const pole=V(0,-1,.4).lerp(u.clone().multiplyScalar(.45).addScaledVector(Z,1).addScaledVector(f,-.35),smooth(0,.7,s));
+    setArms(pose,hL,hL.clone().setZ(-hL.z),pole);
+    cableForces(pose,F,PL,'rope',p);
+    addBody(pose); pose.eq.thsh=thsh; return pose;
+  };
+  const pose=cableStand(mk,t,JSON.stringify(['fp',p,load]));
+  neutralGrip(pose);
+  standFric(pose);
+  cableJoints(pose,'Задняя дельта, подостная и малая круглая, трапециевидная, ромбовидные');
+  pose.joints[1].primary='ext';
+  pose.eq.fit=[PL.clone(),V(PL.x+.15,2.25,0)];
+  return pose;
+}
+
+const CABLE_LOAD={loadLabel:'Вес в блоке',step:2.5};
+const STAND_NOTE='Стойка одна на весь повтор: наклон тела подобран так, чтобы точка, где равнодействующая веса и троса уходит в пол, за повтор оставалась посередине опоры (подробно — в карточке опоры).';
+Object.assign(EX,{
+  crow:{name:'Тяга горизонтального блока',eq:'блок',group:3,...CABLE_LOAD,def:50,min:10,max:150,equip:'cablerow',build:buildCableRow,
+    params:[{id:'handle',label:'Рукоять',type:'seg',opts:[['v','Узкая V'],['wide','Широкая прямая']],def:'v',
+              hint:p=>p.handle==='wide'?'Прямой хват на ширине плеч: локти уходят в стороны, рукоять — к низу груди. Больше задней дельты и верха спины.':'Нейтральный хват, локти вдоль корпуса, рукоять к животу.'},
+            {id:'lean0',label:'Наклон корпуса вперёд в начале',type:'range',min:0,max:45,step:1,unit:'°',def:20},
+            {id:'lean1',label:'Отклонение назад в конце',type:'range',min:0,max:25,step:1,unit:'°',def:5},
+            {id:'knee',label:'Сгибание коленей',type:'range',min:5,max:60,step:1,unit:'°',def:25},
+            {id:'pulley',label:'Высота блока над полом',type:'range',min:20,max:90,step:1,unit:' см',def:35},
+            COP_PARAM,...FRIC('pull'),
+            {id:'seat',label:'Кто держит тягу троса',type:'seg',opts:[['legs','Ноги через плиту'],['fric','И трение сиденья']],def:'legs',
+              hint:p=>p.seat==='fric'?'Часть горизонтальной тяги берёт трение таза о сиденье, остальное — ноги.':'Сиденье держит только вертикально (обивка скользкая), вся горизонтальная тяга троса уходит в ноги через плиту.'},
+            {id:'share',label:'Доля тяги на трении сиденья',type:'range',min:5,max:80,step:1,unit:' %',def:30,show:p=>p.seat==='fric'},
+            {id:'mus',label:'μ таза о сиденье',type:'range',min:.1,max:1,step:.05,def:.4,fmt:MU_FMT,hint:'Шорты по винилу ≈ 0,3–0,5',show:p=>p.seat==='fric'}],
+    ends:['руки вытянуты','у живота'],endsLong:['Руки вытянуты','Рукоять у живота'],
+    fdesc:p=>`Натяжение троса ${fmt0(p.F)} Н, по ${fmt0(p.F/2)} Н на руку, вдоль троса к нижнему блоку. Поясница считается от троса и веса корпуса и рук, ноги — от реакции плиты под стопами (линия у стопы): трос тянет тело вперёд, ноги упираются в плиту. Ноги — на одну ногу, поясница — суммарно.`,
+    desc:'Сидя, стопы упираются в плиту. Трос тянет рукоять к блоку у плиты; корпус к концу тяги выпрямляется, лопатки сводятся, локти уходят назад.'},
+  pushdown:{name:'Разгибание рук на верхнем блоке',eq:'блок',group:5,...CABLE_LOAD,def:20,min:5,max:80,equip:'cablestand',build:buildPushdown,
+    params:[{id:'handle',label:'Рукоять',type:'seg',opts:[['bar','Прямая'],['rope','Канат']],def:'bar',
+              hint:p=>p.handle==='rope'?'Внизу кисти разводят концы каната: ветви тянут кисти к середине, работает и средняя дельта.':'Прямой хват сверху, кисти на ширине локтей.'},
+            {id:'lean',label:'Наклон корпуса вперёд',type:'range',min:0,max:40,step:1,unit:'°',def:10,hint:'От линии ног (голеностоп — таз): для равновесия тело наклоняется целиком, корпус — ещё на этот угол'},
+            {id:'elb',label:'Плечо вперёд от линии корпуса',type:'range',min:-10,max:35,step:1,unit:'°',def:8,hint:'0° — плечо вдоль корпуса, локти прижаты к бокам'},
+            {id:'flex',label:'Сгибание локтя вверху',type:'range',min:60,max:130,step:1,unit:'°',def:100},
+            {id:'dist',label:'Блок впереди голеностопа',type:'range',min:15,max:80,step:1,unit:' см',def:40,hint:'Чем дальше стоите от блока, тем сильнее трос наклонён к вам'},
+            ...FRIC('press')],
+    ends:['локти согнуты','руки прямые'],endsLong:['Локти согнуты','Руки выпрямлены'],
+    fdesc:p=>`Натяжение троса ${fmt0(p.F)} Н к верхнему блоку. ${p.eq.kind==='rope'?'Канат: на каждую кисть — своя ветвь, натяжение ветви растёт, когда концы разведены.':`По ${fmt0(p.F/2)} Н на руку плюс боковое усилие хвата.`} ${STAND_NOTE}`,
+    desc:'Стоя лицом к блоку, плечи прижаты к корпусу; трос тянет кисти вверх и к блоку, разгибает локти трицепс.'},
+  xover:{name:'Сведение рук на блоках (кроссовер)',eq:'блоки',group:2,loadLabel:'Вес в каждом блоке',step:2.5,def:7.5,min:2.5,max:50,equip:'crossover',build:buildCrossover,
+    params:[{id:'height',label:'Высота блоков',type:'range',min:15,max:220,step:1,unit:' см',def:195,hint:'Около 200 — сверху вниз, кисти сходятся у пупка; около 130 — на уровне плеч; около 20 — снизу вверх, к верху груди'},
+            {id:'step',label:'Шаг вперёд от линии блоков',type:'range',min:0,max:80,step:1,unit:' см',def:35},
+            {id:'lean',label:'Наклон корпуса вперёд',type:'range',min:0,max:50,step:1,unit:'°',def:30,hint:p=>p.stance==='split'?'От вертикали':'От линии ног: тело наклоняется целиком, корпус — ещё на этот угол'},
+            {id:'bend',label:'Сгибание локтя',type:'range',min:5,max:60,step:1,unit:'°',def:25},
+            {id:'ratio',label:'Полиспаст блока',type:'seg',opts:[['1','1 : 1'],['2','2 : 1']],def:'1',
+              hint:p=>p.ratio==='2'?'Трос огибает подвижный блок на стопке: натяжение — половина веса стопки, рукоять проходит вдвое больший путь.':'Трос идёт прямо к стопке: натяжение равно весу в блоке. На многих кроссоверах полиспаст 2 : 1 — проверьте на тренажёре.'},
+            {id:'stance',label:'Стойка',type:'seg',opts:[['square','Стопы рядом'],['split','Разножка']],def:'split',
+              hint:p=>p.stance==='split'?'Левая нога впереди, правая сзади на носке: опора длиннее, трос можно тянуть с большим весом.':'Стопы на ширине таза: опора — только длина стопы.'}],
+    ends:['руки разведены','сведены'],endsLong:['Руки разведены','Кисти сведены'],
+    fdesc:p=>`На каждую кисть — свой трос, ${fmt0(p.F)} Н к своему блоку${p.eq.ratio>1?` (полиспаст ${p.eq.ratio} : 1 — натяжение меньше веса стопки)`:''}. R — сумма двух тросов, ${fmt0(p.R)} Н: от неё считаются поясница и бедро и равновесие. ${STAND_NOTE}`,
+    desc:'Блоки по бокам и сзади. Руки идут по дуге от разведённых к сведённым перед телом; локти чуть согнуты и не разгибаются.'},
+  facepull:{name:'Тяга каната к лицу',eq:'блок',group:4,...CABLE_LOAD,def:15,min:5,max:60,equip:'cablestand',build:buildFacePull,
+    params:[{id:'height',label:'Высота блока',type:'range',min:100,max:220,step:1,unit:' см',def:175,hint:'На уровне лба или чуть выше'},
+            {id:'dist',label:'Блок впереди голеностопа',type:'range',min:70,max:160,step:1,unit:' см',def:115},
+            {id:'lean',label:'Наклон корпуса',type:'range',min:-20,max:15,step:1,unit:'°',def:0,hint:'От линии ног (голеностоп — таз), минус — назад. Для равновесия тело отклоняется целиком'}],
+    ends:['руки вытянуты','у лица'],endsLong:['Руки вытянуты','Канат у лица'],
+    fdesc:p=>`Натяжение троса ${fmt0(p.F)} Н к блоку. Канат: каждая кисть тянет свою ветвь; в конце, когда концы разведены, ветви тянут кисти и друг к другу. ${STAND_NOTE}`,
+    desc:'Стоя лицом к блоку, канат тянется к лицу: локти высоко и в стороны, кисти у висков. Работают задняя дельта, наружные вращатели плеча и мышцы лопатки.'}
+});
+
+// стойки блоков: колонна с грузом, блок, трос и рукоять
+function stackMesh(objs){const m=boxMesh(MAT.iron);objs.push(m);return m;}
+function pulleyMesh(objs){const m=new THREE.Mesh(new THREE.TorusGeometry(.05,.013,10,28),MAT.metal);m.castShadow=true;scene.add(m);objs.push(m);return m;}
+function placePulley(m,PL,a,b){ // плоскость блока проходит через оба троса
+  const n=a.clone().cross(b); if(n.lengthSq()<1e-8)n.copy(Z); n.normalize(); m.position.copy(PL); m.quaternion.setFromUnitVectors(Z,n);}
+function ropeHandle(objs){const g={str:[cylMesh(MAT.pad),cylMesh(MAT.pad)],knob:[new THREE.Mesh(UNIT_SPH,MAT.pad),new THREE.Mesh(UNIT_SPH,MAT.pad)],clip:cylMesh(MAT.metal)};
+  for(const k of g.knob){k.scale.setScalar(.024);scene.add(k);} objs.push(...g.str,...g.knob,g.clip); return g;}
+function placeRope(g,A_,hs,c){
+  hs.forEach((h,i)=>{const d=h.clone().sub(A_).normalize();setCyl(g.str[i],A_,h.clone().addScaledVector(d,.05),.011);g.knob[i].position.copy(h).addScaledVector(d,.07);});
+  setCyl(g.clip,A_,A_.clone().addScaledVector(c,.06),.012);}
+EQUIP_X.cablestand=function(load){
+  const objs=[],M=m=>(objs.push(m),m);
+  const col=M(boxMesh(MAT.frame)),base=M(boxMesh(MAT.frame)),arm=M(boxMesh(MAT.frame)),stack=stackMesh(objs),pulley=pulleyMesh(objs),top=pulleyMesh(objs);
+  const cable=M(cylMesh(MAT.metal)),cable2=M(cylMesh(MAT.metal)),cable3=M(cylMesh(MAT.metal));
+  const bar=M(cylMesh(MAT.metal)),grips=[M(cylMesh(MAT.pad)),M(cylMesh(MAT.pad))],link=M(cylMesh(MAT.metal)),rope=ropeHandle(objs);
+  return{objs,update(p){
+    const e=p.eq,PL=e.PL,cx=PL.x+.32,H=Math.max(2.3,PL.y+.25),r=e.kind==='rope';
+    placeBox(col,V(cx+.08,H/2,0),V(1,0,0),Y,Z,.08,H,.34);
+    placeBox(base,V(cx,.02,0),V(1,0,0),Y,Z,.7,.04,.6);
+    placeBox(arm,V((PL.x+cx)/2,PL.y+.06,0),V(1,0,0),Y,Z,cx-PL.x+.08,.05,.06);
+    const tp=V(cx,H-.08,0); top.position.copy(tp);
+    placePulley(pulley,PL,e.A.clone().sub(PL),tp.clone().sub(PL));
+    setCyl(cable,e.A,PL,.0045); setCyl(cable2,PL.clone().add(V(0,.05,0)),tp.clone().add(V(-.05,0,0)),.0045);
+    const sy=.3+clamp(e.Lc-e.Lc0,0,1.2); setCyl(cable3,tp.clone().add(V(.05,0,0)),V(cx+.05,sy+.25,0),.0045);
+    placeBox(stack,V(cx,sy,0),V(1,0,0),Y,Z,.12,.5,.22);
+    for(const o of [bar,...grips,link])o.visible=!r; for(const o of [...rope.str,...rope.knob,rope.clip])o.visible=r;
+    if(r)placeRope(rope,e.A,[p.P.haL,p.P.haR],e.c);
+    else{const hl=p.P.haL,hr=p.P.haR,ax=hl.clone().sub(hr).normalize();
+      setCyl(bar,hr.clone().addScaledVector(ax,-.07),hl.clone().addScaledVector(ax,.07),.014);
+      setCyl(grips[0],hl.clone().addScaledVector(ax,-.06),hl.clone().addScaledVector(ax,.06),.017);setCyl(grips[1],hr.clone().addScaledVector(ax,-.06),hr.clone().addScaledVector(ax,.06),.017);
+      setCyl(link,e.M,e.M.clone().addScaledVector(e.c,.08),.008);}
+  }};
+};
+EQUIP_X.crossover=function(load){
+  const objs=[],M=m=>(objs.push(m),m), sides=[0,1].map(()=>({col:M(boxMesh(MAT.frame)),base:M(boxMesh(MAT.frame)),stack:stackMesh(objs),pulley:pulleyMesh(objs),top:pulleyMesh(objs),
+    cable:M(cylMesh(MAT.metal)),cable2:M(cylMesh(MAT.metal)),cable3:M(cylMesh(MAT.metal)),grip:M(cylMesh(MAT.pad)),link:M(cylMesh(MAT.metal))}));
+  const beam=M(boxMesh(MAT.frame));
+  return{objs,update(p){
+    const e=p.eq,H=2.35;
+    placeBox(beam,V(e.PLs[0].x-.12,H+.03,0),V(1,0,0),Y,Z,.08,.06,2*XO_Z+.3);
+    sides.forEach((o,i)=>{const PL=e.PLs[i],sg=i?-1:1,cz=PL.z+sg*.12,h=i?p.P.haR:p.P.haL,cx=PL.x-.12;
+      placeBox(o.col,V(cx,H/2,cz),V(1,0,0),Y,Z,.1,H,.1); placeBox(o.base,V(cx,.02,cz),V(1,0,0),Y,Z,.6,.04,.4);
+      const tp=V(cx,H-.1,cz+sg*.06); o.top.position.copy(tp);
+      placePulley(o.pulley,PL,h.clone().sub(PL),V(0,PL.y>H/2?1:-1,0));
+      setCyl(o.cable,h,PL,.0045); setCyl(o.cable2,PL,V(cx,PL.y,cz),.0045);
+      const sy=.3+clamp((h.distanceTo(PL)-e.Lc0)/(e.ratio||1),0,1.4); setCyl(o.cable3,tp,V(cx,sy+.25,cz+sg*.06),.0045);
+      placeBox(o.stack,V(cx,sy,cz+sg*.06),V(1,0,0),Y,Z,.12,.5,.12);
+      const c=PL.clone().sub(h).normalize(), th=e.thumb?e.thumb[i]:thumbUp(c);
+      setCyl(o.grip,h.clone().addScaledVector(th,-.06),h.clone().addScaledVector(th,.06),.017); setCyl(o.link,h,h.clone().addScaledVector(c,.09),.007);
+    });
+  }};
+};
+EQUIP_X.cablerow=function(load){
+  const objs=[],M=m=>(objs.push(m),m);
+  const seat=M(boxMesh(MAT.pad)),frame=M(boxMesh(MAT.frame)),plate=M(boxMesh(MAT.frame)),col=M(boxMesh(MAT.frame)),stack=stackMesh(objs);
+  const pulley=pulleyMesh(objs),low=pulleyMesh(objs),top=pulleyMesh(objs),cable=M(cylMesh(MAT.metal)),cable2=M(cylMesh(MAT.metal)),cable3=M(cylMesh(MAT.metal)),cable4=M(cylMesh(MAT.metal));
+  const bar=M(cylMesh(MAT.metal)),grips=[M(cylMesh(MAT.pad)),M(cylMesh(MAT.pad))],vbar=[M(cylMesh(MAT.metal)),M(cylMesh(MAT.metal))],legs=[M(boxMesh(MAT.frame)),M(boxMesh(MAT.frame))];
+  return{objs,update(p){
+    const e=p.eq,w=e.row,PL=e.PL,P=p.P,so=V(w.so.x,w.so.y,0),fd=V(w.fd.x,w.fd.y,0);
+    const x1=w.sole.x-.05, H=2.1, cx=PL.x+.55;
+    placeBox(seat,V((x1-.45)/2,w.ySeat-.035,0),V(1,0,0),Y,Z,x1+.45,.07,.3);
+    placeBox(frame,V((cx-.6)/2,.04,0),V(1,0,0),Y,Z,cx+.6,.08,.16);
+    for(const [i,x] of [[0,-.38],[1,x1-.1]])placeBox(legs[i],V(x,(w.ySeat-.07)/2,0),V(1,0,0),Y,Z,.06,w.ySeat-.07,.1);
+    const pc=V(w.sole.x,w.sole.y,0).addScaledVector(so,.02).addScaledVector(fd,.1);
+    placeBox(plate,pc,so,fd,Z,.04,.42,.5);
+    placePulley(pulley,PL,e.A.clone().sub(PL),V(1,0,0)); low.position.set(cx-.04,.12,0); top.position.set(cx,H-.08,0);
+    setCyl(cable,e.A,PL,.0045); setCyl(cable2,PL,V(cx-.04,.12,0),.0045); setCyl(cable3,V(cx,.12,0),V(cx,H-.08,0).add(V(-.05,0,0)),.0045);
+    placeBox(col,V(cx+.12,H/2,0),V(1,0,0),Y,Z,.08,H,.34);
+    const sy=.3+clamp(e.Lc-e.Lc0,0,1.2); setCyl(cable4,V(cx+.05,H-.08,0),V(cx+.05,sy+.25,0),.0045);
+    placeBox(stack,V(cx+.03,sy,0),V(1,0,0),Y,Z,.12,.5,.22);
+    const hl=P.haL,hr=P.haR,ax=hl.clone().sub(hr).normalize();
+    for(const o of [bar])o.visible=w.wide; for(const o of vbar)o.visible=!w.wide;
+    if(w.wide){setCyl(bar,hr.clone().addScaledVector(ax,-.08),hl.clone().addScaledVector(ax,.08),.014);
+      for(const [i,h] of [[0,hl],[1,hr]])setCyl(grips[i],h.clone().addScaledVector(ax,-.06),h.clone().addScaledVector(ax,.06),.017);}
+    else{const tip=e.M.clone().addScaledVector(e.c,.1);
+      for(const [i,h] of [[0,hl],[1,hr]]){const th=e.thumb?e.thumb[i]:thumbUp(e.c);setCyl(grips[i],h.clone().addScaledVector(th,-.055),h.clone().addScaledVector(th,.055),.017);setCyl(vbar[i],h.clone().addScaledVector(th,-.05),tip,.009);}}
+  }};
+};
 
 /* ===== Раздел: подтягивания ===== */
 // Вис на перекладине: тело держится только кистями, поэтому общий центр масс (тело и вес на поясе) всегда точно под перекладиной.
