@@ -1033,7 +1033,9 @@ function legMachine(o,p,load){
   legMachineArms(pose,o,k);
   addBody(pose);
   const kj={key:'knee',mode:'2d',line:'main',pos:P.kneeL,a:P.hipL.clone().sub(P.kneeL),b:P.ankleL.clone().sub(P.kneeL),
-    free:['load','skL','skR','ftL','ftR'],bil:true,primary:side==='ant'?'flex':'ext',get mArm(){return kneeEffArm(pose,kj);}};
+    free:['load','skL','skR','ftL','ftR'],bil:true,primary:side==='ant'?'flex':'ext',get mArm(){return kneeEffArm(pose,kj);},
+    mus:{flex:'Квадрицепс',ext:p.foot==='free'?'Задняя поверхность бедра':'Задняя поверхность бедра, икроножная'},
+    info:()=>`Валик <b>${fmt1(pose.eq.fromAnkle*100)} см</b> выше голеностопа, давит на голень ${fmt0(F/2)} Н · момент тренажёра ${fmt0(tau/2)} Н·м на ногу`};
   pose.joints=[kj];
   // стопа: пятка в валик — голеностоп держит валик, икроножная сгибает колено свободно; стопа свободна — голеностоп в расчёте
   // (только вес стопы), и момент икроножной в голеностопе уравновешивают передняя большеберцовая и другие тыльные сгибатели
@@ -1072,11 +1074,11 @@ const LM_PAD=(lbl,def)=>({id:'pad',label:lbl,type:'range',min:2,max:15,step:.5,u
   hint:'Если колено на оси рычага, положение валика не меняет момент в колене: ближе к колену — больше сила валика на голень, но меньше её плечо'});
 const LM_OFF={id:'off',label:'Колено относительно оси рычага',type:'range',min:-6,max:6,step:.5,unit:' см',def:0,fmt:v=>`${v>0?'+':''}${fmt1(v)} см`,
   hint:'0 — колено на оси, как требует инструкция тренажёра. Плюс — колено дальше от таза, чем ось, минус — ближе. Тогда валик прокатывается по голени'};
-const LM_FOOT={id:'foot',label:'Стопа',type:'seg',opts:[['brace','Пятка упирается в валик'],['free','Свободна']],def:'brace',
-  hint:p=>p.foot==='free'?'Голеностоп ничем не держится: икроножная, сгибая колено, тянет стопу от себя, и её уравновешивают мышцы передней поверхности голени. Поэтому икроножная помогает мало, нагрузка уходит на заднюю поверхность бедра.':'Пятка упирается в валик и держит голеностоп: икроножная помогает сгибать колено, не разгибая стопу.'};
+const LM_FOOT={id:'foot',label:'Стопа',type:'seg',opts:[['free','Свободна'],['brace','Валик держит пятку']],def:'free',
+  hint:p=>p.foot==='free'?'Икроножная сгибает колено, но и тянет стопу от себя; её уравновешивают мышцы передней поверхности голени. Поэтому икроножная берёт около пятой части момента колена, остальное — задняя поверхность бедра.':'Валик стоит над самой пяткой и не даёт стопе разогнуться: момент икроножной в голеностопе держит валик. Тогда икроножная берёт почти половину момента колена: в модели у неё большой поперечник, а сила–длина не учитывается, поэтому это верхняя оценка.'};
 
 function buildLegExt(t,p,load){
-  const hip=v2(0,A.ah+A.shank+.15*A.H/1.8+.04), th=v2(1,0);
+  const hip=v2(0,A.ah+A.shank+.19*A.H/1.8), th=v2(1,0);
   return legMachine({kind:'ext',hip,th,tr:rot(th,(180-p.hipf)*D),kap0:p.from,kap:lerp(p.from,p.to,t),side:'ant',seatY:hip.y-.1*A.H/1.8,
     hands:'side'},p,load);
 }
@@ -1084,7 +1086,7 @@ function buildLegCurlLying(t,p,load){
   // скамья с изгибом у таза: бедро чуть вниз к коленям, корпус вниз к голове; сгибание бедра = сумма наклонов
   const a=Math.min(10,p.hipf/3)*D, b=p.hipf*D-a, k=A.H/1.8;
   const hip=v2(0,A.foot*.77+A.ah+(A.thigh+A.shank)*Math.sin(a)+.32*k), th=v2(-Math.cos(a),-Math.sin(a)), tr=v2(Math.cos(b),-Math.sin(b));
-  return legMachine({kind:'lying',hip,th,tr,kap0:p.from,kap:lerp(p.from,p.to,t),side:'post',bench:{a,b},hands:'front'},p,load);
+  return legMachine({kind:'lying',hip,th,tr,kap0:p.from,kap:lerp(p.from,p.to,t),side:'post',hands:'front'},p,load);
 }
 function buildLegCurlSeated(t,p,load){
   const a=5*D, hip=v2(0,A.ah+A.shank+.16*A.H/1.8), th=v2(Math.cos(a),Math.sin(a));
