@@ -17,7 +17,7 @@
   --bg:#E9ECEA; --panel:#FAFBF9; --panel-2:#F1F3F0; --ink:#14181A; --ink-2:#394146; --muted:#626C71;
   --line:#D6DBD8; --line-2:#C2C9C5; --scene:#E3E7E4; --floor:#D3D9D5; --grid:#B9C1BD;
   --body:#C29478; --shorts:#353D42; --equip:#4B555A; --pad:#2A3034; --metal:#9AA3A7;
-  --j-ankle:#1baf7a; --j-knee:#eda100; --j-hip:#2a78d6; --j-lumbar:#eb6834; --j-shoulder:#2a78d6; --j-elbow:#1baf7a;
+  --j-ankle:#1baf7a; --j-knee:#eda100; --j-hip:#2a78d6; --j-lumbar:#eb6834; --j-shoulder:#7c5cd6; --j-elbow:#c8457e;
   --force:#14181A; --hud:rgba(250,251,249,.86); --shadow:0 1px 2px rgba(20,24,26,.06),0 6px 20px rgba(20,24,26,.07);
   --ui:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
@@ -29,7 +29,7 @@
     --bg:#0E1113; --panel:#161A1C; --panel-2:#1C2124; --ink:#ECEFEE; --ink-2:#C6CDCB; --muted:#939CA0;
     --line:#282E32; --line-2:#363E43; --scene:#121517; --floor:#1A1F22; --grid:#2C3438;
     --body:#C29478; --shorts:#23292C; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
-    --j-ankle:#199e70; --j-knee:#c98500; --j-hip:#3987e5; --j-lumbar:#d95926; --j-shoulder:#3987e5; --j-elbow:#199e70;
+    --j-ankle:#199e70; --j-knee:#c98500; --j-hip:#3987e5; --j-lumbar:#d95926; --j-shoulder:#9b80ec; --j-elbow:#e0679d;
     --force:#F2F4F3; --hud:rgba(22,26,28,.84); --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
   }
 }
@@ -38,7 +38,7 @@
   --bg:#0E1113; --panel:#161A1C; --panel-2:#1C2124; --ink:#ECEFEE; --ink-2:#C6CDCB; --muted:#939CA0;
   --line:#282E32; --line-2:#363E43; --scene:#121517; --floor:#1A1F22; --grid:#2C3438;
   --body:#C29478; --shorts:#23292C; --equip:#7F8A90; --pad:#3A4247; --metal:#A9B2B6;
-  --j-ankle:#199e70; --j-knee:#c98500; --j-hip:#3987e5; --j-lumbar:#d95926; --j-shoulder:#3987e5; --j-elbow:#199e70;
+  --j-ankle:#199e70; --j-knee:#c98500; --j-hip:#3987e5; --j-lumbar:#d95926; --j-shoulder:#9b80ec; --j-elbow:#e0679d;
   --force:#F2F4F3; --hud:rgba(22,26,28,.84); --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
@@ -453,7 +453,10 @@ function addBody(pose,fn){
     put('ft'+s,.0145,mid(P['heel'+s],P['toe'+s],.45));
   }
 }
-function comX(pose){let m=0,mx=0;for(const f of pose.forces){if(f.mass&&f.seg!=='trunkU'&&!f.seg.startsWith('ft')&&!f.seg.startsWith('loadL')&&!f.seg.startsWith('loadR')){m+=f.mass;mx+=f.mass*f.p.x;}}return mx/m;}
+// точка пола, через которую идёт равнодействующая веса тела, снаряда и внешних сил (pose.ext — трос блока): над ней должна быть опора
+function comX(pose){let m=0,mx=0;for(const f of pose.forces){if(f.mass&&f.seg!=='trunkU'&&!f.seg.startsWith('ft')&&!f.seg.startsWith('loadL')&&!f.seg.startsWith('loadR')){m+=f.mass;mx+=f.mass*f.p.x;}}
+  if(!pose.ext)return mx/m;
+  let W=m*G,M=mx*G; for(const e of pose.ext){W-=e.F.y;M-=e.p.x*e.F.y-e.p.y*e.F.x;} return M/W;}
 function solveBalance(mk,lo,hi,target){
   const pl=mk(lo); if(comX(pl)>=target){pl.flag='back';return pl;}
   const ph=mk(hi); if(comX(ph)<=target){ph.flag='front';return ph;}
@@ -519,11 +522,12 @@ function FRIC(kind,def){
     bench:{lbl:'Боковое усилие кистей на гриф',opts:[['none','Нет'],['auto','По данным'],['manual','Вручную']],fh:'Кисти давят на гриф: + наружу (разрывать), − внутрь (сжимать)',
       auto:'По данным: боковая сила кистей зависит от ширины хвата. Измерения Larsen и соавт. (2021): хват 1,7× ширины плеч — наружу 13–16% от вертикальной силы, 1,4× — около 0, 1,0× — внутрь 9–10%.'},
     pull:{lbl:'Боковое усилие кистей на гриф',opts:[['none','Нет'],['opt','Мин. нагрузка'],['manual','Вручную']],fh:'Кисти тянут гриф: + наружу (разрывать), − внутрь (сводить)'},
+    press:{lbl:'Боковое усилие кистей на гриф',opts:[['none','Нет'],['opt','Мин. нагрузка'],['manual','Вручную']],fh:'Кисти давят на гриф: + наружу (разрывать), − внутрь (сжимать)'},
     bridge:{lbl:'Горизонтальное усилие стоп на пол',opts:[['none','Нет'],['manual','Вручную']],fh:'Стопы давят на пол: + от себя (к носкам), − на себя (к тазу)'},
     plat:{lbl:'Касательное усилие стоп на платформу',opts:[['none','Нет'],['auto','Авто'],['manual','Вручную']],fh:'Стопы давят вдоль платформы: + вверх (к носкам), − вниз (к пяткам)',
       auto:'Авто: касательная сила выбирается так, чтобы суммарная нагрузка на голеностоп, колено и таз была минимальной (статическая оптимизация). Направляющие держат поперечную силу, поэтому она возможна.'}
   }[kind];
-  const FA='Мин. нагрузка: боковая сила выбирается так, чтобы суммарная нагрузка на плечевой и локтевой суставы (с учётом их силы) была минимальной — статическая оптимизация. Прямых измерений боковой силы в вертикальной тяге нет, поэтому это модельная оценка.';
+  const FA='Мин. нагрузка: боковая сила выбирается так, чтобы суммарная нагрузка на плечевой и локтевой суставы (с учётом их силы) была минимальной — статическая оптимизация. Прямых измерений боковой силы в этом упражнении нет, поэтому это модельная оценка.';
   return [
     {id:'fric',sep:'Трение и результирующая',label:C.lbl,type:'seg',opts:C.opts,def:def||C.opts[1][0],
       hint:p=>p.fric==='none'?'Только основное усилие, боковой силы нет.':p.fric==='auto'?C.auto:p.fric==='opt'?FA:'Задайте силу в процентах от основной. Больше μ она быть не может.'},
@@ -879,6 +883,42 @@ function buildLegPress(t,p,load){
   return pose;
 }
 
+/* ================= Общие заготовки: упражнения стоя, гантели, штанга в руках ================= */
+// Стойка: голень наклонена вперёд на thsh, колено согнуто на kap, корпус под углом phi к вертикали (+ вперёд)
+function standBase(thsh,kap,phi,o){
+  const ankle=v2(0,A.ah), knee=add(ankle,mul(dirA(thsh),A.shank)), hip=add(knee,mul(dirA(thsh-kap),A.thigh));
+  return basePose(Object.assign({ankle,knee,hip,S:add(hip,mul(dirA(phi),A.trunk)),footDir:v2(1,0),sole:v2(0,-1)},o));
+}
+// плечевой и локтевой суставы, поясница; суставы ног считаются сверху вниз, но показываются только из списка legs —
+// остальные нужны, чтобы двусуставные мышцы ног (прямая бедра, задняя поверхность, икроножная) участвовали в расчёте
+function standJoints(pose,shText,legs){
+  topDownJoints(pose,['ankle','knee','hip','L5']);
+  for(const j of pose.joints)if(j.key!=='L5'&&!(legs||[]).includes(j.key))j.hide=true;
+  pose.joints=[...armJoints(pose,shText),...pose.joints];
+}
+// рука по направлениям плеча du и предплечья df (единичные), правая — зеркально
+function armsByDir(pose,du,df){
+  const P=pose.P;
+  P.elL=P.shL.clone().addScaledVector(du,A.ua); P.haL=P.elL.clone().addScaledVector(df,A.fa);
+  const m=v=>V(v.x,v.y,-v.z); P.elR=P.shR.clone().addScaledVector(m(du),A.ua); P.haR=P.elR.clone().addScaledVector(m(df),A.fa);
+}
+// гантели в обеих руках: общий вес — в середине между кистями (для баланса и суставов ног и поясницы), на каждую кисть — свой
+function dbForces(pose,load){
+  const P=pose.P, W=load*G, mid=P.haL.clone().add(P.haR).multiplyScalar(.5);
+  pose.forces.push({seg:'load',p:mid,F:V(0,-2*W,0),mass:2*load},{seg:'loadL',p:P.haL,F:V(0,-W,0)},{seg:'loadR',p:P.haR,F:V(0,-W,0)});
+  pose.line={p:mid,d:V(0,-1,0)}; pose.lineL={p:P.haL.clone(),d:V(0,-1,0)}; pose.lineR={p:P.haR.clone(),d:V(0,-1,0)};
+  pose.F=W; pose.sideKg=load; pose.fric={kind:'open'};
+}
+// штанга в обеих руках: вес в центре грифа, на кисть — половина плюс боковое усилие хвата
+function barForces(pose,load,B,p,gripW){
+  const P=pose.P, F0=V(0,-load*G/2,0);
+  pose.forces.push({seg:'load',p:B,F:V(0,-load*G,0),mass:load});
+  let FL=F0.clone(),FR=F0.clone(); if(p.fric)({FL,FR}=gripFriction(pose,F0,p,gripW)); else pose.fric={kind:'static'};
+  pose.forces.push({seg:'loadL',p:P.haL,F:FL},{seg:'loadR',p:P.haR,F:FR});
+  pose.line={p:B,d:V(0,-1,0)}; pose.lineL={p:P.haL.clone(),d:FL.clone().normalize()}; pose.lineR={p:P.haR.clone(),d:FR.clone().normalize()};
+  pose.F=load*G; pose.sideKg=load/2; pose.eq.bar=B;
+}
+
 const ELB_MODE={id:'elbows',label:'Локти',type:'seg',opts:[['vert','Под грифом'],['flare','Задать разведение']],def:'vert',
   hint:p=>p.elbows==='flare'?'Локоть держит заданный угол к корпусу, предплечье может наклоняться.':'Классическая техника: в нижней точке предплечья вертикальны в обеих плоскостях, точка касания груди и разведение локтей получаются из пропорций и ширины хвата. Фактическое разведение показано в карточке плечевого сустава.'};
 const EX={
@@ -909,44 +949,73 @@ const EX={
             {id:'mu',label:'μ стоп о пол',type:'range',min:.2,max:1.2,step:.05,def:.8,fmt:MU_FMT,hint:'Кроссовки по резиновому покрытию ≈ 0,8–1,0'},
             {id:'mub',label:'μ спины о скамью',type:'range',min:.1,max:1,step:.05,def:.5,fmt:MU_FMT,hint:'Футболка по коже или винилу ≈ 0,3–0,6',show:p=>p.fric==='manual'}],
     desc:'Опоры — край скамьи под лопатками и стопы. Гриф лежит почти над тазом; нагрузку на ягодичные создают реакции опор: таз «провисает» между скамьёй и стопами.'},
-  bench:{name:'Жим штанги лёжа',eq:'штанга',group:1,loadLabel:'Вес штанги',def:80,min:20,max:250,step:2.5,equip:'bench',build:(t,p,l)=>buildBench(t,p,l,'bar'),
+  bench:{name:'Жим штанги лёжа',eq:'штанга',group:2,loadLabel:'Вес штанги',def:80,min:20,max:250,step:2.5,equip:'bench',build:(t,p,l)=>buildBench(t,p,l,'bar'),
     params:[{id:'grip',label:'Ширина хвата (между центрами кистей)',type:'range',min:40,max:100,step:1,unit:' см',def:70},
             ELB_MODE,{id:'flare',label:'Разведение локтей от корпуса',type:'range',min:20,max:85,step:1,unit:'°',def:55,hint:'Угол плеча к корпусу, вид сверху',show:p=>p.elbows==='flare'},...FRIC('bench')],
     desc:'Гриф касается груди на линии сосков и идёт по J-образной траектории к плечам.'},
-  db:{name:'Жим гантелей лёжа',eq:'гантели',group:1,loadLabel:'Вес одной гантели',def:30,min:4,max:70,step:1,equip:'db',build:(t,p,l)=>buildBench(t,p,l,'db'),
+  db:{name:'Жим гантелей лёжа',eq:'гантели',group:2,loadLabel:'Вес одной гантели',def:30,min:4,max:70,step:1,equip:'db',build:(t,p,l)=>buildBench(t,p,l,'db'),
     params:[{id:'fore',label:'Положение гантелей',type:'seg',opts:[['vert','Строго над локтями'],['free','Свободно']],def:'vert',
               hint:p=>p.fore==='vert'?'Предплечья вертикальны во всей амплитуде: линия силы проходит через локоть, момент в локте ≈ 0, нагрузка уходит на плечевой сустав.':'Кисть идёт по своей траектории, предплечье наклоняется, и в локте появляется момент.'},
             {id:'elb',label:'Глубина: локти ниже линии плеч',type:'range',min:0,max:50,step:1,unit:'°',def:32,hint:'При ~30–35° гантели опускаются примерно до уровня груди',show:p=>p.fore==='vert'},
             {id:'wide',label:'Разведение гантелей в нижней точке',type:'range',min:0,max:35,step:1,unit:' см',def:20,hint:'Насколько кисть уходит наружу от плечевого сустава',show:p=>p.fore==='free'},
             {id:'flare',label:'Разведение локтей от корпуса',type:'range',min:20,max:85,step:1,unit:'°',def:55}],
     desc:'Каждая гантель — открытая цепь: сила строго вертикальна. Положение локтя под гантелью решает, кто держит нагрузку.'},
-  close:{name:'Жим узким хватом',eq:'штанга',group:1,loadLabel:'Вес штанги',def:60,min:20,max:200,step:2.5,equip:'bench',build:(t,p,l)=>buildBench(t,p,l,'close'),
+  close:{name:'Жим узким хватом',eq:'штанга',group:2,loadLabel:'Вес штанги',def:60,min:20,max:200,step:2.5,equip:'bench',build:(t,p,l)=>buildBench(t,p,l,'close'),
     params:[{id:'grip',label:'Ширина хвата (между центрами кистей)',type:'range',min:25,max:60,step:1,unit:' см',def:36},
             ELB_MODE,{id:'flare',label:'Разведение локтей от корпуса',type:'range',min:10,max:70,step:1,unit:'°',def:30,hint:'Угол плеча к корпусу, вид сверху',show:p=>p.elbows==='flare'},...FRIC('bench')],
     desc:'Узкий хват и прижатые локти смещают работу с грудных на трицепс.'},
-  pdn:{name:'Вертикальная тяга параллельным хватом',eq:'блок',group:2,loadLabel:'Вес в блоке',def:60,min:10,max:150,step:2.5,equip:'pulldown',build:(t,p,l)=>buildPulldown(t,p,l,'neutral'),
+  pdn:{name:'Вертикальная тяга параллельным хватом',eq:'блок',group:3,loadLabel:'Вес в блоке',def:60,min:10,max:150,step:2.5,equip:'pulldown',build:(t,p,l)=>buildPulldown(t,p,l,'neutral'),
     params:[{id:'handle',label:'Рукоять',type:'seg',opts:[['v','Узкая V'],['wide','Широкая параллельная']],def:'v'},
             {id:'lean',label:'Отклонение корпуса назад',type:'range',min:0,max:35,step:1,unit:'°',def:12},...FRIC('pull')],
     desc:'Трос тянет рукоять к верхнему блоку; линия силы идёт по тросу.'},
-  pdw:{name:'Вертикальная тяга широким хватом',eq:'блок',group:2,loadLabel:'Вес в блоке',def:60,min:10,max:150,step:2.5,equip:'pulldown',build:(t,p,l)=>buildPulldown(t,p,l,'wide'),
+  pdw:{name:'Вертикальная тяга широким хватом',eq:'блок',group:3,loadLabel:'Вес в блоке',def:60,min:10,max:150,step:2.5,equip:'pulldown',build:(t,p,l)=>buildPulldown(t,p,l,'wide'),
     params:[{id:'grip',label:'Ширина хвата (между центрами кистей)',type:'range',min:50,max:110,step:1,unit:' см',def:78},
             {id:'lean',label:'Отклонение корпуса назад',type:'range',min:0,max:35,step:1,unit:'°',def:15},...FRIC('pull')],
     desc:'Широкий хват выносит кисть в сторону, и в плечевом суставе появляется большое плечо во фронтальной плоскости.'},
-  pendulum:{name:'Маятниковый присед',eq:'тренажёр',group:3,loadLabel:'Вес на рычаге',def:60,min:0,max:200,step:5,equip:'pendulum',build:buildPendulum,
+  pendulum:{name:'Маятниковый присед',eq:'тренажёр',group:1,loadLabel:'Вес на рычаге',def:60,min:0,max:200,step:5,equip:'pendulum',build:buildPendulum,
     params:[{id:'feet',label:'Вынос стоп вперёд',type:'range',min:0,max:50,step:1,unit:' см',def:10},
             {id:'depth',label:'Опускание подушек',type:'range',min:25,max:62,step:1,unit:' см',def:50},COP_PARAM,{id:'mu',sep:'Трение и результирующая',label:'Коэффициент трения стоп μ',type:'range',min:.2,max:1.2,step:.05,def:.8,fmt:MU_FMT,hint:'Показывает, хватает ли трения, чтобы удержать реакцию платформы'}],
     desc:'Подушки идут по дуге вокруг оси рычага, усилие на плечи растёт к нижней точке. Спина упирается в подушку рычага.'},
-  hack:{name:'Гак-присед',eq:'тренажёр',group:3,loadLabel:'Вес на каретке',def:80,min:0,max:300,step:5,equip:'hack',build:buildHack,
+  hack:{name:'Гак-присед',eq:'тренажёр',group:1,loadLabel:'Вес на каретке',def:80,min:0,max:300,step:5,equip:'hack',build:buildHack,
     params:[{id:'feet',label:'Вынос стоп вперёд (от таза в верхней точке)',type:'range',min:10,max:80,step:1,unit:' см',def:46},
             {id:'depth',label:'Ход каретки',type:'range',min:20,max:95,step:1,unit:' см',def:50,hint:'Ход ограничивается, если таз доходит до пяток или колено сгибается до предела'},
             {id:'angle',label:'Угол направляющих к полу',type:'range',min:35,max:60,step:1,unit:'°',def:45},COP_PARAM,{id:'mu',sep:'Трение и результирующая',label:'Коэффициент трения стоп μ',type:'range',min:.2,max:1.2,step:.05,def:.8,fmt:MU_FMT,hint:'Показывает, хватает ли трения, чтобы удержать реакцию платформы'}],
     desc:'Каретка давит на плечи вдоль направляющих, спина упирается в подушку. Точка опоры стопы меняет распределение между коленом и тазом.'},
-  legpress:{name:'Жим ногами в тренажёре',eq:'тренажёр 45°',group:3,loadLabel:'Вес на платформе',def:150,min:0,max:500,step:5,equip:'legpress',build:buildLegPress,
+  legpress:{name:'Жим ногами в тренажёре',eq:'тренажёр 45°',group:1,loadLabel:'Вес на платформе',def:150,min:0,max:500,step:5,equip:'legpress',build:buildLegPress,
     params:[{id:'feet',label:'Постановка стоп на платформе',type:'range',min:-15,max:20,step:1,unit:' см',def:0,hint:'Минус — ниже, плюс — выше по платформе'},
             {id:'depth',label:'Сгибание колена в нижней точке',type:'range',min:60,max:130,step:1,unit:'°',def:100},COP_PARAM,...FRIC('plat')],
     desc:'Таз зафиксирован на сиденье. Направляющие держат поперечную силу, поэтому стопы могут толкать платформу под углом к ходу.'}
 };
-const GROUPS=['Свободные веса: ноги и спина','Жимы лёжа','Вертикальные тяги','Тренажёры для ног'];
+
+// Снаряды и тренажёры новых упражнений: каждый раздел кладёт сюда свои, они добавляются в EQUIP при запуске
+const EQUIP_X={};
+// Новые упражнения: у каждой группы свой раздел. Раздел добавляет построители позы, записи в EX (Object.assign(EX,{...}))
+// и снаряды в EQUIP_X. Группы — индексы GROUPS ниже.
+// Дополнительные поля упражнения: ends / endsLong — подписи концов амплитуды на графике и под ползунком;
+// fdesc(pose, load) — текст карточки «Внешняя сила». Поля позы: joint.hide — сустав считается ради двусуставных мышц,
+// но не показывается; joint.axes — у 3D-сустава расчёт только по этим осям; joint.mArm — плечо мышц для оценки в кг;
+// pose.support — суставы, момент в которых держит опора (через них разрешено проходить мышцам без расчёта);
+// pose.ext — внешние силы кроме веса ({p, F}, например трос) для баланса над стопой; pose.bodyLoad — вес тела и есть нагрузка;
+// pose.restSide — сторона, мышцы которой не считаются (рисуются без нагрузки); pose.warn — предупреждение;
+// pose.fric.text — свой текст карточки трения; pose.sideNote, pose.musSide — подписи «на одну руку/ногу».
+// pose.eq.thumb = [V левой, V правой] — куда смотрит большой палец вдоль рукояти (по умолчанию — к другой кисти, хват сверху);
+// pose.eq.fit — точки снаряда, которые камера должна вместить. joint.line может быть своим объектом {p, d} (линия силы этого сустава).
+
+/* ===== Раздел: плечи и руки стоя (жим штанги стоя, махи гантелями, подъём на бицепс) ===== */
+
+/* ===== Раздел: жимы гантелей сидя и на наклонной скамье ===== */
+
+/* ===== Раздел: тяга штанги в наклоне ===== */
+
+/* ===== Раздел: разгибание и сгибание ног в тренажёрах ===== */
+
+/* ===== Раздел: блоки (горизонтальная тяга, разгибание рук, сведение, тяга к лицу) ===== */
+
+/* ===== Раздел: подтягивания ===== */
+
+/* ===== Раздел: разная поза левой и правой стороны (тяга гантели одной рукой, болгарские сплит-приседы, отведение бедра) ===== */
+
+const GROUPS=['Свободные веса: ноги и спина','Тренажёры для ног','Грудь','Спина: тяги','Плечи','Руки'];
 
 /* ================= Состояние ================= */
 const state={ex:'squat',t:.7,playing:false,chartMode:'moment',mass:80,body:false,loads:{},params:{},show:{force:true,arms:true,arcs:true,labels:true,xray:false,anat:true},compare:null};
@@ -966,9 +1035,10 @@ function muscleArm(r,pose){
   return .05;
 }
 function analyze(pose,withBody){
+  withBody=withBody||!!pose.bodyLoad;   // подтягивания: вес тела и есть нагрузка
   return pose.joints.map(j=>{
     const forces=pose.forces.filter(f=>j.free.includes(f.seg)&&(withBody||f.seg.startsWith('load')));
-    const ln=j.line==='L'?pose.lineL:j.line==='B'?pose.lineB:pose.line;
+    const ln=typeof j.line==='object'?j.line:j.line==='L'?pose.lineL:j.line==='B'?pose.lineB:pose.line;   // своя линия сустава — объект {p,d}
     const r={key:j.key,j};
     if(j.mode==='2d'){
       let M=0; for(const f of forces) M+=(f.p.x-j.pos.x)*f.F.y-(f.p.y-j.pos.y)*f.F.x;
@@ -985,13 +1055,15 @@ function analyze(pose,withBody){
       const rel=j.pos.clone().sub(ln.p), tq=rel.dot(ln.d); r.Q=ln.p.clone().addScaledVector(ln.d,tq); r.tq=tq;
       r.arm=j.pos.distanceTo(r.Q); r.Mv=Mv; r.abs=Mv.length();
       r.axis=r.abs>1e-9?Mv.clone().normalize():V(0,0,1);
+      // сустав с одной осью (бедро в тренажёре для отведения): остальные составляющие держит опора
+      if(j.axes&&j.axes.length===1){const e=j.axes[0], m=Mv.dot(e); r.Mv=e.clone().multiplyScalar(m); r.abs=Math.abs(m); r.axis=e.clone().multiplyScalar(Math.sign(m)||1);}
       if(j.fixed) r.dem='fixed';
       else if(r.abs>1e-6){const ax=r.axis, b2=j.b.clone().addScaledVector(ax.clone().cross(j.b),.02); r.dem=j.a.angleTo(b2)<j.a.angleTo(j.b)?'flex':'ext';}
       else r.dem=null;
     }
     r.muscles=j.fixed||(r.dem?MUSC[j.key][r.dem]:'Момент близок к нулю');
     r.signed=(j.fixed||r.dem===j.primary||!r.dem)?r.abs:-r.abs;
-    r.mArm=muscleArm(r,pose); r.mKg=r.abs/r.mArm/G; r.signedMus=(r.signed<0?-1:1)*r.mKg;
+    r.mArm=j.mArm||muscleArm(r,pose); r.mKg=r.abs/r.mArm/G; r.signedMus=(r.signed<0?-1:1)*r.mKg;
     return r;
   });
 }
@@ -1233,6 +1305,7 @@ function segMatrix(F,ref,out,dA){const kx=F.L/ref,O=F.O,a=F.ant,x=F.ax,l=F.lat;
 // Только картинка: расчёт ведётся по данным рук в пронации.
 function gripThumb(pose,s,out){
   const P=pose.P, e=EX[state.ex].equip, X=V(1,0,0);
+  if(pose.eq.thumb)return out.copy(pose.eq.thumb[s==='L'?0:1]);   // новые упражнения задают направление большого пальца сами: [левая, правая]
   if(e==='pendulum'||e==='hack')return out.copy(pose.u);
   if(e==='legpress')return out.copy(X).multiplyScalar(Math.sign(pose.front.x)||1);
   if(e==='pulldown'&&pose.eq.kind!=='wide')return out.copy(X).multiplyScalar(-(Math.sign(pose.front.x)||1));
@@ -1520,12 +1593,15 @@ function mLen(m,i,pts,pose,s,rest){return m.lrel?rest[i].L*lerpTab(m.lrel[0],m.l
 function muscleRows(pose,res,pts,fr){
   const rows=[];
   for(const r of res){
-    if(!r.j||r.j.fixed&&r.key!=='shoulder')continue;
+    if(!r.j||r.j.fixed&&r.key!=='shoulder'&&!r.j.axes)continue;
     const arms=MDEF.map((m,i)=>m.rh?(r.key==='shoulder'?rhythmArm(m,pose):null):mArmVec(m,pts[i],r));
     if(r.j.mode==='2d'){
       // сгибание бедра — поворот бедра вокруг +Z относительно таза (левая нога); у m.hf плечо разгибания обнуляется
       const fx=freeSide(r,'thigh')?1:-1;
       rows.push({key:r.key,c:arms.map((v,i)=>{if(!v)return 0;const m=MDEF[i],c=m.wp?mArmFD(m,fr,r,Z):v.z;return m.hf&&r.key==='hip'?fx*Math.max(0,fx*c):c;}),tau:-(r.M||0)/2,w:1});
+    } else if(r.j.axes){
+      const Mv=r.Mv||V(0,0,0);
+      for(const e of r.j.axes) rows.push({key:r.key,c:arms.map((v,i)=>{if(!v)return 0;const m=MDEF[i];return m.wp?mArmFD(m,fr,r,e):v.dot(e);}),tau:-Mv.dot(e),w:1,axis:e});
     } else if(r.key==='elbow'){
       const P=pose.P; let n=P.elL.clone().sub(P.shL).cross(P.haL.clone().sub(P.elL));
       if(n.lengthSq()<1e-6) n=segFrames(pose,'L').ua.lat.clone(); n.normalize();
@@ -1592,6 +1668,7 @@ function muscleState(pose,res){
   const pk=Math.pow(state.mass/MREF.mass,2/3), vr0=MREF.H*MREF.mass;
   const pcsa=MDEF.map((m,i)=>m.pcsa*(m.vr?(m.vr[0]*A.H*state.mass+m.vr[1])/(m.vr[0]*vr0+m.vr[1])*ref[i]/rest[i].L:pk)), fmax=MDEF.map((m,i)=>pcsa[i]*m.sig);
   const rows=muscleRows(pose,res,pts.L,fr.L), have=new Set(rows.map(r=>r.key));
+  for(const k of pose.support||[])have.add(k);   // момент в этом суставе держит сиденье или тренажёр
   // мышца, которая пересекает сустав без расчёта в этом упражнении, не участвует: её вклад там нечем уравновесить
   for(const r of rows)MDEF.forEach((m,i)=>{if(!m.joints.every(k=>have.has(k)))r.c[i]=0;});
   // минимум суммы кубов активаций (F/Fmax)³; резервные моменты (как reserve actuators в OpenSim) — на случай, когда мышцам момент не взять
@@ -1757,7 +1834,7 @@ function updateMuscles(pose,res){
     MDEF.forEach((m,i)=>{
       const st=MS.out[i], sm=s==='L'?st:{...st,L:mLen(m,i,MS.pts.R[i],pose,'R',rest)};
       if(s==='R'){sm.lf=Math.max(st.lf0*.35,st.lf0+sm.L-rest[i].L);sm.stretch=sm.lf/st.lf0;}
-      drawMuscle(MMESH[s][i],gripPts(m,MS.pts[s][i],s),sm,rest[i],cores.forMuscle[i],shank);
+      drawMuscle(MMESH[s][i],gripPts(m,MS.pts[s][i],s),pose.restSide===s?{...sm,act:0}:sm,rest[i],cores.forMuscle[i],shank);   // restSide в расчёт не входит
     });
   }
 }
@@ -1906,6 +1983,13 @@ const EQUIP={
     }};
   }
 };
+// гантели в руках стоя: гриф по pose.eq.dbAx [левая, правая], иначе поперёк тела
+EQUIP.dbstand=function(load){
+  const dl=makeDumbbell(load),dr=makeDumbbell(load);
+  return{objs:[dl,dr],update(p){dl.position.copy(p.P.haL);dr.position.copy(p.P.haR);const ax=p.eq.dbAx;
+    if(ax){dl.quaternion.setFromUnitVectors(Z,ax[0]);dr.quaternion.setFromUnitVectors(Z,ax[1]);}else{dl.quaternion.identity();dr.quaternion.identity();}}};
+};
+Object.assign(EQUIP,EQUIP_X);
 function buildEquip(){
   if(equip){for(const o of equip.objs){scene.remove(o);}}
   equip=EQUIP[cur().equip](state.loads[state.ex]);
@@ -1917,11 +2001,11 @@ function ovMat(){return new THREE.MeshBasicMaterial({color:0x000000,depthTest:fa
 function ovCyl(){const m=new THREE.Mesh(UNIT_CYL,ovMat());m.renderOrder=10;ovG.add(m);return m;}
 function ovCone(){const m=new THREE.Mesh(new THREE.ConeGeometry(1,1,18),ovMat());m.renderOrder=11;ovG.add(m);return m;}
 function ovSph(){const m=new THREE.Mesh(UNIT_SPH,ovMat());m.renderOrder=11;ovG.add(m);return m;}
-const FL=[0,1,2].map(()=>({line:ovCyl(),shaft:ovCyl(),head:ovCone()}));
+const FL=[0,1,2,3,4,5].map(()=>({line:ovCyl(),shaft:ovCyl(),head:ovCone()}));
 const guide=ovCyl();
-const ARMS=[0,1,2,3].map(()=>({seg:ovCyl(),dot:ovSph(),ring:ovSph()}));
+const ARMS=[0,1,2,3,4,5].map(()=>({seg:ovCyl(),dot:ovSph(),ring:ovSph()}));
 const CARR=[0,1].map(()=>({shaft:ovCyl(),head:ovCone()}));
-const ARCS=[0,1,2,3].map(()=>{const g=new THREE.Group();const torus=new THREE.Mesh(new THREE.TorusGeometry(.08,.008,8,40,Math.PI),ovMat());torus.renderOrder=9;const cone=new THREE.Mesh(new THREE.ConeGeometry(.02,.05,14),ovMat());cone.renderOrder=9;g.add(torus,cone);ovG.add(g);g.userData={torus,cone,arc:-1};return g;});
+const ARCS=[0,1,2,3,4,5].map(()=>{const g=new THREE.Group();const torus=new THREE.Mesh(new THREE.TorusGeometry(.08,.008,8,40,Math.PI),ovMat());torus.renderOrder=9;const cone=new THREE.Mesh(new THREE.ConeGeometry(.02,.05,14),ovMat());cone.renderOrder=9;g.add(torus,cone);ovG.add(g);g.userData={torus,cone,arc:-1};return g;});
 function setArrow(o,p,d,show,col){
   for(const k of ['shaft','head'])o[k].visible=show;
   if(!show)return;
@@ -1973,6 +2057,7 @@ let dirty=true, chartDirty=true, samplesDirty=true, samples=null, pose=null, res
 function renderExList(){
   const box=$('#exList');box.innerHTML='';
   GROUPS.forEach((gname,gi)=>{
+    if(!Object.values(EX).some(e=>e.group===gi))return;
     const g=document.createElement('div');g.className='exgroup';g.innerHTML=`<div class="gl">${gname}</div>`;
     for(const id in EX){if(EX[id].group!==gi)continue;const b=document.createElement('button');b.className='exbtn';b.dataset.ex=id;b.setAttribute('aria-pressed',id===state.ex);b.innerHTML=`<span>${EX[id].name}</span><span class="eq">${EX[id].eq}</span>`;b.onclick=()=>selectEx(id);g.appendChild(b);}
     box.appendChild(g);
@@ -2038,8 +2123,10 @@ function renderPresets(){
 }
 $('#resetAnthro').onclick=()=>{A=anthroFromH(1.8);activePreset='std';renderPresets();renderAnthro();invalidate();};
 
+// суставы, которые показываем; скрытые (hide) считаются только ради мышц, переходящих через них
+const shown=res=>res.filter(r=>!r.j.hide);
 function renderRows(){
-  const js=buildNow(.5).joints;
+  const js=buildNow(.5).joints.filter(j=>!j.hide);
   $('#jrows').innerHTML=js.map(j=>`<div class="jrow" id="row-${j.key}"><div class="nm"><i style="background:var(${JVAR[j.key]})"></i>${JNAME[j.key]}</div><div class="tq"><span class="v">0</span><small>Н·м</small></div><div class="meta">плечо силы <span class="arm">—</span><span class="side"></span></div><div class="mus"></div><div class="mf"></div><div class="bar"><span style="background:var(${JVAR[j.key]})"></span></div><div class="fr" hidden></div></div>`).join('');
   $('#legend').innerHTML=js.map(j=>`<span><i style="background:var(${JVAR[j.key]})"></i>${JNAME[j.key]}</span>`).join('')+`<span id="lgCmp" hidden><i class="dash"></i>сравнение</span>`;
 }
@@ -2049,6 +2136,7 @@ function selectEx(id){
   document.querySelectorAll('.exbtn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ex===id));
   renderParams(); renderLoad(); renderRows(); buildEquip();
   $('#exTitle').textContent=cur().name; $('#exMeta').textContent=cur().desc;
+  const ends=cur().endsLong||['Верхняя точка','Нижняя точка'], sl=document.querySelectorAll('.scrub-labels span'); sl[0].textContent=ends[0]; sl[sl.length-1].textContent=ends[1];
   invalidate(); fitView(currentView,false);
 }
 function invalidate(){dirty=true;samplesDirty=true;}
@@ -2067,6 +2155,7 @@ function fitPoints(){
     for(const s of ['L','R'])pts.push(V(p.P['heel'+s].x,0,p.P['heel'+s].z),V(p.P['toe'+s].x,0,p.P['toe'+s].z));
     if(p.eq.bar&&['barbell','bridge'].includes(cur().equip))pts.push(p.eq.bar.clone().add(V(0,.23,0)),p.eq.bar.clone().add(V(0,-.23,0)));
     if(cur().equip==='bridge'&&p.eq.bar)pts.push(p.eq.bar.clone().add(V(0,0,.95)),p.eq.bar.clone().add(V(0,0,-.95)));
+    if(p.eq.fit)pts.push(...p.eq.fit);
   }
   return pts;
 }
@@ -2122,7 +2211,7 @@ function renderMuscleList(){
     html+=`<div class="mrow${idle?' idle':''}"><span class="n">${r.g}</span><span class="f">${idle?'—':fmt0(kg)+' кг'}</span><span class="s"><span class="b"><span style="width:${Math.round(r.act*100)}%;background:${col}"></span></span>${len}</span></div>`;
   }
   if(box._h!==html){box.innerHTML=html;box._h=html;}
-  const note=$('#musNote'), side=pose&&pose.lineL?'одной руки':'одной ноги';
+  const legs=pose&&pose.joints.some(j=>j.bil&&!j.hide), note=$('#musNote'), side=pose&&pose.musSide||(pose&&pose.lineL?(legs?'одной стороны тела':'одной руки'):'одной ноги');
   note.innerHTML=`Усилие на ${side}, кгс. Момент в каждом суставе делится между мышцами так, чтобы сумма кубов их загрузки была минимальной (загрузка — сила ÷ максимальная сила, поперечник × удельное напряжение): нагрузка расходится по мышцам как можно равномернее. Полоса — доля от максимальной силы, так же светится мышца; полная полоса — 100 % и выше. Длина — изменение длины волокон относительно стойки.`;
 }
 
@@ -2166,7 +2255,7 @@ const NS=41;
 function computeSamples(){
   const out={keys:null,curves:{},mus:{},arms:{},maxAbs:1,F:[]};
   for(let i=0;i<NS;i++){
-    const p=buildNow(i/(NS-1)), r=analyze(p,state.body);
+    const p=buildNow(i/(NS-1)), r=shown(analyze(p,state.body));
     if(!out.keys){out.keys=r.map(x=>x.key);for(const k of out.keys){out.curves[k]=[];out.mus[k]=[];out.arms[k]=[];}}
     for(const x of r){out.curves[x.key].push(x.signed);out.mus[x.key].push(x.signedMus);out.arms[x.key].push(x.arm);out.maxAbs=Math.max(out.maxAbs,x.abs);}
     out.F.push(p.F);
@@ -2191,7 +2280,8 @@ function drawChart(){
   let s='';
   for(const tv of ticks){s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Yp(tv)}" y2="${Yp(tv)}" stroke="${tv===0?C.muted:C.line}" stroke-width="${tv===0?1:1}" ${tv===0?'':'stroke-dasharray="0"'}/>`;s+=`<text x="${m.l-6}" y="${Yp(tv)+3.5}" text-anchor="end">${fmt0(tv)}</text>`;}
   for(const tx of [0,.25,.5,.75,1]){s+=`<text x="${X(tx)}" y="${H-10}" text-anchor="${tx===0?'start':tx===1?'end':'middle'}">${Math.round(tx*100)}%</text>`;}
-  s+=`<text x="${m.l}" y="${H-0}" text-anchor="start" style="font-size:9.5px">верх</text><text x="${W-m.r}" y="${H}" text-anchor="end" style="font-size:9.5px">низ</text>`;
+  const ends=cur().ends||['верх','низ'];
+  s+=`<text x="${m.l}" y="${H-0}" text-anchor="start" style="font-size:9.5px">${ends[0]}</text><text x="${W-m.r}" y="${H}" text-anchor="end" style="font-size:9.5px">${ends[1]}</text>`;
   s+=`<text x="${m.l-6}" y="9" text-anchor="end">${state.chartMode==='muscle'?'кг':'Н·м'}</text>`;
   const path=arr=>arr.map((v,i)=>`${i?'L':'M'}${X(i/(arr.length-1)).toFixed(1)},${Yp(v).toFixed(1)}`).join('');
   if(cmp)for(const k in cmp)if(src[k])s+=`<path d="${path(cmp[k])}" fill="none" stroke="${C[k]}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".75"/>`;
@@ -2228,6 +2318,7 @@ $('#clearCmp').onclick=()=>{state.compare=null;$('#clearCmp').disabled=true;$('#
 /* ---- обновление кадра ---- */
 function forceDesc(p){
   const L=state.loads[state.ex],k={squat:1,deadlift:1,rdl:1}[state.ex];
+  if(cur().fdesc) return cur().fdesc(p,L);
   if(state.ex==='bridge') return `Вес штанги ${fmtKg(L)} × g лежит на тазу. Плечи для голеностопа, колена и таза считаются от реакции пола под стопами (линия R), для поясницы — от реакции скамьи, перпендикулярной спине. Значения на одну ногу.`;
   if(k) return `Вес штанги ${fmtKg(L)} × g, вертикально вниз через центр грифа. Ноги: значения на одну ногу.`;
   if(state.ex==='db') return `Вес одной гантели ${fmtKg(L)}, вертикально вниз через кисть. Значения на одну руку.`;
@@ -2238,7 +2329,7 @@ function forceDesc(p){
   return `Составляющая веса платформы вдоль направляющих: m·g·sin 45°. Линия R — результирующая с учётом касательной силы по платформе. Значения на одну ногу.`;
 }
 function fricText(p){
-  const f=p.fric; if(!f) return '';
+  const f=p.fric; if(!f) return ''; if(f.text) return f.text;
   if(f.kind==='open') return 'Открытая цепь: каждая гантель держится одной кистью и ничем не связана с другой, поэтому сила строго вертикальна — боковой составляющей нет.';
   if(f.kind==='static') return 'Стопы на ширине таза, поэтому реакция опоры вертикальна и боковое трение не нужно. Горизонтальной силы вперёд-назад в статике нет: иначе тело бы ускорялось.';
   const pct=Math.round(f.need*100), ang=Math.round(Math.atan2(f.t,f.n)/D), need=`нужно трение <b>${MU_FMT(f.need)}</b> при μ = ${MU_FMT(f.mu)}`, lim=f.limited?' — упор в предел трения':'';
@@ -2264,33 +2355,33 @@ function frame(){
   musDirty=true;
   for(const mt of [MAT.body,MAT.shorts,MAT.shortsCut.L,MAT.shortsCut.R,MAT.headScan,MAT.muscle,MAT.deep,MAT.frame,MAT.pad,MAT.metal,MAT.iron,...Object.values(plateMats)]){const sk=mt===MAT.body||mt===MAT.shorts||mt===MAT.shortsCut.L||mt===MAT.shortsCut.R||mt===MAT.deep;mt.transparent=state.show.xray;mt.opacity=state.show.xray?(sk?.15:mt===MAT.headScan?.28:.22):1;mt.depthWrite=!state.show.xray;}
   if(state.ex==='bridge'&&!state.show.xray)for(const mt of Object.values(plateMats)){mt.transparent=true;mt.opacity=.3;mt.depthWrite=false;} // блины у таза не закрывают сустав
-  const upper=!!pose.lineL;
-  // линии силы
-  const lines=upper?(pose.eq.c?[pose.line,pose.lineL,pose.lineR]:[pose.lineL,pose.lineR]):[pose.line,pose.lineB,pose.lineBar].filter(Boolean);
+  const upper=!!pose.lineL, vis=shown(res);
+  const lower2d=res.some(r=>r.j.mode==='2d'&&r.j.bil);
+  // линии силы: основная, по руке на каждую кисть, реакция скамьи, вес штанги
+  const lines=[...new Set([pose.line,pose.lineL,pose.lineR,pose.lineB,pose.lineBar,...vis.map(r=>typeof r.j.line==='object'?r.j.line:null)].filter(Boolean))].slice(0,FL.length);
   FL.forEach((o,i)=>{
     const ln=lines[i], show=state.show.force&&!!ln;
     o.line.visible=show; if(!show){setArrow(o,null,null,false);return;}
-    let tmin=-.35,tmax=.35; for(const r of res){const tq=r.j.pos.clone().sub(ln.p).dot(ln.d);if((r.j.line==='L'&&ln===pose.lineL)||(r.j.line==='main'&&ln===pose.line)||(r.j.line==='B'&&ln===pose.lineB)){tmin=Math.min(tmin,tq-.12);tmax=Math.max(tmax,tq+.12);}}
-    if(!upper) tmax=Math.max(tmax, (ln.p.y-.0)/Math.max(.2,-ln.d.y)); // до пола
+    let tmin=-.35,tmax=.35; for(const r of res){const tq=r.j.pos.clone().sub(ln.p).dot(ln.d);if(r.j.line===ln||(r.j.line==='L'&&ln===pose.lineL)||(r.j.line==='main'&&ln===pose.line)||(r.j.line==='B'&&ln===pose.lineB)){tmin=Math.min(tmin,tq-.12);tmax=Math.max(tmax,tq+.12);}}
+    if(!upper||ln===pose.line&&lower2d) tmax=Math.max(tmax, (ln.p.y-.0)/Math.max(.2,-ln.d.y)); // до пола
     tmax=Math.min(tmax,3); tmin=Math.max(tmin,-1.2);
     setCyl(o.line,ln.p.clone().addScaledVector(ln.d,tmin),ln.p.clone().addScaledVector(ln.d,tmax),.0045);
     o.line.material.color.set(C.force); o.line.material.opacity=(ln===pose.lineR||ln===pose.lineBar)?.4:.95;
     setArrow(o,ln.p,ln.d,true,C.force);
   });
   // проекция линии в плоскость ноги
-  const lower2d=res.some(r=>r.j.mode==='2d'&&r.j.bil);
   guide.visible=state.show.force&&lower2d;
   if(guide.visible){const ln=pose.line,z=A.hw/2;const a=ln.p.clone().setZ(z),dd=ln.d.clone();let t0=-.4,t1=.4;for(const r of res)if(r.j.mode==='2d'){t0=Math.min(t0,r.tq-.1);t1=Math.max(t1,r.tq+.1);}setCyl(guide,a.clone().addScaledVector(dd,t0),a.clone().addScaledVector(dd,t1),.0025);guide.material.color.set(C.force);guide.material.opacity=.35;}
   // плечи и дуги
   const maxAbs=samples?samples.maxAbs:1;
-  ARMS.forEach((o,i)=>{const r=res[i];const show=!!r&&state.show.arms;o.seg.visible=o.dot.visible=show;o.ring.visible=!!r;
+  ARMS.forEach((o,i)=>{const r=vis[i];const show=!!r&&state.show.arms;o.seg.visible=o.dot.visible=show;o.ring.visible=!!r;
     // с мышцами сустав виден по костям: большой шар поверх всего закрывал ягодицу, оставляем точку в центре сустава
     if(r){const col=C[r.key],sc=state.show.anat?.014:(r.key==='L5'?.034:.05);o.ring.position.copy(r.j.pos);o.ring.scale.setScalar(sc);o.ring.material.color.set(col);o.ring.material.opacity=.95;}
     if(!show)return; const col=C[r.key];
     if(r.arm>.002){setCyl(o.seg,r.j.pos,r.Q,.0055);}else o.seg.visible=false;
     o.dot.position.copy(r.Q);o.dot.scale.setScalar(.013);o.seg.material.color.set(col);o.dot.material.color.set(col);
   });
-  ARCS.forEach((g,i)=>{const r=res[i];const show=!!r&&state.show.arcs&&r.abs>maxAbs*.01;g.visible=show;if(!show)return;
+  ARCS.forEach((g,i)=>{const r=vis[i];const show=!!r&&state.show.arcs&&r.abs>maxAbs*.01;g.visible=show;if(!show)return;
     const frac=clamp(r.abs/maxAbs,0,1), arc=.2*Math.PI+1.5*Math.PI*frac, R=r.key==='L5'?.075:.1;
     const ud=g.userData; if(Math.abs(ud.arc-arc)>.01||ud.R!==R){ud.torus.geometry.dispose();ud.torus.geometry=new THREE.TorusGeometry(R,.007,8,48,arc);ud.arc=arc;ud.R=R;
       ud.cone.position.set(R*Math.cos(arc),R*Math.sin(arc),0);ud.cone.rotation.set(0,0,arc);}
@@ -2302,7 +2393,8 @@ function frame(){
   // панель
   $('#fVal').textContent=fmt0(pose.F); $('#fDesc').textContent=forceDesc(pose);
   $('#tOut').textContent=`${Math.round(state.t*100)} %`;
-  $('#sideNote').textContent=upper?'на одну руку':'на одну ногу';
+  const hasArm=vis.some(r=>r.key==='shoulder'||r.key==='elbow'), hasLeg=vis.some(r=>r.j.bil||r.key==='ankle'||r.key==='knee'||r.key==='hip');
+  $('#sideNote').textContent=pose.sideNote||(hasArm&&hasLeg?'на одну руку и одну ногу':hasArm?'на одну руку':'на одну ногу');
   const shownMax=maxAbs;
   for(const r of res){const row=document.getElementById('row-'+r.key);if(!row)continue;
     row.querySelector('.v').textContent=fmt0(r.abs); row.querySelector('.arm').textContent=`${fmt1(r.arm*100)} см`;
@@ -2310,7 +2402,7 @@ function frame(){
     const dir=(r.dem&&r.dem!=='fixed')?`<span class="dir">${(r.key==='ankle'?DIR_ANKLE:DIRLBL)[r.dem]}</span>`:'';
     const html=`${dir}${r.dem?'работают: ':''}${r.muscles}`; const mu=row.querySelector('.mus'); if(mu._h!==html){mu.innerHTML=html;mu._h=html;}
     row.querySelector('.bar span').style.width=`${clamp(r.abs/shownMax*100,0,100)}%`;
-    const arm=r.j.mode==='3d'&&r.key!=='L5', base=(pose.sideKg||0)*(r.key==='L5'?2:1), ratio=base>.01?r.mKg/base:0;
+    const arm=r.key==='shoulder'||r.key==='elbow', base=(pose.sideKg||0)*(r.key==='L5'?2:1), ratio=base>.01?r.mKg/base:0;
     row.querySelector('.mf').innerHTML=`Мышцы: ≈ <b>${fmt0(r.mKg)} кг</b> · плечо мышцы ${fmt1(r.mArm*100)} см${ratio>.05?` · <span title="во сколько раз больше нагрузки">×${fmt1(ratio)} к нагрузке на ${r.key==='L5'?'весь снаряд':arm?'руку':'ногу'}</span>`:''}`;
     const frEl=row.querySelector('.fr'), fr=pose.frontal&&pose.frontal[r.key];
     if(r.key==='shoulder'){const P=pose.P,e=P.elL.clone().sub(P.shL),f=P.haL.clone().sub(P.elL);
@@ -2324,7 +2416,7 @@ function frame(){
   // контакты: конусы трения и стрелки реакции
   const cts=(state.show.force&&pose.contacts)||[];
   CARR.forEach((o,i)=>{const c=cts[i];if(!c){setArrow(o,null,null,false);return;}const d=c.push.clone().normalize();setArrow(o,c.p.clone().addScaledVector(d,.3),d,true,C.muted);});
-  const w=$('#warn'); if(!pose.flag&&pose.note){w.hidden=false;w.textContent=pose.note;} else if(pose.flag){w.hidden=false;w.textContent=pose.flag==='pad'?'При такой опоре стопы тело отрывается от подушки: равновесие возможно только если держаться руками.':pose.flag==='lift'?'Одна из опор отрывается: при такой постановке равновесие невозможно.':pose.flag==='slipBridge'?'Трения не хватает: стопы или спина проскользнут. Измените постановку стоп или режим трения.':pose.flag==='slip'?'Реакции платформы нужно трение больше μ — стопы соскользнут. Смените точку опоры или вынос стоп.':pose.flag==='dl'?'Центр масс не удаётся удержать над серединой стопы: гриф ушёл на предел вперёд или назад. Поза на пределе баланса.':pose.flag==='front'?'Центр масс не удаётся удержать над серединой стопы: даже при максимальном наклоне он позади. Поза на пределе баланса.':'Центр масс впереди середины стопы даже при вертикальном корпусе. Поза на пределе баланса.';} else w.hidden=true;
+  const w=$('#warn'); if(pose.warn){w.hidden=false;w.textContent=pose.warn;} else if(!pose.flag&&pose.note){w.hidden=false;w.textContent=pose.note;} else if(pose.flag){w.hidden=false;w.textContent=pose.flag==='pad'?'При такой опоре стопы тело отрывается от подушки: равновесие возможно только если держаться руками.':pose.flag==='lift'?'Одна из опор отрывается: при такой постановке равновесие невозможно.':pose.flag==='slipBridge'?'Трения не хватает: стопы или спина проскользнут. Измените постановку стоп или режим трения.':pose.flag==='slip'?'Реакции платформы нужно трение больше μ — стопы соскользнут. Смените точку опоры или вынос стоп.':pose.flag==='dl'?'Центр масс не удаётся удержать над серединой стопы: гриф ушёл на предел вперёд или назад. Поза на пределе баланса.':pose.flag==='front'?'Центр масс не удаётся удержать над серединой стопы: даже при максимальном наклоне он позади. Поза на пределе баланса.':'Центр масс впереди середины стопы даже при вертикальном корпусе. Поза на пределе баланса.';} else w.hidden=true;
   drawMarker();
 }
 function updateTags(){
@@ -2332,7 +2424,7 @@ function updateTags(){
   for(const k in TAGS)TAGS[k].style.display=show?'':'none';
   if(!show)return;
   const used=new Set(), list=[];
-  for(const r of res){const el=tag(r.key);used.add(r.key);el.style.display='';setTagHTML(el,`<i style="background:${C[r.key]}"></i>${JNAME[r.key]} <b>${fmt1(r.arm*100)} см</b><span class="mk">${fmt0(r.mKg)} кг</span>`);list.push(placeTag(el,r.j.pos,TAG_OFF[r.key]||[14,0]));}
+  for(const r of shown(res)){const el=tag(r.key);used.add(r.key);el.style.display='';setTagHTML(el,`<i style="background:${C[r.key]}"></i>${JNAME[r.key]} <b>${fmt1(r.arm*100)} см</b><span class="mk">${fmt0(r.mKg)} кг</span>`);list.push(placeTag(el,r.j.pos,TAG_OFF[r.key]||[14,0]));}
   if(state.show.force){const el=tag('F');used.add('F');el.style.display='';const ln=pose.line;const p=ln.p.clone().addScaledVector(ln.d,-.3);setTagHTML(el,`<i></i>${pose.R!=null?'R':'F'} <b>${fmt0(pose.R!=null?pose.R:pose.F)} Н</b>`);list.push(placeTag(el,p,TAG_OFF.F));}
   const c0=state.show.force&&pose.contacts&&pose.contacts[0];
   if(c0&&c0.label){const el=tag('P');used.add('P');el.style.display='';setTagHTML(el,`<i style="background:${C.muted}"></i>${c0.label} <b>${Math.round(c0.need*100)}%</b>`);list.push(placeTag(el,c0.p.clone().addScaledVector(c0.push.clone().normalize(),.3),[12,8]));}
