@@ -410,8 +410,8 @@ const FREE_TOP={
   hip:['load','trunk','head','uaL','uaR','faL','faR'],
   L5:['load','trunkU','head','uaL','uaR','faL','faR']
 };
-const JNAME={ankle:'Голеностоп',knee:'Колено',hip:'Тазобедренный',L5:'Поясница L5–S1',shoulder:'Плечевой',elbow:'Локоть'};
-const JVAR={ankle:'--j-ankle',knee:'--j-knee',hip:'--j-hip',L5:'--j-lumbar',shoulder:'--j-shoulder',elbow:'--j-elbow'};
+const JNAME={ankle:'Голеностоп',knee:'Колено',hip:'Тазобедренный',L5:'Поясница L5–S1',shoulder:'Плечевой',elbow:'Локоть',hipSt:'Опорное бедро',hipMv:'Рабочее бедро'};
+const JVAR={ankle:'--j-ankle',knee:'--j-knee',hip:'--j-hip',L5:'--j-lumbar',shoulder:'--j-shoulder',elbow:'--j-elbow',hipSt:'--j-hip',hipMv:'--j-lumbar'};
 const MUSC={
   ankle:{flex:'Икроножная, камбаловидная',ext:'Передняя большеберцовая'},
   knee:{flex:'Квадрицепс',ext:'Бицепс бедра, икроножная'},
@@ -419,7 +419,7 @@ const MUSC={
   L5:{flex:'Разгибатели спины',ext:'Пресс, сгибатели бедра'},
   elbow:{flex:'Трицепс',ext:'Бицепс, плечевая, плечелучевая'}
 };
-const DIRLBL={flex:'сгибает сустав',ext:'разгибает сустав'}, DIR_ANKLE={flex:'тыльное сгибание',ext:'подошвенное сгибание'};
+const DIRLBL={flex:'сгибает сустав',ext:'разгибает сустав',add:'приводит бедро',abd:'отводит бедро'}, DIR_ANKLE={flex:'тыльное сгибание',ext:'подошвенное сгибание'};
 
 function basePose(o){
   const zs=A.sw/2, zh=A.hw/2, P={};
@@ -879,6 +879,62 @@ function buildLegPress(t,p,load){
   return pose;
 }
 
+/* ---------- Отведение бедра в кроссовере ---------- */
+// Стоя на одной ноге, манжета нижнего блока на голеностопе рабочей ноги, стойка блока сбоку со стороны опорной ноги.
+// Рабочая нога — в данных приложения 'L' (z > 0, анатомически правая: лицо смотрит в +x), опорная — 'R'.
+// Тело без опоры руками наклоняется во фронтальной плоскости вокруг опорного голеностопа ровно настолько,
+// чтобы момент веса тела и троса относительно центра опорной стопы был нулевым.
+// Опорное бедро считается сверху: таз, корпус, руки, рабочая нога и трос. Рабочее бедро: рабочая нога и трос.
+const ABD_ARM=.058; // плечо отведения средней ягодичной, м: 5,7–5,9 см при отведении 0–30° (Rajagopal 2016, anatomy/legs/muscles.json)
+function buildAbduction(t,p,load){
+  const m='L', s='R', km=1, zh=A.hw/2;
+  const ankle=v2(0,A.ah), knee=v2(0,A.ah+A.shank), hip=v2(0,A.ah+A.shank+A.thigh), S=v2(0,hip.y+A.trunk);
+  const th=lerp(p.from,p.to,t)*D, colZ=-km*(zh+p.col/100), PL=V(0,p.ph/100,colZ), Fc=load*G;
+  const rotX=(q,c,a)=>{const y=q.y-c.y,z=q.z-c.z;q.y=c.y+y*Math.cos(a)-z*Math.sin(a);q.z=c.z+y*Math.sin(a)+z*Math.cos(a);};
+  const mk=phi=>{
+    const pose=basePose({ankle,knee,hip,S,footDir:v2(1,0),sole:v2(0,-1)}), P=pose.P;
+    setArms(pose,V(.06,hip.y+.02,zh+.12),V(.06,hip.y+.02,-(zh+.12)),V(-1,-.3,.6));
+    // рабочая нога отводится вокруг своего тазобедренного: поворот вокруг +x на −θ уводит стопу в +z
+    for(const k of ['knee','ankle','heel','toe'])rotX(P[k+m],P['hip'+m],-km*th);
+    // всё, кроме опорной стопы, наклоняется вокруг опорного голеностопа
+    const piv=P['ankle'+s].clone();
+    for(const k in P){if(k==='heel'+s||k==='toe'+s||k==='ankle'+s)continue;rotX(P[k],piv,phi);}
+    pose.u=P.shMid.clone().sub(P.hipMid).normalize(); pose.front=pose.u.clone().cross(Z).normalize();
+    const cop=V((P['heel'+s].x+P['toe'+s].x)/2,0,P['ankle'+s].z); pose.cop=cop;
+    const cuff=P['ankle'+m].clone().add(V(0,.03,0)), d=PL.clone().sub(cuff).normalize();
+    pose.forces.push({seg:'load',p:cuff,F:d.clone().multiplyScalar(Fc),mass:0});
+    addBody(pose);
+    // trunkU — верх корпуса для поясницы, он уже входит в trunk
+    let Mx=0; for(const f of pose.forces){if(f.seg==='trunkU')continue;const r=f.p.clone().sub(cop);Mx+=r.y*f.F.z-r.z*f.F.y;}
+    pose._Mx=Mx; pose.eq={PL,cuff,colZ,d}; return pose;
+  };
+  let lo=-12*D, hi=12*D, pose=mk(0);
+  const sgn=Math.sign(mk(hi)._Mx-mk(lo)._Mx)||1;
+  for(let i=0;i<34;i++){const md=(lo+hi)/2;pose=mk(md);if(pose._Mx*sgn>0)hi=md;else lo=md;}
+  const P=pose.P, e=pose.eq, cable={p:e.cuff,d:e.d.clone()};
+  // реакция опоры: всё, что держит пол (с весом тела или только от троса)
+  const Rv=V(0,0,0); for(const f of pose.forces)if(f.seg!=='trunkU'&&(state.body||f.seg==='load'))Rv.sub(f.F);
+  pose.lineB=cable; pose.F=Fc; pose.sideKg=load;
+  if(state.body){pose.line={p:pose.cop,d:Rv.clone().normalize()}; pose.R=Rv.length();}
+  else pose.line=cable;
+  const legM=['th'+m,'sk'+m,'ft'+m];
+  const MS_ABD={add:'Средняя и малая ягодичные, напрягатель широкой фасции',abd:'Приводящие мышцы бедра'};
+  // внешний момент на «свободную» часть: у рабочей ноги отведение — поворот ноги вокруг −x·km, у опорного бедра
+  // приведение — поворот таза вокруг +x·km (таз падает в сторону рабочей ноги)
+  pose.joints=[
+    {key:'hipSt',mode:'3d',line:state.body?'main':'B',side:s,hip3:true,pos:P['hip'+s],free:['load','trunk','head','uaL','uaR','faL','faR',...legM],
+      primary:'add',mArm:ABD_ARM,musc:MS_ABD,demFn:r=>r.Mv.x*km>0?'add':'abd'},
+    {key:'hipMv',mode:'3d',line:'B',side:m,hip3:true,pos:P['hip'+m],free:['load',...legM],
+      primary:'add',mArm:ABD_ARM,musc:MS_ABD,demFn:r=>-r.Mv.x*km>0?'abd':'add'}
+  ];
+  // колени — только для расчёта мышц (без подписей): иначе двусуставные мышцы бедра (напрягатель широкой фасции, прямая, портняжная)
+  // выпадают из расчёта, и сгибающую составляющую средней ягодичной уравновешивает одна подвздошная
+  const kn=(x,free,line)=>({key:'knee',mode:'3d',line,side:x,knee3:true,pos:P['knee'+x],a:P['hip'+x].clone().sub(P['knee'+x]),b:P['ankle'+x].clone().sub(P['knee'+x]),free,primary:'flex'});
+  pose.mjoints=[kn(s,['load','trunk','head','uaL','uaR','faL','faR',...legM,'th'+s],state.body?'main':'B'),kn(m,['load','sk'+m,'ft'+m],'B')];
+  pose.tiltDeg=(lo+hi)/2/D;
+  return pose;
+}
+
 const ELB_MODE={id:'elbows',label:'Локти',type:'seg',opts:[['vert','Под грифом'],['flare','Задать разведение']],def:'vert',
   hint:p=>p.elbows==='flare'?'Локоть держит заданный угол к корпусу, предплечье может наклоняться.':'Классическая техника: в нижней точке предплечья вертикальны в обеих плоскостях, точка касания груди и разведение локтей получаются из пропорций и ширины хвата. Фактическое разведение показано в карточке плечевого сустава.'};
 const EX={
@@ -946,7 +1002,13 @@ const EX={
             {id:'depth',label:'Сгибание колена в нижней точке',type:'range',min:60,max:130,step:1,unit:'°',def:100},COP_PARAM,...FRIC('plat')],
     desc:'Таз зафиксирован на сиденье. Направляющие держат поперечную силу, поэтому стопы могут толкать платформу под углом к ходу.'}
 };
-const GROUPS=['Свободные веса: ноги и спина','Жимы лёжа','Вертикальные тяги','Тренажёры для ног'];
+EX.abd={name:'Отведение бедра в кроссовере',eq:'нижний блок',group:4,loadLabel:'Вес в блоке',def:10,min:2.5,max:40,step:2.5,equip:'cable_low',build:buildAbduction,
+  params:[{id:'to',label:'Отведение в верхней точке',type:'range',min:15,max:50,step:1,unit:'°',def:35},
+          {id:'from',label:'Отведение в нижней точке',type:'range',min:-10,max:10,step:1,unit:'°',def:0,hint:'Минус — нога заходит за опорную'},
+          {id:'ph',label:'Высота блока над полом',type:'range',min:3,max:60,step:1,unit:' см',def:15},
+          {id:'col',label:'Стойка блока от опорной ноги',type:'range',min:20,max:120,step:1,unit:' см',def:50}],
+  desc:'Стоя на одной ноге без опоры руками, манжета на голеностопе рабочей ноги, блок сбоку со стороны опорной. Тело наклоняется к опорной ноге ровно настолько, чтобы удержать равновесие. Опорное бедро держит таз от падения в сторону рабочей ноги: вес тела над ним и тот же трос.'};
+const GROUPS=['Свободные веса: ноги и спина','Жимы лёжа','Вертикальные тяги','Тренажёры для ног','Кроссовер'];
 
 /* ================= Состояние ================= */
 const state={ex:'squat',t:.7,playing:false,chartMode:'moment',mass:80,body:false,loads:{},params:{},show:{force:true,arms:true,arcs:true,labels:true,xray:false,anat:true},compare:null};
@@ -957,6 +1019,7 @@ const buildNow=t=>cur().build(t,state.params[state.ex],state.loads[state.ex]);
 // Плечи мышц (внутренние), м — типичные значения из литературы
 function inclAngle(a,b,c){return a.clone().sub(b).angleTo(c.clone().sub(b));}
 function muscleArm(r,pose){
+  if(r.j.mArm) return r.j.mArm;
   const P=pose.P,k=r.key,d=r.dem;
   if(k==='elbow'){ if(d!=='ext') return .021; const fl=Math.PI-inclAngle(P.shL,P.elL,P.haL); return .018+.027*Math.sin(clamp(fl,0,Math.PI)); }
   if(k==='knee'){ if(d!=='ext'){const fl=(Math.PI-inclAngle(P.hipL,P.kneeL,P.ankleL))/D; return clamp(4.9-.013*Math.abs(fl-25),3.6,4.9)/100;} return .03; }
@@ -986,10 +1049,11 @@ function analyze(pose,withBody){
       r.arm=j.pos.distanceTo(r.Q); r.Mv=Mv; r.abs=Mv.length();
       r.axis=r.abs>1e-9?Mv.clone().normalize():V(0,0,1);
       if(j.fixed) r.dem='fixed';
+      else if(j.demFn) r.dem=r.abs>1e-6?j.demFn(r):null;
       else if(r.abs>1e-6){const ax=r.axis, b2=j.b.clone().addScaledVector(ax.clone().cross(j.b),.02); r.dem=j.a.angleTo(b2)<j.a.angleTo(j.b)?'flex':'ext';}
       else r.dem=null;
     }
-    r.muscles=j.fixed||(r.dem?MUSC[j.key][r.dem]:'Момент близок к нулю');
+    r.muscles=j.fixed||(r.dem?(j.musc||MUSC[j.key])[r.dem]:'Момент близок к нулю');
     r.signed=(j.fixed||r.dem===j.primary||!r.dem)?r.abs:-r.abs;
     r.mArm=muscleArm(r,pose); r.mKg=r.abs/r.mArm/G; r.signedMus=(r.signed<0?-1:1)*r.mKg;
     return r;
@@ -1438,7 +1502,7 @@ function restLengths(){
 
 // какой стороне сустава принадлежит сегмент: true — та часть тела, на которую считается внешний момент
 function freeSide(r,seg){
-  const dist=MJ_DIST[r.key], inDist=dist.includes(seg);
+  const dist=MJ_DIST[r.j.hip3?'hip':r.key], inDist=dist.includes(seg);
   if(r.key==='L5'||r.key==='shoulder'||r.key==='elbow') return inDist;
   const top=r.j.free.some(x=>x==='trunk'||x==='trunkU'||x==='head');
   return top?!inDist:inDist;
@@ -1484,6 +1548,14 @@ function muscleRows(pose,res,pts,fr){
       // сгибание бедра — поворот бедра вокруг +Z относительно таза (левая нога); у m.hf плечо разгибания обнуляется
       const fx=freeSide(r,'thigh')?1:-1;
       rows.push({key:r.key,c:arms.map((v,i)=>{if(!v)return 0;const m=MDEF[i],c=m.wp?mArmFD(m,fr,r,Z):v.z;return m.hf&&r.key==='hip'?fx*Math.max(0,fx*c):c;}),tau:-(r.M||0)/2,w:1});
+    } else if(r.j.knee3){
+      // колено в 3D: только ось сгибания (поперечная ось бедра); фронтальный момент держат связки и суставные поверхности
+      const e=fr.thigh.lat.clone().normalize(), Mv=r.Mv||V(0,0,0);
+      rows.push({key:'knee',c:arms.map((v,i)=>{if(!v)return 0;const m=MDEF[i];return m.wp?mArmFD(m,fr,r,e):v.dot(e);}),tau:-Mv.dot(e),w:1,axis:e});
+    } else if(r.j.hip3){
+      // тазобедренный в 3D (отведение): оси x (отведение–приведение) и z (сгибание–разгибание); вращение бедра не уравновешиваем
+      const Mv=r.Mv||V(0,0,0);
+      for(const e of [V(1,0,0),Z]) rows.push({key:'hip',c:arms.map((v,i)=>{if(!v)return 0;const m=MDEF[i];return m.wp?mArmFD(m,fr,r,e):v.dot(e);}),tau:-Mv.dot(e),w:1,axis:e});
     } else if(r.key==='elbow'){
       const P=pose.P; let n=P.elL.clone().sub(P.shL).cross(P.haL.clone().sub(P.elL));
       if(n.lengthSq()<1e-6) n=segFrames(pose,'L').ua.lat.clone(); n.normalize();
@@ -1549,17 +1621,24 @@ function muscleState(pose,res){
   // остальные растут с массой тела в степени 2/3
   const pk=Math.pow(state.mass/MREF.mass,2/3), vr0=MREF.H*MREF.mass;
   const pcsa=MDEF.map((m,i)=>m.pcsa*(m.vr?(m.vr[0]*A.H*state.mass+m.vr[1])/(m.vr[0]*vr0+m.vr[1])*ref[i]/rest[i].L:pk)), fmax=MDEF.map((m,i)=>pcsa[i]*m.sig);
-  const rows=muscleRows(pose,res,pts.L,fr.L), have=new Set(rows.map(r=>r.key));
-  // мышца, которая пересекает сустав без расчёта в этом упражнении, не участвует: её вклад там нечем уравновесить
-  for(const r of rows)MDEF.forEach((m,i)=>{if(!m.joints.every(k=>have.has(k)))r.c[i]=0;});
-  // минимум суммы кубов активаций (F/Fmax)³; резервные моменты (как reserve actuators в OpenSim) — на случай, когда мышцам момент не взять
-  const nm=fmax.length, cols=fmax.slice();
-  rows.forEach((r,k)=>{for(const sg of [1,-1]){cols.push(RESERVE);rows.forEach((q,j)=>q.c.push(j===k?sg:0));}});
-  const Fx=solveMuscles(rows,cols), F=Fx.slice(0,nm);
-  rows.forEach((r,k)=>{r.reserve=Fx[nm+2*k]-Fx[nm+2*k+1];r.c.length=nm;});
-  const out=MDEF.map((m,i)=>{const L=mLen(m,i,pts.L[i],pose,'L',rest),lf0=m.lf?m.lf/100*rest[i].L/ref[i]:.5*rest[i].L,lf=Math.max(lf0*.35,lf0+L-rest[i].L);
-    return {m,F:F[i],sig:F[i]/pcsa[i],act:clamp(F[i]/fmax[i],0,1),L,L0:rest[i].L,lf,lf0,stretch:lf/lf0};});
-  return {pts,out,rows,F,pcsa,fmax};
+  // несимметричное упражнение (отведение): у суставов задана сторона, мышцы каждой ноги считаются отдельно
+  const all=pose.mjoints?res.concat(analyze({...pose,joints:pose.mjoints},state.body)):res;
+  const side=s=>{
+    const rs=all.filter(r=>(r.j&&r.j.side||'L')===s); if(s==='R'&&!rs.length)return null;
+    const rows=muscleRows(pose,rs,pts[s],fr[s]), have=new Set(rows.map(r=>r.key));
+    // мышца, которая пересекает сустав без расчёта в этом упражнении, не участвует: её вклад там нечем уравновесить
+    for(const r of rows)MDEF.forEach((m,i)=>{if(!m.joints.every(k=>have.has(k)))r.c[i]=0;});
+    // минимум суммы кубов активаций (F/Fmax)³; резервные моменты (как reserve actuators в OpenSim) — на случай, когда мышцам момент не взять
+    const nm=fmax.length, cols=fmax.slice();
+    rows.forEach((r,k)=>{for(const sg of [1,-1]){cols.push(RESERVE);rows.forEach((q,j)=>q.c.push(j===k?sg:0));}});
+    const Fx=solveMuscles(rows,cols), F=Fx.slice(0,nm);
+    rows.forEach((r,k)=>{r.reserve=Fx[nm+2*k]-Fx[nm+2*k+1];r.c.length=nm;});
+    const out=MDEF.map((m,i)=>{const L=mLen(m,i,pts[s][i],pose,s,rest),lf0=m.lf?m.lf/100*rest[i].L/ref[i]:.5*rest[i].L,lf=Math.max(lf0*.35,lf0+L-rest[i].L);
+      return {m,F:F[i],sig:F[i]/pcsa[i],act:clamp(F[i]/fmax[i],0,1),L,L0:rest[i].L,lf,lf0,stretch:lf/lf0};});
+    return {rows,F,out};
+  };
+  const L=side('L'), R=side('R');
+  return {pts,out:L.out,rows:L.rows,F:L.F,pcsa,fmax,outR:R&&R.out,rowsR:R&&R.rows};
 }
 
 /* ---- отрисовка мышц ---- */
@@ -1705,8 +1784,8 @@ function updateMuscles(pose,res){
   for(const s of ['L','R']){
     const cores=coresFor(s,pose.P), shank=segFrames(pose,s).shank;
     MDEF.forEach((m,i)=>{
-      const st=MS.out[i], sm=s==='L'?st:{...st,L:mLen(m,i,MS.pts.R[i],pose,'R',rest)};
-      if(s==='R'){sm.lf=Math.max(st.lf0*.35,st.lf0+sm.L-rest[i].L);sm.stretch=sm.lf/st.lf0;}
+      const st=MS.out[i], sm=s==='L'?st:MS.outR?MS.outR[i]:{...st,L:mLen(m,i,MS.pts.R[i],pose,'R',rest)};
+      if(s==='R'&&!MS.outR){sm.lf=Math.max(st.lf0*.35,st.lf0+sm.L-rest[i].L);sm.stretch=sm.lf/st.lf0;}
       drawMuscle(MMESH[s][i],MS.pts[s][i],sm,rest[i],cores.forMuscle[i],shank);
     });
   }
@@ -1777,6 +1856,23 @@ const EQUIP={
         else {for(const s of [1,-1]){const r=cylMesh(MAT.metal,bar);setCyl(r,V(0,.07,0),V(0,0,s*e.g),.01);const h=cylMesh(MAT.pad,bar);h.rotation.z=Math.PI/2;h.scale.set(.018,.12,.018);h.position.set(0,0,s*e.g);}}
       }
       bar.position.copy(e.B);
+    }};
+  },
+  cable_low(load){
+    const objs=[],M=m=>(objs.push(m),m);
+    const col=M(boxMesh(MAT.frame)),base=M(boxMesh(MAT.frame)),stack=M(boxMesh(MAT.iron)),cable=M(cylMesh(MAT.metal)),strap=M(cylMesh(MAT.pad));
+    const pulley=new THREE.Mesh(new THREE.TorusGeometry(.045,.012,10,28),MAT.metal);M(pulley);scene.add(pulley);
+    const cuff=new THREE.Mesh(new THREE.TorusGeometry(.055,.018,10,28),MAT.pad);M(cuff);scene.add(cuff);
+    return{objs,update(p){
+      const e=p.eq, zc=e.colZ+Math.sign(e.colZ)*.09, n=equipStack(load);
+      placeBox(col,V(0,1.05,zc),V(1,0,0),Y,Z,.12,2.1,.1);
+      placeBox(base,V(0,.025,zc),V(1,0,0),Y,Z,.6,.05,.3);
+      placeBox(stack,V(-.16,.2+.06*n,zc),V(1,0,0),Y,Z,.14,.12*n+.1,.24);
+      pulley.position.copy(e.PL); pulley.rotation.set(0,0,0);
+      setCyl(cable,e.cuff,e.PL,.004);
+      const an=p.P.ankleL, sk=p.P.kneeL.clone().sub(an).normalize();
+      cuff.position.copy(an).addScaledVector(sk,.06); cuff.quaternion.setFromUnitVectors(Z,sk);
+      setCyl(strap,cuff.position,e.cuff,.008);
     }};
   },
   pendulum(load){
@@ -1884,7 +1980,7 @@ function setArrow(o,p,d,show,col){
 /* ---- метки ---- */
 const tagsEl=$('#tags'); const TAGS={};
 function tag(key){if(TAGS[key])return TAGS[key];const el=document.createElement('div');el.className='tag'+(key==='F'?' force':'');tagsEl.appendChild(el);TAGS[key]=el;return el;}
-const TAG_OFF={ankle:[14,6],knee:[16,-4],hip:[16,8],L5:[-16,-6],shoulder:[-14,-18],elbow:[16,6],F:[14,-14]};
+const TAG_OFF={ankle:[14,6],knee:[16,-4],hip:[16,8],hipSt:[16,8],hipMv:[-16,-8],L5:[-16,-6],shoulder:[-14,-18],elbow:[16,6],F:[14,-14]};
 function setTagHTML(el,h){if(el._h!==h){el.innerHTML=h;el._h=h;}}
 function placeTag(el,p,off){
   const v=p.clone().project(camera);
@@ -2016,6 +2112,7 @@ function fitPoints(){
     pts.push(p.P.head.clone().add(V(0,.12,0)));
     for(const s of ['L','R'])pts.push(V(p.P['heel'+s].x,0,p.P['heel'+s].z),V(p.P['toe'+s].x,0,p.P['toe'+s].z));
     if(p.eq.bar&&['barbell','bridge'].includes(cur().equip))pts.push(p.eq.bar.clone().add(V(0,.23,0)),p.eq.bar.clone().add(V(0,-.23,0)));
+    if(cur().equip==='cable_low')pts.push(p.eq.PL.clone());
     if(cur().equip==='bridge'&&p.eq.bar)pts.push(p.eq.bar.clone().add(V(0,0,.95)),p.eq.bar.clone().add(V(0,0,-.95)));
   }
   return pts;
@@ -2180,6 +2277,7 @@ function forceDesc(p){
   const L=state.loads[state.ex],k={squat:1,deadlift:1,rdl:1}[state.ex];
   if(state.ex==='bridge') return `Вес штанги ${fmtKg(L)} × g лежит на тазу. Плечи для голеностопа, колена и таза считаются от реакции пола под стопами (линия R), для поясницы — от реакции скамьи, перпендикулярной спине. Значения на одну ногу.`;
   if(k) return `Вес штанги ${fmtKg(L)} × g, вертикально вниз через центр грифа. Ноги: значения на одну ногу.`;
+  if(state.ex==='abd') return `Натяжение троса ${fmtKg(L)} × g = ${fmt0(p.F)} Н, по тросу к блоку. ${state.body?`Линия R — реакция пола под опорной стопой, ${fmt0(p.R)} Н: от неё считается опорное бедро. Рабочее бедро — от троса.`:'Без веса тела оба бедра считаются только от троса.'} Тело наклонено к опорной ноге на ${fmt1(Math.abs(p.tiltDeg))}°.`;
   if(state.ex==='db') return `Вес одной гантели ${fmtKg(L)}, вертикально вниз через кисть. Значения на одну руку.`;
   if(state.ex==='bench'||state.ex==='close') return `Половина веса штанги (${fmtKg(L)}) на каждую руку. Линия силы — результирующая с боковой силой от кисти.`;
   if(state.ex==='pdn'||state.ex==='pdw') return `Натяжение троса ${fmt0(p.F)} Н, по ${fmt0(p.F/2)} Н на руку. На каждой кисти — результирующая троса и боковой силы.`;
@@ -2260,7 +2358,7 @@ function frame(){
     const dir=(r.dem&&r.dem!=='fixed')?`<span class="dir">${(r.key==='ankle'?DIR_ANKLE:DIRLBL)[r.dem]}</span>`:'';
     const html=`${dir}${r.dem?'работают: ':''}${r.muscles}`; const mu=row.querySelector('.mus'); if(mu._h!==html){mu.innerHTML=html;mu._h=html;}
     row.querySelector('.bar span').style.width=`${clamp(r.abs/shownMax*100,0,100)}%`;
-    const arm=r.j.mode==='3d'&&r.key!=='L5', base=(pose.sideKg||0)*(r.key==='L5'?2:1), ratio=base>.01?r.mKg/base:0;
+    const arm=r.j.mode==='3d'&&r.key!=='L5'&&!r.j.hip3, base=(pose.sideKg||0)*(r.key==='L5'?2:1), ratio=base>.01?r.mKg/base:0;
     row.querySelector('.mf').innerHTML=`Мышцы: ≈ <b>${fmt0(r.mKg)} кг</b> · плечо мышцы ${fmt1(r.mArm*100)} см${ratio>.05?` · <span title="во сколько раз больше нагрузки">×${fmt1(ratio)} к нагрузке на ${r.key==='L5'?'весь снаряд':arm?'руку':'ногу'}</span>`:''}`;
     const frEl=row.querySelector('.fr'), fr=pose.frontal&&pose.frontal[r.key];
     if(r.key==='shoulder'){const P=pose.P,e=P.elL.clone().sub(P.shL),f=P.haL.clone().sub(P.elL);
