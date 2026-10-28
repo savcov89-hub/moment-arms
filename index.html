@@ -1012,6 +1012,118 @@ const EQUIP_X={};
 /* ===== Раздел: блоки (горизонтальная тяга, разгибание рук, сведение, тяга к лицу) ===== */
 
 /* ===== Раздел: подтягивания ===== */
+// Вис на перекладине: тело держится только кистями, поэтому общий центр масс (тело и вес на поясе) всегда точно под перекладиной.
+// Поза задаётся в системе корпуса: перекладина обходит середину плеч — сгибание локтя и направление на перекладину от плеч
+// меняются равномерно от виса до верхней точки, ноги согнуты на заданные углы. Потом всё тело поворачивается вокруг перекладины,
+// пока центр масс не встанет под неё, — так получается наклон корпуса назад.
+const PU_LEGS={bent:[20,90],straight:[12,5],L:[90,3]};    // сгибание таза и колена, °
+const PU_TOP={chin:20,chest:-10};                          // направление на перекладину от плеч в верхней точке, ° над горизонталью корпуса
+const PU_EL=[8,148];                                       // сгибание локтя в висе и наибольшее в верхней точке, °
+const PU_THUMB={under:[V(0,0,1),V(0,0,-1)],neutral:[V(-1,0,0),V(-1,0,0)]};   // хват снизу — большой палец наружу, на параллельных рукоятях — к себе
+const puGripW=p=>(p.grip==='under'?p.wU:p.grip==='neutral'?p.wN:p.wO)/100;
+const puReach=e=>Math.sqrt(A.ua*A.ua+A.fa*A.fa+2*A.ua*A.fa*Math.cos(e*D));   // плечо — центр хвата при сгибании локтя e
+// поза при наклоне al вокруг перекладины Bt (система корпуса → мир: перекладина на высоте Yb); вес на поясе висит отвесно
+function puBuild(t,p,load,legs,Yb,al){
+  const zs=A.sw/2, g=puGripW(p)/2, dz=Math.abs(g-zs), [fh,fk]=PU_LEGS[legs].map(x=>x*D);
+  const hip=v2(0,0), S=v2(0,A.trunk), knee=add(hip,mul(dirA(Math.PI-fh),A.thigh)), sk=dirA(Math.PI-fh+fk), ankle=add(knee,mul(sk,A.shank));
+  const fd=rot(sk,55*D), so=rot(fd,-90*D);   // стопа расслаблена: носок опущен на 35°
+  // в верхней точке перекладина не ближе 13 см к плечам (голова и шея), поэтому при широком хвате локоть сгибается меньше
+  const eTop=Math.min(PU_EL[1],Math.acos(clamp((dz*dz+.13*.13-A.ua*A.ua-A.fa*A.fa)/(2*A.ua*A.fa),-1,1))/D);
+  const e=lerp(PU_EL[0],eTop,t), rin=Math.sqrt(Math.max(1e-4,puReach(e)**2-dz*dz)), th=lerp(8,90-PU_TOP[p.top],t)*D;
+  const Bt=add(S,mul(dirA(th),rin));
+  const c=Math.cos(al), s=Math.sin(al), W=q=>v2(c*(q.x-Bt.x)-s*(q.y-Bt.y),s*(q.x-Bt.x)+c*(q.y-Bt.y)+Yb), Wd=q=>rot(q,al);
+  const pose=basePose({ankle:W(ankle),knee:W(knee),hip:W(hip),S:W(S),footDir:Wd(fd),sole:Wd(so)});
+  // локоть ниже линии плечо — кисть в вертикальной плоскости через неё: отвесная реакция перекладины лежит в плоскости руки,
+  // поэтому в локте только сгибающий момент, а плечевую кость она не скручивает (вращательной манжете не нужно держать ротацию).
+  // Перед плечевой кости (pose.uaAnt) — внутрь угла локтя: и почти прямой локоть в висе сгибается в своей плоскости
+  const P=pose.P, B=V(0,Yb,0), hL=V(0,Yb,g), u=hL.clone().sub(P.shL).normalize(), pole=Y.clone().addScaledVector(u,-u.y).negate();
+  setArms(pose,hL,V(0,Yb,-g),pole); pose.uaAnt=pole.negate();
+  addBody(pose);
+  const belt=P.hipMid.clone().addScaledVector(pose.front,.11).addScaledVector(pose.u,.05), plate=belt.clone().add(V(0,-.3,0));
+  if(load>0)pose.forces.push({seg:'belt',p:plate,F:V(0,-load*G,0),mass:load});
+  pose.eq={B,Yb,g,belt,plate,kind:p.grip,al};
+  return pose;
+}
+function puCom(pose){let m=0;const c=V(0,0,0);for(const f of pose.forces)if(f.mass&&f.seg!=='trunkU'){m+=f.mass;c.addScaledVector(f.p,f.mass);}return c.divideScalar(m);}
+// поворот вокруг перекладины, при котором общий центр масс под ней: для жёсткого тела — сразу, вес на поясе висит отвесно — ещё пара шагов
+function puSolve(t,p,load,legs,Yb){
+  let al=0, pose;
+  for(let it=0;it<5;it++){pose=puBuild(t,p,load,legs,Yb,al);const c=puCom(pose),dx=c.x-pose.eq.B.x,dy=pose.eq.B.y-c.y;if(Math.abs(dx)<1e-5)break;al-=Math.atan2(dx,dy);}
+  return pose;
+}
+function buildPullup(t,p,load){
+  // высота перекладины: в висе на прямых ногах носки чуть выше пола — для всех вариантов ног одна
+  const ref=puSolve(0,p,0,'straight',0), low=Math.min(...['toeL','heelL','kneeL'].map(k=>ref.P[k].y));
+  const Yb=Math.round((.04-low)*100)/100, pose=puSolve(t,p,load,p.legs,Yb), P=pose.P, zs=A.sw/2, g=pose.eq.g;
+  pose.bodyLoad=true;                                        // вес тела и есть нагрузка: учитывается всегда
+  if(p.grip!=='over'){pose.forearm=p.grip==='under'?'sup':'neu'; pose.eq.thumb=PU_THUMB[p.grip];}
+  // перекладина держит всё: по половине на кисть, плюс боковое усилие хвата
+  const W=(state.mass+load)*G, F0=V(0,W/2,0), {FL,FR}=gripFriction(pose,F0,p,2*g);
+  pose.forces.push({seg:'load',p:pose.eq.B.clone(),F:V(0,W,0)},{seg:'loadL',p:P.haL,F:FL},{seg:'loadR',p:P.haR,F:FR});
+  pose.lineL={p:P.haL.clone(),d:FL.clone().normalize()}; pose.lineR={p:P.haR.clone(),d:FR.clone().normalize()}; pose.line=pose.lineL;
+  pose.F=W; pose.R=FL.length(); pose.sideKg=W/2/G;
+  // поясница, таз, колено: момент создаёт вес частей тела ниже сустава — линия отвесно через их центр масс
+  const com=(segs,z)=>{let m=0;const c=V(0,0,0);for(const f of pose.forces)if(f.mass&&segs.includes(f.seg)){const k=f.seg==='trunkU'?-1:1;m+=k*f.mass;c.addScaledVector(f.p,k*f.mass);}c.divideScalar(m);c.z=z;return c;};
+  const down=V(0,-1,0), zh=A.hw/2, ln=(segs,z)=>({p:com(segs,z),d:down,floor:false}), legs=['thL','thR','skL','skR','ftL','ftR'];
+  pose.lineB=ln(['trunk','trunkU','belt',...legs],0);        // таз (корпус без верхней части) + ноги + вес на поясе
+  const aj=armJoints(pose,'Широчайшая, большая круглая, большая грудная, задняя дельта'); aj[1].primary='ext';
+  // сравнение в строке «Мышцы»: плечо и локоть — с нагрузкой на руку (половина веса), поясница — с весом тела; таз и колено держат
+  // только вес ног, с весом тела их не сравниваем
+  const body={kg:state.mass+load,of:load>0?'весу тела с поясом':'весу тела'};
+  pose.joints=[...aj,
+    {key:'L5',mode:'2d',line:pose.lineB,pos:P.L5,free:FREE_TOP.L5,flexSign:-1,bil:false,primary:'ext',ratio:body},
+    {key:'hip',mode:'2d',line:ln(legs,zh),pos:P.hipL,a:P.shMid.clone().sub(P.hipMid),b:P.kneeL.clone().sub(P.hipL),free:legs,bil:true,primary:'ext',ratio:false},
+    {key:'knee',mode:'2d',line:ln(['skL','skR','ftL','ftR'],zh),pos:P.kneeL,a:P.hipL.clone().sub(P.kneeL),b:P.ankleL.clone().sub(P.kneeL),free:['skL','skR','ftL','ftR'],bil:true,primary:p.legs==='bent'?'ext':'flex',ratio:false},
+    {key:'ankle',mode:'2d',line:ln(['ftL','ftR'],zh),pos:P.ankleL,a:P.kneeL.clone().sub(P.ankleL),b:P.toeL.clone().sub(P.ankleL),free:['ftL','ftR'],bil:true,primary:'flex',hide:true,ratio:false}];
+  const hl=Math.max(.6,g+.2); pose.eq.hl=hl;
+  pose.eq.fit=[V(0,pose.eq.Yb+.1,hl+.05),V(0,pose.eq.Yb+.1,-hl-.05)];
+  pose.lean=Math.round(pose.eq.al/D);
+  return pose;
+}
+const PU_GRIP_HINT={over:'Прямой хват, ладони от себя. Чем шире хват, тем дальше кисть от плечевого сустава во фронтальной плоскости и тем меньше сгибается локоть в верхней точке.',
+  neutral:'Параллельные рукояти, ладони смотрят друг на друга, локти идут вперёд.',under:'Обратный хват, ладони к себе, обычно на ширине плеч: локти идут вперёд.'};
+Object.assign(EX,{
+  pullup:{name:'Подтягивания',eq:'перекладина',group:3,loadLabel:'Дополнительный вес на поясе',def:0,min:0,max:60,step:2.5,equip:'pullup',build:buildPullup,
+    ends:['вис','верх'],endsLong:['Вис на прямых руках','Верхняя точка'],
+    params:[{id:'grip',label:'Хват',type:'seg',opts:[['over','Прямой'],['neutral','Параллельный'],['under','Обратный']],def:'over',hint:p=>PU_GRIP_HINT[p.grip]},
+            {id:'wO',label:'Ширина хвата (между центрами кистей)',type:'range',min:35,max:110,step:1,unit:' см',def:65,show:p=>p.grip==='over'},
+            {id:'wN',label:'Расстояние между рукоятями',type:'range',min:35,max:70,step:1,unit:' см',def:50,show:p=>p.grip==='neutral'},
+            {id:'wU',label:'Ширина хвата (между центрами кистей)',type:'range',min:25,max:70,step:1,unit:' см',def:40,show:p=>p.grip==='under'},
+            {id:'top',label:'Верхняя точка',type:'seg',opts:[['chin','Подбородок над перекладиной'],['chest','Грудь к перекладине']],def:'chin',
+              hint:'К груди — перекладина в верхней точке ниже относительно плеч, корпус отклоняется назад сильнее. Лопатка в модели движется только вместе с подъёмом руки, сведение лопаток в верхней точке не учтено.'},
+            {id:'legs',label:'Ноги',type:'seg',opts:[['bent','Согнуты в коленях'],['straight','Прямые'],['L','Уголок']],def:'bent',
+              hint:p=>(p.legs==='L'?'Уголок: бёдра горизонтально, ноги держат сгибатели бедра и пресс. ':'')+'Ноги меняют положение центра масс, и тело само поворачивается так, чтобы он оказался под перекладиной.'},
+            ...FRIC('pull','none')],
+    fdesc:(p,L)=>`Перекладина держит вес тела ${fmtKg(state.mass)}${L>0?` и пояса с весом ${fmtKg(L)}`:''}: ${fmt0(p.F)} Н, по ${fmt0(p.F/2)} Н на кисть. Наклон корпуса ${Math.abs(p.lean)}° ${p.lean>=0?'назад':'вперёд'} получается из равновесия: общий центр масс точно под перекладиной. Плечо и локоть считаются от реакции перекладины на кисть, поясница, таз и колено — от веса частей тела ниже них (линии через их центр масс). Вес тела учитывается всегда — он и есть нагрузка.`,
+    desc:'Тело висит на руках: общий центр масс всегда под перекладиной, поэтому наклон корпуса получается из равновесия. Нагрузка — вес тела и пояса.'}
+});
+// перекладина на кронштейнах: стойки позади атлета, сверху балки вперёд и подвесы к концам грифа — сбоку ничто не закрывает тело
+Object.assign(EQUIP_X,{pullup(load){
+  const objs=[],M=m=>(objs.push(m),m),two=f=>[f(),f()];
+  const posts=two(()=>M(boxMesh(MAT.frame))),beams=two(()=>M(boxMesh(MAT.frame))),feet=two(()=>M(boxMesh(MAT.frame))),hang=two(()=>M(boxMesh(MAT.frame)));
+  const cross=M(boxMesh(MAT.frame)),bar=M(cylMesh(MAT.metal)),hnd=two(()=>M(cylMesh(MAT.pad))),rods=[0,1,2,3].map(()=>M(cylMesh(MAT.metal)));
+  const chain=M(cylMesh(MAT.metal)),plate=new THREE.Group();M(plate);scene.add(plate);
+  const PL=[[25,.225,.06,0x2b5db8],[20,.225,.05,0x2b5db8],[15,.2,.045,0xd9a21b],[10,.165,.04,0x2f9e57],[5,.115,.03,0x9aa3a7],[2.5,.1,.022,0x9aa3a7]];
+  let z=0,left=load; for(const [kg,r,th,c] of PL)while(left>=kg-1e-6&&z<.24){const m=new THREE.Mesh(UNIT_CYL,plateMat(c));m.rotation.z=Math.PI/2;m.scale.set(r,th,r);m.position.x=z+th/2;m.castShadow=true;plate.add(m);z+=th+.003;left-=kg;}
+  plate.children.forEach(m=>m.position.x-=z/2); plate.userData.r=plate.children.reduce((a,m)=>Math.max(a,m.scale.x),0);
+  return{objs,update(p){
+    const e=p.eq,B=e.B,hl=e.hl,top=e.kind==='neutral'?e.Yb+.15:e.Yb, yT=e.Yb+.45, xP=-.8;
+    for(const [i,s] of [[0,1],[1,-1]]){
+      const zz=s*(hl+.03);
+      placeBox(posts[i],V(xP,(yT+.035)/2,zz),V(1,0,0),Y,Z,.07,yT+.035,.07);
+      placeBox(feet[i],V(xP-.05,.025,zz),V(1,0,0),Y,Z,.8,.05,.09);
+      placeBox(beams[i],V(xP/2+.02,yT,zz),V(1,0,0),Y,Z,-xP+.11,.07,.07);
+      placeBox(hang[i],V(0,(top+yT)/2,zz),V(1,0,0),Y,Z,.05,yT-top,.05);
+      if(e.kind==='neutral'){const h=V(0,B.y,s*e.g);setCyl(hnd[i],h.clone().add(V(-.07,0,0)),h.clone().add(V(.07,0,0)),.017);
+        setCyl(rods[2*i],h.clone().add(V(-.07,0,0)),V(0,top,s*e.g),.008);setCyl(rods[2*i+1],h.clone().add(V(.07,0,0)),V(0,top,s*e.g),.008);}
+    }
+    placeBox(cross,V(xP,yT,0),V(1,0,0),Y,Z,.07,.07,2*hl+.13);
+    setCyl(bar,V(0,top,-hl-.03),V(0,top,hl+.03),.016);
+    for(const o of [...hnd,...rods])o.visible=e.kind==='neutral';
+    const show=plate.children.length>0; chain.visible=plate.visible=show;
+    if(show){const pc=e.plate.clone(); setCyl(chain,e.belt,pc.clone().add(V(0,plate.userData.r,0)),.006); plate.position.copy(pc);}
+  }};
+}});
 
 /* ===== Раздел: разная поза левой и правой стороны (тяга гантели одной рукой, болгарские сплит-приседы, отведение бедра) ===== */
 
